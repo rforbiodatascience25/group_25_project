@@ -14,11 +14,15 @@ Szymon Cholewiński, s253711, Msc Bioinformatics  git: InfiniteLobster
 
 Magnus, s190867, Msc Bioinformatics  git: s190867
 
-##  Data: Pancreatic Adenocarcinoma TCGA PanCancer data
+##  Original Data: Pancreatic Adenocarcinoma TCGA PanCancer data
 
 https://www.cbioportal.org/study/summary?id=paad_tcga_pan_can_atlas_2018
 
 ... (Describe the data)
+
+## OneDrive Data
+
+https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5HAfa_IBmmXm8v_PSah1HKNBuqAerw?e=00m5vs
 
 ## Tasks
 
