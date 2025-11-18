@@ -1,4 +1,5 @@
 # group_25_project
+
 Group 25 Project on R for Bio Data Science 2025
 
 Project Contributors:
@@ -13,6 +14,12 @@ Szymon Cholewiński, s253711, Msc Bioinformatics  git: InfiniteLobster
 
 Magnus, s190867, Msc Bioinformatics  git: s190867
 
-# Data: 
+##  Data: Pancreatic Adenocarcinoma TCGA PanCancer data
 
-...
+https://www.cbioportal.org/study/summary?id=paad_tcga_pan_can_atlas_2018
+
+... (Describe the data)
+
+## Tasks
+
+
