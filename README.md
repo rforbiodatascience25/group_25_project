@@ -26,8 +26,31 @@ https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5H
 
 ## Tasks
 
-- all of us look at the data to begin with 
+- All of us look at the data to begin with 
 
-- 
+- Read paper - Catarina
 
+- Tidy the data (since it´s supposed to be dirty in the beggining)
+
+- AVOID AI
+
+- Only use tidyverse
+
+- Demonstrate ability to extract biological insights
+
+  - Plots
+
+- A 10-slides-in-10-mins presentation, possibly followed by a few questions
+
+Follow the IMRAD standard scientific structure:
+
+Introduction
+
+Materials and Methods
+
+Results (And)
+
+Discussion
+
+- Created using Quarto Presentation, just as the course slides are (Learn how to do this)
 
