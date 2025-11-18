@@ -26,4 +26,8 @@ https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5H
 
 ## Tasks
 
+- all of us look at the data to begin with 
+
+- 
+
 
