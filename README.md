@@ -26,7 +26,7 @@ https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5H
 
 ## Tasks
 
-- All of us look at the data to begin with 
+- All of us look at the data to begin with (Friday we should have looked into the data)
 
 - Read paper - Catarina
 
