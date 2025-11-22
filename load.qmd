@@ -28,7 +28,6 @@ With the name, the file can be loaded and then saved in proper place (data folde
 ```{r}
 #| echo: true
 #| eval: false
-show_col_types = FALSE#window showing the data is unneeded at this point
 read_tsv(here("_raw",name_raw)) |>
   write_tsv(x = _,file = here("data","data_load.tsv"))
 ```
