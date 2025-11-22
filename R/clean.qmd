@@ -1,0 +1,91 @@
+---
+title: "02_clean"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Loading libraries
+
+For any work to proceed, first libraries need to be loaded
+
+```{r}
+#| echo: true
+#| eval: true
+library("tidyverse")
+library("here")
+```
+
+## Loading the data
+
+asd
+
+```{r}
+#| echo: true
+#| eval: true
+data <- read_tsv(here("data","data_load.tsv"))
+```
+
+## No idea
+
+First step is to get data information for further processing
+
+```{r}
+#| echo: true
+#| eval: true
+num_obs <-  nrow(data)
+```
+
+For the ability to easily navigate through changes it needs to be checked if the Patient ID is unique identifier for each observation.
+
+```{r}
+#| echo: true
+#| eval: true
+data|>
+  select("Patient ID")|>
+  n_distinct() == num_obs
+```
+
+If Sample IDs are all unique, then they are redundant and can be dropped.
+
+```{r}
+#| echo: true
+#| eval: true
+data|>
+  select("Sample ID")|>
+  n_distinct() == num_obs
+```
+
+If some information is the same for all rows, then there is no need to keep it for any further processing.
+
+```{r}
+#| echo: true
+#| eval: true
+names_red_col <- data|>
+  map(n_distinct)|>
+  enframe()|>
+  pivot_wider()|>
+  select(where(~all (. == 1)))|>
+  colnames()
+```
+
+One identification feature is enough for data. Rest can be dropped to save space for processing.
+
+```{r}
+#
+data_red <- data|>
+  select(-all_of(names_red_col))|>
+  select(-"Sample ID")
+#showing dropped value of redundant columns
+data|>
+  select(all_of(names_red_col))|>
+  slice(1)|>
+  mutate(across(everything(), as.character))|>
+  pivot_longer(
+    cols = everything(),
+    names_to = "Redundant features",
+    values_to = "Singular value",
+  )
+
+```
