@@ -18,19 +18,19 @@ library("here")
 To read the file, name of it is needed.
 
 ```{r}
+#| echo: true
+#| eval: false
 name_raw = "paad_tcga_pan_can_atlas_2018_clinical_data.tsv"
 ```
 
-With the name, the file is loaded.
+With the name, the file can be loaded and then saved in proper place (data folder). It ensures that work is never done on the raw data.
 
 ```{r}
-#| echo: false
+#| echo: true
 #| eval: false
-data_raw <- read_tsv(here("_raw",name_raw))
+show_col_types = FALSE#window showing the data is unneeded at this point
+read_tsv(here("_raw",name_raw)) |>
+  write_tsv(x = _,file = here("data","data_load.tsv"))
 ```
 
-For further project work, file is saved. It ensures that work is never done on the raw data
-
-```{r}
-write_tsv(x = data_raw,file = here("data","data_load.tsv"))
-```
+For further project work, file is saved. It ensures that work is never done on the raw data.
