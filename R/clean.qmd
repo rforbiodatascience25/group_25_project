@@ -31,7 +31,20 @@ First step is to get data information for further processing
 num_obs <-  nrow(data)
 ```
 
-For the ability to easily navigate through changes it needs to be checked if the Patient ID is unique identifier for each observation.
+Some (in this case one) of the columns might come fully empty and impact data processing and analysis. Such columns need to be found and dropped.
+
+```{r}
+empty_col <-  data|>
+  map(~all(is.na(.)))|>
+  enframe()|>
+  pivot_wider()|>
+  select(where(~all (. == TRUE)))|>
+  colnames()
+data <- data|>
+  select(-all_of(empty_col))
+```
+
+For the ability to easily navigate through changes (splits and joins) it needs to be checked if the Patient ID is unique identifier for each observation.
 
 ```{r}
 data|>
@@ -39,32 +52,36 @@ data|>
   n_distinct() == num_obs
 ```
 
-If Sample IDs are all unique, then they are redundant and can be dropped.
+If other IDs are all unique, then they are redundant and can be dropped.
 
 ```{r}
 data|>
   select("Sample ID")|>
   n_distinct() == num_obs
+data|>
+  select("Other Patient ID")|>
+  n_distinct() == num_obs
+redundantIDs <- c("Sample ID","Other Patient ID")
 ```
 
-If some information is the same for all rows, then there is no need to keep it for any further processing.
+If some information is the same for all observations then there is no need to keep it for any further processing as it is redundant to keep it here for analysis.
 
 ```{r}
 names_red_col <- data|>
-  map(n_distinct)|>
+  map(~ n_distinct(.,na.rm=TRUE))|>
   enframe()|>
   pivot_wider()|>
   select(where(~all (. == 1)))|>
   colnames()
 ```
 
-One identification feature is enough for data. Rest can be dropped to save space for processing.
+Redundant data is dropped to save space for processing.
 
 ```{r}
-#
+#redundant data is dropped
 data_red <- data|>
   select(-all_of(names_red_col))|>
-  select(-"Sample ID")
+  select(-redundantIDs)
 #showing dropped value of redundant columns
 data|>
   select(all_of(names_red_col))|>
@@ -76,4 +93,49 @@ data|>
     values_to = "Singular value",
   )
 
+```
+
+## Separating data
+
+Used data has many features, which makes working on it harder. Fortunately data can be split into subcategories, which would make its processing and analysis easier. Observations in different tables would be identifiable by Patient ID.
+
+```{r}
+colnames(data_red)
+```
+
+Data table is split into tables based on subcategory columns belong to. Furthermore irrelevant features are not selected to any subcategory, so they are effectively dropped.
+
+```{r}
+met_cols <- c("Diagnosis Age", "Sex", "Genetic Ancestry Label","Race Category","Ethnicity Category"  )
+data_metrics <- data_red|>
+  select(c("Patient ID",all_of(met_cols)))
+
+gene_cols <- c("Fraction Genome Altered",  "Mutation Count", "TMB (nonsynonymous)", "Tumor Break Load"  )
+data_gene <- data_red|>
+  select(c("Patient ID",all_of(gene_cols)))
+
+score_cols <- c("Aneuploidy Score",  "Buffa Hypoxia Score", "MSI MANTIS Score", "MSIsensor Score", "Ragnum Hypoxia Score", "Winter Hypoxia Score", "Tissue Source Site Code")
+data_score <- data_red|>
+  select(c("Patient ID",all_of(score_cols)))
+
+code_cols <- c("Neoplasm Disease Stage American Joint Committee on Cancer Code" ,  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code", "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code", "American Joint Committee on Cancer Metastasis Stage Code", "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code", "American Joint Committee on Cancer Tumor Stage Code"   )
+data_code <- data_red|>
+  select(c("Patient ID",all_of(code_cols)))
+
+diag_cols <- c("Tumor Type",  "Overall Survival (Months)", "Overall Survival Status", "Months of disease-specific survival", "Disease-specific Survival status", "Disease Free (Months)", "Disease Free Status","Progress Free Survival (Months)" , "Progression Free Status",  "Prior Diagnosis", "Radiation Therapy", "Primary Lymph Node Presentation Assessment", "Person Neoplasm Cancer Status", "New Neoplasm Event Post Initial Therapy Indicator" ,  "Neoplasm Histologic Grade"  ,  "ICD-10 Classification")
+data_diag <- data_red|>
+  select(c("Patient ID",all_of(diag_cols)))
+
+```
+
+## Saving data
+
+To have clean task separation, progress is saved and loaded in further processing. In case of some mistake, the data don't have to be rolled back (and operations on it) from the beginning. In effect this saves time in despite of need for some additional operations (loading and saving).
+
+```{r}
+write_tsv(x = data_metrics,file = here("data","data_metrics.tsv"))
+write_tsv(x = data_gene,file = here("data","data_gene.tsv"))
+write_tsv(x = data_score,file = here("data","data_score.tsv"))
+write_tsv(x = data_code,file = here("data","data_code.tsv"))
+write_tsv(x = data_diag,file = here("data","data_diag.tsv"))
 ```
