@@ -1,0 +1,33 @@
+---
+title: "01_load"
+format: html
+editor: visual
+---
+
+## Loading of the raw data
+
+To proceed with reading of raw data libraries needed for that are loaded
+
+```{r}
+#| echo: true
+#| eval: false
+library("tidyverse")
+library("here")
+```
+
+To read the file, name of it is needed.
+
+```{r}
+#| echo: true
+#| eval: false
+name_raw = "paad_tcga_pan_can_atlas_2018_clinical_data.tsv"
+```
+
+With the name, the file can be loaded and then saved in proper place (data folder). It ensures that work is never done on the raw data.
+
+```{r}
+#| echo: true
+#| eval: false
+read_tsv(here("_raw",name_raw)) |>
+  write_tsv(x = _,file = here("data","data_load.tsv"))
+```
