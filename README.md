@@ -12,7 +12,7 @@ Lily Whipple, s243865, Msc Bioinformatics  git: LilyW08
 
 Szymon Cholewiński, s253711, Msc Bioinformatics  git: InfiniteLobster
 
-Magnus, s190867, Msc Bioinformatics  git: s190867
+Magnus Strange, s190867, Msc Bioinformatics  git: s190867
 
 ##  Original Data: Pancreatic Adenocarcinoma TCGA PanCancer data
 
