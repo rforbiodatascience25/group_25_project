@@ -1,7 +1,118 @@
 ---
-title: "presentation"
-format: html
-editor: visual
+title: "Group 25 Project"
+author:
+  - "André Godinho s253707"
+  - "Szymon Cholewiński s253711"
+  - "Magnus Strange s190867 "
+  - "Lily Whipple s243865"
+  - "Catarina Anastácio s253709"
+format:
+  revealjs: 
+    theme: default # choose different themes
+    logo: DTU_logo.png #choose a logo to put in here
+    footer: "R for Bio Data Science 2025 - group 25 Project"
+    code-block-height: 650px # maximum height of a code block, if it surpases this height becames scrollbar
+    css: 
+      - presentation_css.css
 ---
 
-## Presentation
+## 1º slide
+
+-   Turn off alarm
+-   Get out of bed
+
+------------------------------------------------------------------------
+
+## 2º slide
+
+-   Get in bed
+-   Count sheep
+
+------------------------------------------------------------------------
+
+## 3º slide
+
+::::: columns
+test columns
+
+::: {.column width="20%"}
+hello
+:::
+
+::: {.column width="80%"}
+it´s me
+:::
+:::::
+
+## 4º Slide
+
+Let´s work with the iris dataset
+
+```{r}
+#| echo: true
+#| eval: true
+#| output: true
+
+iris
+```
+
+## 5º Slide
+
+```{r}
+#| output: false   # show results/output? (default true)
+#| echo: true
+library(ggplot2)
+```
+
+Sup
+
+::::: columns
+::: {.column width="65%"}
+```{r}
+#| echo: true
+#| eval: false
+
+iris |>
+ggplot(mapping = 
+       aes(x=Sepal.Length, 
+           y=Sepal.Width)) +
+geom_point()
+```
+:::
+
+::: {.column width="35%"}
+```{r}
+#| echo: false
+#| fig-height: 5
+#| fig-width: 2
+
+iris |>
+ggplot(mapping = aes(x=Sepal.Length, y=Sepal.Width)) +
+geom_point()
+```
+:::
+:::::
+
+## 6º Slide {background-color="aquamarine"}
+
+```{r}
+#| echo: true
+#| eval: true
+#| output: true
+#| output-location: slide #slide, column, fragment, column-fragment
+
+iris |> 
+  ggplot(mapping = 
+           aes(x=Sepal.Length, 
+               y = Sepal.Width)) +
+  geom_point()
+
+```
+
+## 7º Slide
+
+## 8º Slide
+
+## 9º Slide
+
+## 10'º Slide

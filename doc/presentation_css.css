@@ -1,0 +1,8 @@
+#title-slide h1 {
+  transform: translateY(-50px);
+}
+
+
+.quarto-title-author-name {
+  font-size: 0.55em !important;
+}
