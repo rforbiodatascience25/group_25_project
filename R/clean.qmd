@@ -123,15 +123,11 @@ score_cols <- c("Aneuploidy Score",  "Buffa Hypoxia Score",
 data_score <- data_red|>
   select(c("Patient ID",all_of(score_cols)))
 
-code_cols <- c("Neoplasm Disease Stage American Joint 
-               Committee on Cancer Code",  
-               "International Classification of Diseases for Oncology, 
-               Third Edition ICD-O-3 Histology Code", 
-               "International Classification of Diseases for Oncology, 
-               Third Edition ICD-O-3 Site Code", 
-               "American Joint Committee on 
-               Cancer Metastasis Stage Code", "Neoplasm Disease
-               Lymph Node Stage American Joint Committee on Cancer Code", 
+code_cols <- c("Neoplasm Disease Stage American Joint Committee on Cancer Code",  
+               "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code", 
+               "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code", 
+               "American Joint Committee on Cancer Metastasis Stage Code", 
+               "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code", 
                "American Joint Committee on Cancer Tumor Stage Code" )
 data_code <- data_red|>
   select(c("Patient ID",all_of(code_cols)))
