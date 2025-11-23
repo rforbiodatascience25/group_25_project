@@ -106,23 +106,48 @@ colnames(data_red)
 Data table is split into tables based on subcategory columns belong to. Furthermore irrelevant features are not selected to any subcategory, so they are effectively dropped.
 
 ```{r}
-met_cols <- c("Diagnosis Age", "Sex", "Genetic Ancestry Label","Race Category","Ethnicity Category"  )
+met_cols <- c("Diagnosis Age","Sex","Genetic Ancestry Label"
+              ,"Race Category","Ethnicity Category"  )
 data_metrics <- data_red|>
   select(c("Patient ID",all_of(met_cols)))
 
-gene_cols <- c("Fraction Genome Altered",  "Mutation Count", "TMB (nonsynonymous)", "Tumor Break Load"  )
+gene_cols <- c("Fraction Genome Altered", "Mutation Count", 
+               "TMB (nonsynonymous)", "Tumor Break Load"  )
 data_gene <- data_red|>
   select(c("Patient ID",all_of(gene_cols)))
 
-score_cols <- c("Aneuploidy Score",  "Buffa Hypoxia Score", "MSI MANTIS Score", "MSIsensor Score", "Ragnum Hypoxia Score", "Winter Hypoxia Score", "Tissue Source Site Code")
+score_cols <- c("Aneuploidy Score",  "Buffa Hypoxia Score", 
+                "MSI MANTIS Score", "MSIsensor Score", 
+                "Ragnum Hypoxia Score", "Winter Hypoxia Score", 
+                "Tissue Source Site Code")
 data_score <- data_red|>
   select(c("Patient ID",all_of(score_cols)))
 
-code_cols <- c("Neoplasm Disease Stage American Joint Committee on Cancer Code" ,  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code", "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code", "American Joint Committee on Cancer Metastasis Stage Code", "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code", "American Joint Committee on Cancer Tumor Stage Code"   )
+code_cols <- c("Neoplasm Disease Stage American Joint 
+               Committee on Cancer Code",  
+               "International Classification of Diseases for Oncology, 
+               Third Edition ICD-O-3 Histology Code", 
+               "International Classification of Diseases for Oncology, 
+               Third Edition ICD-O-3 Site Code", 
+               "American Joint Committee on 
+               Cancer Metastasis Stage Code", "Neoplasm Disease
+               Lymph Node Stage American Joint Committee on Cancer Code", 
+               "American Joint Committee on Cancer Tumor Stage Code" )
 data_code <- data_red|>
   select(c("Patient ID",all_of(code_cols)))
 
-diag_cols <- c("Tumor Type",  "Overall Survival (Months)", "Overall Survival Status", "Months of disease-specific survival", "Disease-specific Survival status", "Disease Free (Months)", "Disease Free Status","Progress Free Survival (Months)" , "Progression Free Status",  "Prior Diagnosis", "Radiation Therapy", "Primary Lymph Node Presentation Assessment", "Person Neoplasm Cancer Status", "New Neoplasm Event Post Initial Therapy Indicator" ,  "Neoplasm Histologic Grade"  ,  "ICD-10 Classification")
+diag_cols <- c("Tumor Type", "Overall Survival (Months)", 
+               "Overall Survival Status", 
+               "Months of disease-specific survival", 
+               "Disease-specific Survival status", 
+               "Disease Free (Months)", "Disease Free Status",
+               "Progress Free Survival (Months)" , 
+               "Progression Free Status", "Prior Diagnosis", 
+               "Radiation Therapy", 
+               "Primary Lymph Node Presentation Assessment", 
+               "Person Neoplasm Cancer Status", 
+               "New Neoplasm Event Post Initial Therapy Indicator" , 
+               "Neoplasm Histologic Grade", "ICD-10 Classification")
 data_diag <- data_red|>
   select(c("Patient ID",all_of(diag_cols)))
 

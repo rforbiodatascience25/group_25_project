@@ -1,0 +1,88 @@
+---
+title: "03_augment"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Loading libraries
+
+For any work to proceed, first libraries need to be loaded
+
+```{r}
+library("tidyverse")
+library("here")
+```
+
+## Loading the data
+
+To process data it first needs to be loaded into memory. Even if some tables are not processed in this segment they will be loaded to be saved under different name for the sake of naming convention. In this advantages of clearing the ambiguity are higher than that of saving resources.
+
+```{r}
+data_metrics <- read_tsv(here("data","data_metrics.tsv"))
+data_gene <- read_tsv(here("data","data_gene.tsv"))
+data_score <- read_tsv(here("data","data_score.tsv"))
+data_code <- read_tsv(here("data","data_code.tsv"))
+data_diag <- read_tsv(here("data","data_diag.tsv"))
+```
+
+## Changing units from months to days
+
+Operating in months as unit is strange and not intuitive. For this reason units of some columns are changed from months to days. Unfortunately multiplying by average of days per month (or any nearby integer 28-31) does not results in integer number of days. For this reason results are rounded to represent full day as base unit. All loss resulted in this operation should be negligible in comparison to benefits of change.
+
+```{r}
+months_to_days <- (7*31+28.25+4*30)/12
+data_diag_units <- data_diag|>
+  mutate(`Overall Survival (days)` = 
+           round(`Overall Survival (Months)` * months_to_days),
+         `Disease Free (days)` = round(`Disease Free (Months)` * months_to_days),
+         `Progress Free Survival (days)` = 
+           round(`Progress Free Survival (Months)` * months_to_days)
+  )
+```
+
+## Splitting the columns
+
+Some columns contain both numeric and descriptive information as strings. For further clear processing this data is separated. Additionally it is ensured that data type is numeric for numeric fragments.
+
+```{r}
+#as first step data needs to be split
+data_diag_separate <- data_diag_units|>
+  separate(col = `Overall Survival Status`,
+           into = c("Overall Survival Status (bin)",
+                    "Overall Survival Status (des)"),
+           sep = ":",
+           convert = TRUE
+  )|>
+  separate(col = `Disease-specific Survival status`,
+           into = c("Disease-specific Survival status (bin)",
+                    "Disease-specific Survival status (des)"),
+           sep = ":",
+           convert = TRUE
+   )|>
+  separate(col = `Disease Free Status`,
+           into = c("Disease Free Status (bin)",
+                    "Disease Free Status (des)"),
+           sep = ":",
+           convert = TRUE
+   )|>
+  separate(col = `Progression Free Status`,
+           into = c("Progression Free Status (bin)",
+                    "Progression Free Status (des)"),
+           sep = ":",
+           convert = TRUE
+   )
+```
+
+## Saving the data
+
+As before to have clean task separation, progress is saved and loaded in further processing. Furthermore, as earlier mentioned, data is saved (with different name) even if it was not processed in this segment.
+
+```{r}
+write_tsv(x = data_metrics,file = here("data","data_metrics_aug.tsv"))
+write_tsv(x = data_gene,file = here("data","data_gene_aug.tsv"))
+write_tsv(x = data_score,file = here("data","data_score_aug.tsv"))
+write_tsv(x = data_code,file = here("data","data_code_aug.tsv"))
+write_tsv(x = data_diag_separate,file = here("data","data_diag_aug.tsv"))
+```
