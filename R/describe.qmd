@@ -32,97 +32,41 @@ List the metrics, the number of metrics, the types within the metrics, and the m
 ```{r}
 str(data_metrics)
 
+sort_data <- function(data_category) {
+  sorted__table <- sort(table(data_category), decreasing = TRUE)
+  paste(paste0(names(sorted__table), " (", sorted__table, ")"), collapse = ", ")
+}
 
-sex_types <- data_metrics |> 
-  distinct(`Sex`) |> 
-    pull(`Sex`) |> 
-      na.omit()
+metrics_list <- list(
+  "Diagnosis Age"            = data_metrics$`Diagnosis Age`,
+  "Sex"                      = data_metrics$`Sex`,
+  "Genetic Ancestry Label"   = data_metrics$`Genetic Ancestry Label`,
+  "Race Category"            = data_metrics$`Race Category`,
+  "Ethnicity Category"       = data_metrics$`Ethnicity Category`
+)
 
-ancestry_types <- data_metrics |>
-  distinct(`Genetic Ancestry Label`) |>
-    pull(`Genetic Ancestry Label`) |>
-      na.omit()
+sorted_list <- lapply(metrics_list, sort_data)
 
-race_types <- data_metrics |>
-  distinct(`Race Category`) |>
-    pull(`Race Category`) |>
-      na.omit()
+n_distinct_list <- sapply(metrics_list, function(metric) length(unique(na.omit(metric))))
 
-ethnic_types <- data_metrics |>
-  distinct(`Ethnicity Category`) |>
-    pull(`Ethnicity Category`) |>
-      na.omit()
-
-
-age_median <- data_metrics |>
-  count(`Diagnosis Age`) |>
-    arrange(desc(n)) |>
-      slice(1) |>
-        pull(`Diagnosis Age`)
-
-sex_median <- data_metrics |>
-  count(`Sex`) |>
-    arrange(desc(n)) |>
-      slice(1) |>
-        pull(`Sex`)
-
-ancestry_median <- data_metrics |>
-  count(`Genetic Ancestry Label`) |>
-    arrange(desc(n)) |>
-      slice(1) |>
-        pull(`Genetic Ancestry Label`)
-
-race_median <- data_metrics |>
-  count(`Race Category`) |>
-    arrange(desc(n)) |>
-      slice(1) |>
-        pull(`Race Category`)
-
-ethnic_median <- data_metrics |>
-  count(`Ethnicity Category`) |>
-    arrange(desc(n)) |>
-      slice(1) |>
-        pull(`Ethnicity Category`)
-
-
-metric_summary <- data.frame(
-  Columns = c("Patient ID",
-              "Diagnosis Age",
-              "Sex",
-              "Genetic Ancestry Label",
-              "Race Category",
-              "Ethnicity Category"
-              ),
-  
-  Distinct = c(n_distinct(data_metrics$`Patient ID`),
-              n_distinct(data_metrics$`Diagnosis Age`),
-              n_distinct(data_metrics$Sex),
-              n_distinct(data_metrics$`Genetic Ancestry Label`),
-              n_distinct(data_metrics$`Race Category`),
-              n_distinct(data_metrics$`Ethnicity Category`)
-              ),
-  
-  Types =  c("",
-            "",
-            paste(sex_types, collapse = ", "),
-            paste(ancestry_types, collapse = ", "),
-            paste(race_types, collapse = ", "),
-            paste(ethnic_types, collapse = ", ")
-            ),
-  
-  Median = c("",
-             age_median,
-             sex_median,
-             ancestry_median,
-             race_median,
-             ethnic_median
-            ),
-  
+metrics_summary <- data.frame(
+  n_distinct = as.numeric(n_distinct_list),
+  Types    = unlist(sorted_list),
   stringsAsFactors = FALSE
 )
 
+n_patients     <- length(data_metrics$`Patient ID`)
+n_distinct_patients  <- length(unique(na.omit(data_metrics$`Patient ID`)))
 
-metric_summary
+patient_row <- data.frame(
+  Columns  = "Patient ID",
+  n_distinct = n_distinct_patients,
+  Types    = paste0("Total entries: ", n_patients),
+  stringsAsFactors = FALSE
+)
+
+patient_row
+metrics_summary
 ```
 
 ## **Gene summary**
@@ -132,89 +76,223 @@ Providing core statistics overview of the genetic mutation data with a basic des
 ```{r}
 str(data_gene)
 
-#remove extreme outlier in all categories
+genes <- list(
+  "Fraction Genome Altered" = data_gene$`Fraction Genome Altered`,
+  "Mutation Count"          = data_gene$`Mutation Count`,
+  "TMB (nonsynonymous)"     = data_gene$`TMB (nonsynonymous)`,
+  "Tumor Break Load"        = data_gene$`Tumor Break Load`
+)
 
-FGA_no_ext <- data_gene$`Fraction Genome Altered`[data_gene$`Fraction Genome Altered` != max(data_gene$`Fraction Genome Altered`, na.rm = TRUE)]
+remove_extreme <- function(gene) gene[gene != max(gene, na.rm = TRUE)]
 
-MC_no_ext <- data_gene$`Mutation Count`[data_gene$`Mutation Count` != max(data_gene$`Mutation Count`, na.rm = TRUE)]
+genes_no_ext <- lapply(genes, remove_extreme)
 
-TMB_no_ext <- data_gene$`TMB (nonsynonymous)`[data_gene$`TMB (nonsynonymous)` != max(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE)]
+plot_gene <- function(genes_no_ext, title) {
+  
+  hist(genes_no_ext, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
+  
+  boxplot(genes_no_ext, main = paste("Boxplot of", title), ylab = title)
+}
 
-TBL_no_ext <- data_gene$`Tumor Break Load`[data_gene$`Tumor Break Load` != max(data_gene$`Tumor Break Load`, na.rm = TRUE)]
-
-
-hist(FGA_no_ext,
-     breaks = 30,
-     main = "Distribution of Fraction Genome Altered",
-     xlab = "Fraction Genome Altered",
-     ylab = "Frequency"
-     )
-
-boxplot(FGA_no_ext,
-        main = "Boxplot of Fraction Genome Altered",
-        ylab = "Fraction Genome Altered"
-       )
-
-hist(MC_no_ext,
-     breaks = 30,
-     main = "Distribution of Mutation Count",
-     xlab = "Mutation Count",
-     ylab = "Frequency"
-     )
-
-boxplot(MC_no_ext,
-        main = "Boxplot of Mutation Count",
-        ylab = "Mutation Count"
-        )
-
-hist(TMB_no_ext,
-     breaks = 30,
-     main = "Distribution of Non-synonymous TMB",
-     xlab = "TMB",
-     ylab = "Frequency"
-     )
-
-boxplot(TMB_no_ext,
-        main = "Boxplot of Non-synonymous TMB",
-        ylab = "Non-synonymous TMB"
-        )
-
-hist(TBL_no_ext,
-     breaks = 30,
-     main = "Distribution of Tumor Break Load",
-     xlab = "Tumor Break Load",
-     ylab = "Frequency"
-     )
-
-boxplot(TBL_no_ext,
-        main = "Boxplot of Tumor Break Load",
-        ylab = "Tumor Break Load"
-        )
+for (n in names(genes_no_ext)) plot_gene(genes_no_ext[[n]], n)
 
 gene_summary <- data.frame(
-  Categories = c("Fraction Genome Altered",
-                 "Mutation Count",
-                 "TMB (nonsynonymous)",
-                 "Tumor Break Load"
-                ),
   
-  Means = c(format(round(mean(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
-            format(round(mean(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
-            format(round(mean(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
-            format(round(mean(data_gene$`Tumor Break Load`, na.rm = TRUE),2), trim = TRUE)
-           ),
+  Categories = names(genes_no_ext),
   
-  Medians = c(format(round(median(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
-              format(round(median(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
-              format(round(median(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
-              format(round(median(data_gene$`Tumor Break Load`, na.rm = TRUE),2), trim = TRUE)
-             ),
+  Means   = sapply(genes_no_ext, function(genes_no_ext) format(round(mean(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
   
-  Standard_Devations = c(format(round(sd(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
-                         format(round(sd(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
-                         format(round(sd(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
-                         format(round(sd(data_gene$`Tumor Break Load`, na.rm = TRUE),2), trim = TRUE)
-                        )
+  Medians = sapply(genes_no_ext, function(genes_no_ext) format(round(median(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
+  
+  Standard_Devations = sapply(genes_no_ext, function(genes_no_ext) format(round(sd(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
+  
+  stringsAsFactors = FALSE
 )
+
 gene_summary
+```
+
+## Score Summary
+
+Providing core statistics overview of the cancer scoring data with a basic descriptive stats table and histograms and box plots. Outliers not removed/present.
+
+```{r}
+str(data_score)
+
+scores_list <- list(
+  "Aneuploidy Score"     = data_score$`Aneuploidy Score`,
+  "Buffa Hypoxia Score"  = data_score$`Buffa Hypoxia Score`,
+  "MSI MANTIS Score"     = data_score$`MSI MANTIS Score`,
+  "MSIsensor Score"      = data_score$`MSIsensor Score`,
+  "Ragnum Hypoxia Score" = data_score$`Ragnum Hypoxia Score`,
+  "Winter Hypoxia Score" = data_score$`Winter Hypoxia Score`
+)
+
+plot_score <- function(scores_list, title) {
+  
+  hist(scores_list, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
+  
+  boxplot(scores_list, main = paste("Boxplot of", title), ylab = title)
+}
+
+for (n in names(scores_list)) plot_score(scores_list[[n]], n)
+
+score_summary <- data.frame(
+  
+  Means = sapply(scores_list, function(scores_list) format(round(mean(scores_list, na.rm = TRUE), 2), trim = TRUE)),
+  
+  Medians = sapply(scores_list, function(scores_list) format(round(median(scores_list, na.rm = TRUE), 2), trim = TRUE)),
+  
+  Standard_Devations = sapply(scores_list, function(scores_list) format(round(sd(scores_list, na.rm = TRUE), 2), trim = TRUE)),
+  
+  stringsAsFactors = FALSE
+)
+
+score_summary
+```
+
+## Codes Summary
+
+Summary of the various types of cancer codes.
+
+```{r}
+str(data_code)
+
+make_types <- function(dataset_category) {
+  sorted_table <- sort(table(dataset_category), decreasing = TRUE)
+  paste(paste0(names(sorted_table), " (", sorted_table, ")"), collapse = ", ")
+}
+
+neoplasm_stage_types <- make_types(data_code$`Neoplasm Disease Stage American Joint Committee on Cancer Code`)
+icd_histology_types  <- make_types(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`)
+icd_site_types       <- make_types(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`)
+joint_stage_types    <- make_types(data_code$`American Joint Committee on Cancer Metastasis Stage Code`)
+lymph_stage_types    <- make_types(data_code$`Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`)
+tumor_stage_types    <- make_types(data_code$`American Joint Committee on Cancer Tumor Stage Code`)
+
+neoplasm_stage_distinct <- length(unique(na.omit(data_code$`Neoplasm Disease Stage American Joint Committee on Cancer Code`)))
+icd_histology_distinct  <- length(unique(na.omit(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`)))
+icd_site_distinct       <- length(unique(na.omit(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`)))
+joint_stage_distinct    <- length(unique(na.omit(data_code$`American Joint Committee on Cancer Metastasis Stage Code`)))
+lymph_stage_distinct    <- length(unique(na.omit(data_code$`Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`)))
+tumor_stage_distinct    <- length(unique(na.omit(data_code$`American Joint Committee on Cancer Tumor Stage Code`)))
+
+code_summary <- data.frame(
+  Columns = c(
+    "Neoplasm Disease Stage Code",
+    "ICD-O-3 Histology Code",
+    "ICD-O-3 Site Code",
+    "AJCC Metastasis Stage Code",
+    "AJCC Lymph Node Stage Code",
+    "AJCC Tumor Stage Code"
+  ),
+  
+  Distinct = c(
+    neoplasm_stage_distinct,
+    icd_histology_distinct,
+    icd_site_distinct,
+    joint_stage_distinct,
+    lymph_stage_distinct,
+    tumor_stage_distinct
+  ),
+  
+  Types = c(
+    neoplasm_stage_types,
+    icd_histology_types,
+    icd_site_types,
+    joint_stage_types,
+    lymph_stage_types,
+    tumor_stage_types
+  ),
+  
+  stringsAsFactors = FALSE
+)
+
+code_summary
+```
+
+## Diagnoses Summary
+
+Summary of the different cancer diagnoses.
+
+```{r}
+str(data_diag)
+
+#--------------
+#numerical data
+#--------------
+diagnosis_list_numeric <- list(
+  "Overall Survival (days)"        = data_diag$`Overall Survival (days)`,
+  "Overall Survival (months)"      = data_diag$`Overall Survival (Months)`,
+
+  "Disease Free (months)"          = data_diag$`Disease Free (Months)`,
+  "Disease Free (days)"            = data_diag$`Disease Free (days)`,
+
+  "Progression Free (months)"      = data_diag$`Progress Free Survival (Months)`,
+  "Progression Free (days)"        = data_diag$`Progress Free Survival (days)`
+)
+
+plot_diagnosis <- function(diagnosis, title) {
+  
+  hist(diagnosis, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
+  
+  boxplot(diagnosis, main = paste("Boxplot of", title), ylab = title)
+}
+
+for (n in names(diagnosis_list_numeric)) plot_diagnosis(diagnosis_list_numeric[[n]], n)
+
+diagnosis_numerical_summary <- data.frame(
+  
+  Means   = sapply(diagnosis_list_numeric, function(diagnosis) format(round(mean(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
+  
+  Medians = sapply(diagnosis_list_numeric, function(diagnosis) format(round(median(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
+  
+  Standard_Devations = sapply(diagnosis_list_numeric, function(diagnosis) format(round(sd(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
+  
+  stringsAsFactors = FALSE
+)
+
+diagnosis_numerical_summary
+#---------------
+
+
+
+#----------------
+#categorical data
+#----------------
+sort_data <- function(data_category) {
+  sorted__table <- sort(table(data_category), decreasing = TRUE)
+  paste(paste0(names(sorted__table), " (", sorted__table, ")"), collapse = ", ")
+}
+
+diagnosis_list_categorical <- list(
+  "Tumor Type"                             = data_diag$`Tumor Type`,
+  "Overall Survival Status (bin)"          = data_diag$`Overall Survival Status (bin)`,
+  "Overall Survival Status (des)"          = data_diag$`Overall Survival Status (des)`,
+  "Disease-specific Survival Status (des)" = data_diag$`Disease-specific Survival status (des)`,
+  "Disease Free Status (bin)"              = data_diag$`Disease Free Status (bin)`,
+  "Disease Free Status (des)"              = data_diag$`Disease Free Status (des)`,
+  "Progression Free Status (bin)"          = data_diag$`Progression Free Status (bin)`,
+  "Progression Free Status (des)"          = data_diag$`Progression Free Status (des)`,
+  "Prior Diagnosis"                        = data_diag$`Prior Diagnosis`,
+  "Radiation Therapy"                      = data_diag$`Radiation Therapy`,
+  "Primary Lymph Node Assessment"          = data_diag$`Primary Lymph Node Presentation Assessment`,
+  "Person Neoplasm Status"                 = data_diag$`Person Neoplasm Cancer Status`,
+  "New Neoplasm Event"                     = data_diag$`New Neoplasm Event Post Initial Therapy Indicator`,
+  "Histologic Grade"                       = data_diag$`Neoplasm Histologic Grade`,
+  "ICD-10 Classification"                  = data_diag$`ICD-10 Classification`
+)
+
+sorted_list <- lapply(diagnosis_list, sort_data)
+
+n_distinct_list <- sapply(diagnosis_list, function(diagnosis) length(unique(na.omit(diagnosis))))
+
+diagnosis_categorical_summary <- data.frame(
+  n_distinct = as.numeric(n_distinct_list),
+  Types    = unlist(sorted_list),
+  stringsAsFactors = FALSE
+)
+
+diagnosis_categorical_summary
+#---------------
 ```
