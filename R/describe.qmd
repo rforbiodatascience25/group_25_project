@@ -18,11 +18,11 @@ library("here")
 Loading the data from the previous augmentation step *03_augment*.
 
 ```{r}
-data_metrics <- read_tsv(here("data_metrics_aug.tsv"))
-data_gene <- read_tsv(here("data_gene_aug.tsv"))
-data_score <- read_tsv(here("data_score_aug.tsv"))
-data_code <- read_tsv(here("data_code_aug.tsv"))
-data_diag <- read_tsv(here("data_diag_aug.tsv"))
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
 ## Metrics summary
