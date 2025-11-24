@@ -1,0 +1,87 @@
+---
+title: "05_analysis_1"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## **Loading libraries**
+
+```{r}
+library("tidyverse")
+library("here")
+```
+
+## **Loading data**
+
+Loading the data from the previous augmentation step *03_augment*.
+
+```{r}
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
+
+-   data_metrics: Contains clinical and demographic metadata for patients, including diagnosis age, sex, genetic ancestry, race, and ethnicity. This dataset provides socio-demographic context and basic patient characteristics important for stratification and subgroup analyses.
+
+-   data_gene: Contains genomic alteration metrics per patient, such as fraction of the genome altered, mutation counts, tumor mutation burden (TMB), and tumor break load. This data captures key genomic instability features relevant to tumor biology and mutation burden.
+
+-   data_score: Contains various biological and clinical scores and codes, including aneuploidy score, multiple hypoxia-related scores, microsatellite instability (MSI) scores from different methods, and tissue source site identifiers. These functional scores inform on genomic instability, tumor microenvironment, and sample origin.
+
+-   data_code: Contains standardized oncology disease stage and classification codes per patient. This includes AJCC cancer staging codes, ICD-O-3 histology and site codes, and codes for metastasis and lymph node staging. This set provides clinical staging and diagnostic classification for tumors.
+
+-   data_diag: Contains detailed clinical diagnosis and outcome variables such as tumor type, overall survival time and status, disease-specific survival, disease-free survival, progression-free survival, prior diagnoses, and therapy details. Also includes cancer status indicators, neoplasm histologic grade, and ICD-10 classification. This dataset focuses on clinical endpoints and diagnostic outcomes.
+
+## Plotting
+
+```{r}
+data_metrics <- data_metrics |>
+  mutate(Age_Group = cut(
+    `Diagnosis Age`,
+    breaks = seq(20, 90, by = 10),
+    right = FALSE))
+```
+
+```{r}
+working_df <- full_join(data_gene,data_metrics, by= "Patient ID")
+working_df <- full_join(working_df, data_diag, by= "Patient ID")
+```
+
+```{r}
+working_df
+```
+
+```{r}
+working_df |> 
+  ggplot(mapping =
+           aes(x= `Age_Group`, 
+               y = `Fraction Genome Altered`,
+               color = Sex)) +
+  geom_boxplot()
+```
+
+```{r}
+working_df |> 
+  ggplot(mapping = 
+           aes( x = `Disease Free (days)`,
+                color = Sex)) +
+  geom_density()
+```
+
+```{r}
+#| fig-height: 
+working_df |> 
+  ggplot(mapping = 
+           aes( x = `Tumor Type`,
+                fill = `Overall Survival Status (des)`)) +
+  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.5) +
+  theme(
+    panel.grid.major.x =  element_blank(),
+    axis.text.x = element_text(angle = 70, 
+                               hjust = 1,
+                               vjust = 1)
+  )
+```
