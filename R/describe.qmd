@@ -241,7 +241,7 @@ plot_diagnosis <- function(diagnosis, title) {
 
 for (n in names(diagnosis_list_numeric)) plot_diagnosis(diagnosis_list_numeric[[n]], n)
 
-diagnosis_summary <- data.frame(
+diagnosis_numerical_summary <- data.frame(
   
   Means   = sapply(diagnosis_list_numeric, function(diagnosis) format(round(mean(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
   
@@ -252,7 +252,7 @@ diagnosis_summary <- data.frame(
   stringsAsFactors = FALSE
 )
 
-diagnosis_summary
+diagnosis_numerical_summary
 #---------------
 
 
@@ -287,12 +287,12 @@ sorted_list <- lapply(diagnosis_list, sort_data)
 
 n_distinct_list <- sapply(diagnosis_list, function(diagnosis) length(unique(na.omit(diagnosis))))
 
-diagnosis_summary <- data.frame(
+diagnosis_categorical_summary <- data.frame(
   n_distinct = as.numeric(n_distinct_list),
   Types    = unlist(sorted_list),
   stringsAsFactors = FALSE
 )
 
-diagnosis_summary
+diagnosis_categorical_summary
 #---------------
 ```
