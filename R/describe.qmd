@@ -6,28 +6,30 @@ format:
 editor: visual
 ---
 
-Loading libraries
+## **Loading libraries**
 
-{r}
+```{r}
 library("tidyverse")
 library("here")
+```
 
-Loading data
+## **Loading data**
 
-Loading the data from the previous augmentation step 03_augment.
+Loading the data from the previous augmentation step *03_augment*.
 
-{r}
+```{r}
 data_metrics <- read_tsv(here("data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data_gene_aug.tsv"))
 data_score <- read_tsv(here("data_score_aug.tsv"))
 data_code <- read_tsv(here("data_code_aug.tsv"))
 data_diag <- read_tsv(here("data_diag_aug.tsv"))
+```
 
-Metrics summary
+## Metrics summary
 
 List the metrics, the number of metrics, the types within the metrics, and the median values within each types.
 
-{r}
+```{r}
 str(data_metrics)
 
 
@@ -52,34 +54,34 @@ ethnic_types <- data_metrics |>
       na.omit()
 
 
-age_median <- data_metrics %>%
-  count(`Diagnosis Age`) %>%
-    arrange(desc(n)) %>%
-      slice(1) %>%
+age_median <- data_metrics |>
+  count(`Diagnosis Age`) |>
+    arrange(desc(n)) |>
+      slice(1) |>
         pull(`Diagnosis Age`)
 
-sex_median <- data_metrics %>%
-  count(`Sex`) %>%
-    arrange(desc(n)) %>%
-      slice(1) %>%
+sex_median <- data_metrics |>
+  count(`Sex`) |>
+    arrange(desc(n)) |>
+      slice(1) |>
         pull(`Sex`)
 
-ancestry_median <- data_metrics %>%
-  count(`Genetic Ancestry Label`) %>%
-    arrange(desc(n)) %>%
-      slice(1) %>%
+ancestry_median <- data_metrics |>
+  count(`Genetic Ancestry Label`) |>
+    arrange(desc(n)) |>
+      slice(1) |>
         pull(`Genetic Ancestry Label`)
 
-race_median <- data_metrics %>%
-  count(`Race Category`) %>%
-    arrange(desc(n)) %>%
-      slice(1) %>%
+race_median <- data_metrics |>
+  count(`Race Category`) |>
+    arrange(desc(n)) |>
+      slice(1) |>
         pull(`Race Category`)
 
-ethnic_median <- data_metrics %>%
-  count(`Ethnicity Category`) %>%
-    arrange(desc(n)) %>%
-      slice(1) %>%
+ethnic_median <- data_metrics |>
+  count(`Ethnicity Category`) |>
+    arrange(desc(n)) |>
+      slice(1) |>
         pull(`Ethnicity Category`)
 
 
@@ -91,6 +93,7 @@ metric_summary <- data.frame(
               "Race Category",
               "Ethnicity Category"
               ),
+  
   Distinct = c(n_distinct(data_metrics$`Patient ID`),
               n_distinct(data_metrics$`Diagnosis Age`),
               n_distinct(data_metrics$Sex),
@@ -98,6 +101,7 @@ metric_summary <- data.frame(
               n_distinct(data_metrics$`Race Category`),
               n_distinct(data_metrics$`Ethnicity Category`)
               ),
+  
   Types =  c("",
             "",
             paste(sex_types, collapse = ", "),
@@ -105,6 +109,7 @@ metric_summary <- data.frame(
             paste(race_types, collapse = ", "),
             paste(ethnic_types, collapse = ", ")
             ),
+  
   Median = c("",
              age_median,
              sex_median,
@@ -112,17 +117,19 @@ metric_summary <- data.frame(
              race_median,
              ethnic_median
             ),
+  
   stringsAsFactors = FALSE
 )
 
 
 metric_summary
+```
 
-Gene summary
+## **Gene summary**
 
-Providing core statistics overview of the genetic mutation data with a basic descriptive stats table and histograms and boxplots. Outliers are removed to avoid making the graphs unreadable.
+Providing core statistics overview of the genetic mutation data with a basic descriptive stats table and histograms and box plots. Outliers are removed to avoid making the graphs unreadable.
 
-{r}
+```{r}
 str(data_gene)
 
 #remove extreme outlier in all categories
@@ -190,16 +197,19 @@ gene_summary <- data.frame(
                  "TMB (nonsynonymous)",
                  "Tumor Break Load"
                 ),
+  
   Means = c(format(round(mean(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
             format(round(mean(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
             format(round(mean(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
             format(round(mean(data_gene$`Tumor Break Load`, na.rm = TRUE),2), trim = TRUE)
            ),
+  
   Medians = c(format(round(median(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
               format(round(median(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
               format(round(median(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
               format(round(median(data_gene$`Tumor Break Load`, na.rm = TRUE),2), trim = TRUE)
              ),
+  
   Standard_Devations = c(format(round(sd(data_gene$`Fraction Genome Altered`, na.rm = TRUE),2), trim = TRUE),
                          format(round(sd(data_gene$`Mutation Count`, na.rm = TRUE),2), trim = TRUE),
                          format(round(sd(data_gene$`TMB (nonsynonymous)`, na.rm = TRUE),2), trim = TRUE),
@@ -207,4 +217,4 @@ gene_summary <- data.frame(
                         )
 )
 gene_summary
-
+```
