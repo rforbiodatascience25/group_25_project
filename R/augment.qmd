@@ -38,7 +38,8 @@ data_diag_units <- data_diag|>
            round(`Overall Survival (Months)` * months_to_days),
          `Disease Free (days)` = round(`Disease Free (Months)` * months_to_days),
          `Progress Free Survival (days)` = 
-           round(`Progress Free Survival (Months)` * months_to_days)
+           round(`Progress Free Survival (Months)` * months_to_days),
+         `Days of disease-specific survival` =  round(`Months of disease-specific survival` * months_to_days),
   )
 ```
 
