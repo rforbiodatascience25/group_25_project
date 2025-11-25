@@ -10,6 +10,7 @@ editor: visual
 
 ```{r}
 library("tidyverse")
+library("dplyr")
 library("here")
 ```
 
@@ -37,6 +38,14 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Plotting
 
+### Demographic & Clinical Metadata (data_metrics) 
+
+```{r}
+data_metrics
+```
+
+Needs to go to data_aug this!
+
 ```{r}
 data_metrics <- data_metrics |>
   mutate(Age_Group = cut(
@@ -46,13 +55,81 @@ data_metrics <- data_metrics |>
 ```
 
 ```{r}
-working_df <- full_join(data_gene,data_metrics, by= "Patient ID")
-working_df <- full_join(working_df, data_diag, by= "Patient ID")
+plot_data <- data_metrics |> 
+  count(Sex, Age_Group)
+
+sex_number <- data_metrics |> 
+  count(Sex) |> 
+  mutate(Age_Group = "Total")
+
+# Bind rows
+plot_data_total <- bind_rows(plot_data, sex_number)
+
+# We can try to add a dummy row to separate it from the others
+# I don´t know if it´s a freat ideia to plot the Total in there, it was just an ideia
+
+# Now plot, showing "Total" along x-axis
+
+plot_data_total |> 
+  ggplot(mapping = 
+           aes(x = Sex,
+               y = n,
+               fill = Age_Group)) +
+  geom_bar(stat = "identity", position = position_dodge(preserve = "single"), color = "black", alpha = 0.5)
 ```
 
 ```{r}
-working_df
+data_metrics |> 
+  ggplot(mapping = 
+           aes(x = `Diagnosis Age`,
+               fill = Sex)) +
+  geom_density(alpha = 0.3)
 ```
+
+Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This means we lack sufficient diversity to draw meaningful conclusions from subgroup analyses of these categories.
+
+```{r}
+data_metrics |> 
+  ggplot(mapping = 
+           aes(x = `Race Category`,
+               fill = `Genetic Ancestry Label`)) +
+  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.7) +
+  geom_vline(xintercept = seq(0.5, length(unique(data_metrics$`Race Category`)) + 0.5, by = 1), linetype = "dashed") +
+  theme_minimal()
+```
+
+### Genomic Alterations & Instability (data_gene) 
+
+```{r}
+data_metrics |> 
+  select(-c(`Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`))
+
+data_metrics_gene <- full_join( data_metrics, data_gene, by="Patient ID")
+
+data_metrics_gene
+```
+
+Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
+
+Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
+
+TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
+
+Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
+
+```{r}
+data_metrics_gene |> 
+  filter(`Mutation Count` < 1000) |> 
+  ggplot(mapping = 
+           aes(x = `Fraction Genome Altered`,
+               y = `Tumor Break Load`,
+               color = Age_Group)) +
+  geom_point()
+```
+
+Scatter plots of variables with in
+
+### Bin
 
 ```{r}
 working_df |> 
