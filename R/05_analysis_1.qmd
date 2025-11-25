@@ -118,8 +118,39 @@ TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous
 Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
 
 ```{r}
+library(corrplot)
+cor_matrix <- cor(data_metrics_gene |>
+                    select(`Fraction Genome Altered`, 
+                           `Mutation Count`, 
+                           `TMB (nonsynonymous)`, 
+                           `Tumor Break Load`), 
+                    use = "complete.obs")
+
+corrplot(cor_matrix, method = "color")
+```
+
+------------------------------------------------------------------------
+
+```{r}
+data_metrics_gene |>
+  filter(`Mutation Count` < 5000)
+```
+
+Before plotting, that one strange outlier should be removed to avoid skewing the results. The resulting trend makes sense, since mutations occur randomly across the genome, the proportion that are nonsynonymous tends to follow a predictable pattern, assuming random mutagenesis within tumor DNA and consistent coding sequence proportions.
+
+```{r}
 data_metrics_gene |> 
-  filter(`Mutation Count` < 1000) |> 
+  filter(`TMB (nonsynonymous)` < 400) |> 
+  ggplot(mapping = 
+           aes(x = `Tumor Break Load`,
+               y = `TMB (nonsynonymous)`,
+               color = Age_Group)) +
+  geom_point()
+```
+
+```{r}
+data_metrics_gene |> 
+  filter(`TMB (nonsynonymous)` < 400) |> 
   ggplot(mapping = 
            aes(x = `Fraction Genome Altered`,
                y = `Tumor Break Load`,
@@ -127,7 +158,43 @@ data_metrics_gene |>
   geom_point()
 ```
 
-Scatter plots of variables with in
+### Box Plots of data_gene on certain groups to uncover whether certain groups harbor more genomic instability.
+
+```{r}
+data_code |>
+  count(
+    `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
+    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`
+  ) |> 
+  ggplot(
+    mapping = aes(
+  x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
+  y = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
+  fill = n)) +
+  geom_tile() +
+  theme(axis.text.x = element_text(angle=45, hjust=1)) +
+  labs(fill = "Count")
+```
+
+```{r}
+data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
+```
+
+```{r}
+data_gene_code |>
+  filter(`Mutation Count` < 5000) |> 
+  pivot_longer(cols = c(`Fraction Genome Altered`, 
+                        `Mutation Count`, 
+                        `TMB (nonsynonymous)`, 
+                        `Tumor Break Load`),
+               names_to = "Genomic_Metric", 
+               values_to = "Value") |> 
+ggplot(mapping = 
+         aes(x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`, 
+             y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Genomic_Metric, scales = "free_y")
+```
 
 ### Bin
 
