@@ -161,6 +161,17 @@ data_metrics_gene |>
 ### Box Plots of data_gene on certain groups to uncover whether certain groups harbor more genomic instability.
 
 ```{r}
+ClassificationSystems <- c(
+  "Neoplasm Disease Stage American Joint Committee on Cancer Code",
+  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
+  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
+  "American Joint Committee on Cancer Metastasis Stage Code",
+  "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
+  "American Joint Committee on Cancer Tumor Stage Code"
+)
+```
+
+```{r}
 data_code |>
   count(
     `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
