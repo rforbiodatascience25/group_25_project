@@ -283,9 +283,9 @@ diagnosis_list_categorical <- list(
   "ICD-10 Classification"                  = data_diag$`ICD-10 Classification`
 )
 
-sorted_list <- lapply(diagnosis_list, sort_data)
+sorted_list <- lapply(diagnosis_list_categorical, sort_data)
 
-n_distinct_list <- sapply(diagnosis_list, function(diagnosis) length(unique(na.omit(diagnosis))))
+n_distinct_list <- sapply(diagnosis_list_categorical, function(diagnosis) length(unique(na.omit(diagnosis))))
 
 diagnosis_categorical_summary <- data.frame(
   n_distinct = as.numeric(n_distinct_list),
