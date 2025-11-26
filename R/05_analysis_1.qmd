@@ -142,7 +142,7 @@ Before plotting, that one strange outlier should be removed to avoid skewing the
 data_metrics_gene |> 
   filter(`TMB (nonsynonymous)` < 400) |> 
   ggplot(mapping = 
-           aes(x = `Tumor Break Load`,
+           aes(x = `Mutation Count`,
                y = `TMB (nonsynonymous)`,
                color = Age_Group)) +
   geom_point()
