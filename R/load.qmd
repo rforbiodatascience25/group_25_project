@@ -1,0 +1,78 @@
+---
+title: "01_load"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Loading of the raw data
+
+To proceed with reading of raw data libraries needed for that are loaded
+
+```{r}
+library("tidyverse")
+library("here")
+```
+
+To read the file, name of it is needed.
+
+```{r}
+name_raw = "paad_tcga_pan_can_atlas_2018_clinical_data.tsv"
+```
+
+With the name, the file can be loaded and then saved in proper place (data folder). It ensures that work is never done on the raw data.
+
+```{r}
+read_tsv(here("_raw",name_raw)) |>
+  write_tsv(x = _,file = here("data","data_load.tsv"))
+```
+
+```{r}
+name_data_methylation = "data_methylation_hm27_hm450_merged.txt"
+name_data_armlevel = "data_armlevel_cna.txt"
+name_data_clinical_patient = "data_clinical_patient.txt"
+name_data_clinical_sample = "data_clinical_sample.txt"
+name_data_clinical_supp_hypoxia = "data_clinical_supp_hypoxia.txt"
+name_data_cna = "data_cna.txt"
+name_data_cna_hg19 = "data_cna_hg19.seg"
+name_data_gene_panel = "data_gene_panel_matrix.txt"
+name_data_genetic = "data_genetic_ancestry.txt"
+name_data_log2_cna = "data_log2_cna.txt"
+name_data_mrna_seq_v2_rsem = "data_mrna_seq_v2_rsem.txt"
+name_data_mrna_seq_v2_rsem_zscores_ref_all_samples = "data_mrna_seq_v2_rsem_zscores_ref_all_samples.txt"
+name_data_mrna_seq_v2_rsem_zscores_ref_diploid_samples = "data_mrna_seq_v2_rsem_zscores_ref_diploid_samples.txt"
+name_data_mutations = "data_mutations.txt"
+name_data_resource_definition = "data_resource_definition.txt"
+name_data_resource_patient = "data_resource_patient.txt"
+name_data_rppa = "data_rppa.txt"
+name_data_rppa_zscores = "data_rppa_zscores.txt"
+name_data_sv = "data_sv.txt"
+name_data_timeline_sample_acquisition = "data_timeline_sample_acquisition.txt"
+name_data_timeline_status = "data_timeline_status.txt"
+name_data_timeline_treatment = "data_timeline_treatment.txt"
+#
+to_check = read_table(here("_raw",name_data_methylation))
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_methylation_hm27_hm450_merged.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_armlevel_cna.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_clinical_patient.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_clinical_sample.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_clinical_supp_hypoxia.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_cna.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_cna_hg19.seg")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_gene_panel_matrix.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_genetic_ancestry.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_log2_cna.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_mrna_seq_v2_rsem.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_mrna_seq_v2_rsem_zscores_ref_all_samples.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_mrna_seq_v2_rsem_zscores_ref_diploid_samples.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_mutations.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_resource_definition.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_resource_patient.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_rppa.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_rppa_zscores.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_sv.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_timeline_sample_acquisition.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_timeline_status.txt")
+#c = read_table("C:\\Users\\Normal\\Downloads\\paad_tcga_pan_can_atlas_2018\\paad_tcga_pan_can_atlas_2018\\data_timeline_treatment.txt")
+```
