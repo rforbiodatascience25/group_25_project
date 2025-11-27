@@ -310,7 +310,7 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 Males exhibit a slightly higher mean age at diagnosis compared to females.
 
 ```{r}
-data_metrics |> 
+counts <- data_metrics |> 
   group_by(Sex) |> 
   summarise(n = n())
 
@@ -450,7 +450,41 @@ dispersion_tbl
 
 The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
 
-### Tumor Types distribuiton (**data_diag)**
+### Biological scores (aneuploidy, hypoxia, MSI) (**data_score)**
+
+```{r}
+data_score
+```
+
+```{r}
+# Select only score columns
+score_cols <- c(
+  "Aneuploidy Score", 
+  "Buffa Hypoxia Score",
+  "MSI MANTIS Score", 
+  "MSIsensor Score",
+  "Ragnum Hypoxia Score", 
+  "Winter Hypoxia Score"
+)
+
+correl_matrix <- data_score |>
+  select(all_of(score_cols)) |>
+  cor(use = "complete.obs")
+
+corrplot(correl_matrix, 
+         method = "color", 
+         tl.col = "black")
+```
+
+```{r}
+data_score |> 
+  ggplot(mapping = 
+           aes( x = `Tissue Source Site Code`)) +
+  geom_bar() +
+  theme_minimal()
+```
+
+### Tumor Types distribution (**data_diag)**
 
 ```{r}
 #| fig-height: 5

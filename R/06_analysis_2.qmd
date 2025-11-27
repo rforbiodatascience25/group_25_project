@@ -189,14 +189,6 @@ plt7 / plt8
 #| fig-height: 5
 
 data_gene_diag |>
-  filter(
-    `Tumor Type` %in% c(
-      "Pancreas Adenocarcinoma, Ductal Type",
-      "Pancreas Adenocarcinoma, Other Subtype"
-    ),
-    `Mutation Count` < 5000,
-    `TMB (nonsynonymous)` < 400
-  ) |>
   pivot_longer(
     cols = c(
       `Mutation Count`,
@@ -216,8 +208,6 @@ data_gene_diag |>
     axis.text.x  = element_blank(),
     axis.ticks.x = element_blank()
   )
-
-
 ```
 
 [Conclusion]{.underline}: Other subtypes of adenocarcinoma have a higher fraction of the genome altered compared to others. From now on discart all tumor types that are not pancreas adenocarcinoma (ductal type or other subtype)
@@ -225,7 +215,7 @@ data_gene_diag |>
 -   Show similarities in **tumor type** + stage + genomic instability measures
 
     ```{r}
-    #| fig.width=10
+    #| figwidth=10
     #| fig.height=6
 
 
@@ -573,6 +563,5 @@ correl_matrix <- cor(data_numeric |>
                     use = "complete.obs")
 
 corrplot(correl_matrix, method = "color",tl.col = "black")
-
 
 ```
