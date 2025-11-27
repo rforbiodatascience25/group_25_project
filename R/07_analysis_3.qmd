@@ -1,0 +1,217 @@
+---
+title: "06_analysis_2"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Loading Libraries
+
+Load in the necessary libraries.
+
+```{r}
+library("tidyverse")
+library("here")
+library("ggridges")
+library("ggalluvial")
+```
+
+## Loading data
+
+Load in the data from the augmentation step *03_augment*.
+
+```{r}
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
+
+## Plots
+
+### Patient Survival Comparison with Radiation Therapy and Prior Diagnosis
+
+It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
+
+```{r}
+data_diag |> 
+  drop_na(`Prior Diagnosis`,
+    `Disease-specific Survival status`,
+    `Radiation Therapy`) |> 
+  count(Prior_Diagnosis = `Prior Diagnosis`,
+    Radiation_Therapy = `Radiation Therapy`,
+    Survival = `Disease-specific Survival status`) |> 
+  ggplot(aes(x = Prior_Diagnosis,
+    y = Radiation_Therapy,
+    fill = n)) +
+  geom_tile() +
+  geom_text(aes(label = n),
+    color = "white") +
+  facet_wrap(~ Survival) +
+  labs(title = "Number of Patients Survival by Prior Diagnosis and Radiation Therapy",
+    x = "Prior Diagnosis",
+    y = "Radiation Therapy",
+    fill = "Count") +
+  theme_minimal()
+
+```
+
+### Age Density Between Sexes Across Neoplasm Histologic Grades
+
+GX was removed due to there being only 3 instances of it and also that it represents an inability to properly assign a grade. G4 was removed due to there being only 2 instances and therefore not being able to show statistacally significant data.
+
+This plot shows that in both men and women, in all 3 grades, a majority of sampes were between the 40 to 80 age range. However, it is interesting to note, that in general, density was highest for females in all grades slightly before males. In G1 females seem to peak in their mid-60s, in G2 the peak is near early-70s, and in G3 the peak is near early-60s. For men however, in G1 the peak is near early-70s, in G2 the peak is also near early-70s, and for G3 the peak is near mid-70s. Along with this difference in ages between the sexes, it is also interesting to note that G3 is found more commonly at a younger age than G1 or G2. This could be important to note as it shows that a more advanced cancer being found in younger women.
+
+```{r}
+bind_cols(data_metrics |> 
+  select(Age = `Diagnosis Age`,
+    Sex),
+    data_diag |> 
+  select(Neo_Grade = `Neoplasm Histologic Grade`)) |> 
+  filter(!Neo_Grade %in% c("GX", "G4")) |> 
+  ggplot(aes(x = Age,
+    y = Neo_Grade,
+    fill = Neo_Grade)) +
+  geom_density_ridges(alpha = 0.7) +
+  facet_wrap(~ Sex) +
+  labs(title = "Age Distribution Across Neoplasm Histologic Grades",
+    x = "Diagnosis Age",
+    y = "Histologic Grade") +
+  theme_ridges() +
+  theme(legend.position = "none")
+```
+
+### TMB Comparison With Months of Survival Across Survival Status
+
+This plot shows that for both those who became tumor free and those who died from the tumor, a similar trend was followed where, in general, a higher TMB meant fewer months of survival. The trend was mainly differentiated in that there were more months survived for those who became tumor free. This follows the general trend that we would expect to see. However, it is interesting to note that in those who died with a tumor, there was a slight positive slope until after 1 TMB, where it then sharply drops. This could indicate that as long as a persons TMB is less than 1, they may have the same estimated survival time.
+
+```{r}
+bind_cols(data_diag |>
+  select(Months_Disease = `Months of disease-specific survival`,
+    Survival_Status = `Disease-specific Survival status`),
+    data_gene |>
+  select(TMB = `TMB (nonsynonymous)`)) |>
+  filter(TMB < 10) |>
+  drop_na(Survival_Status) |>
+  ggplot(aes(x = Months_Disease,
+    y = TMB)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "loess",
+    se = FALSE,
+    color = "blue") +
+  facet_wrap(~ Survival_Status) +
+  labs(title = "TMB vs Disease-Specific Survival by Survival Status",
+    x = "TMB (nonsynonymous)",
+    y = "Disease-Specific Survival (Months)") +
+  theme_minimal()
+
+```
+
+### Average Scores Across Age Groups Divided by Sex
+
+```{r}
+
+data_score |>
+  left_join(data_metrics |>
+  select(`Patient ID`,
+    Age_Group, Sex),
+    by = "Patient ID") |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to = "Metric",
+    values_to = "Score") |>
+  drop_na(Score, Age_Group, Sex) |>
+  group_by(Age_Group,
+    Sex,
+    Metric) |>
+  summarise(Mean_Score = mean(Score,
+    na.rm = TRUE),
+    .groups = "drop") |>
+  ggplot(aes(x = Age_Group,
+    y = Metric,
+    fill = Mean_Score)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(option = "plasma") +
+  facet_wrap(~ Sex) +
+  labs(title = "Average Scores by Age Group",
+    x = "Age Group",
+    y = "Metric",
+    fill = "Mean Score") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45,
+    hjust = 1),
+    axis.text.y = element_text(face = "bold"),
+    panel.grid = element_blank())
+
+```
+
+### Score Distribution Along Neoplasm Histological Grades Divided by Cancer Status
+
+```{r}
+
+data_score |>
+  left_join(data_diag |>
+  select(`Patient ID`,
+    `Neoplasm Histologic Grade`,
+    `Person Neoplasm Cancer Status`),
+    by = "Patient ID") |>
+  filter(!is.na(`Neoplasm Histologic Grade`),
+    !`Neoplasm Histologic Grade` %in% c("GX",
+    "G4")) |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`, 
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to = "Metric",
+    values_to = "Score") |>
+  filter(!is.na(Score),
+    !is.na(`Neoplasm Histologic Grade`),
+    !is.na(`Person Neoplasm Cancer Status`)) |>
+  ggplot(aes(x = `Neoplasm Histologic Grade`,
+    y = Score,
+    fill = `Person Neoplasm Cancer Status`)) +
+  geom_boxplot(alpha = 0.7,
+    outlier.shape = NA) +
+  facet_wrap(~ Metric,
+    scales = "free_y") +
+  labs(title = "Distribution of Scores Across Histologic Grades by Cancer Status",
+    x = "Neoplasm Histologic Grade",
+    y = "Score",
+    fill = "Cancer Status") +
+  theme_minimal(base_size = 12)
+```
+
+### Coding System Comparison From Site Code to Histiology Code to Cancer Code
+
+```{r}
+data_code |>
+  drop_na(`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
+    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
+    `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  count(ICD_O3_Site = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
+    ICD_O3_Histology = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
+    AJCC_Stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  ggplot(aes(axis1 = ICD_O3_Site,
+    axis2 = ICD_O3_Histology,
+    axis3 = AJCC_Stage,
+    y = n)) +
+  geom_alluvium(aes(fill = ICD_O3_Histology)) +
+  geom_stratum(fill = "white",
+    color = "black") +
+  geom_text(stat = "stratum",
+    aes(label = after_stat(stratum)),
+    size = 3) +
+  scale_x_discrete(limits = c("ICD_O3_Site",
+    "ICD_O3_Histology",
+    "AJCC_Stage")) +
+  labs(title = "ICD-O-3 Site to Histology Code to AJCC Stage",
+    x = "Coding System",
+    y = "Number of Patients",
+    fill = "ICD-O-3 Histology") +
+  theme_minimal()
+
+```

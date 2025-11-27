@@ -27,6 +27,16 @@ data_code <- read_tsv(here("data","data_code.tsv"))
 data_diag <- read_tsv(here("data","data_diag.tsv"))
 ```
 
+## Adding Age Group
+
+```{r}
+data_metrics <- data_metrics |>
+  mutate(Age_Group = cut(
+    `Diagnosis Age`,
+    breaks = seq(20, 90, by = 10),
+    right = FALSE))
+```
+
 ## Changing units from months to days
 
 Operating in months as unit is strange and not intuitive. For this reason units of some columns are changed from months to days. Unfortunately multiplying by average of days per month (or any nearby integer 28-31) does not results in integer number of days. For this reason results are rounded to represent full day as base unit. All loss resulted in this operation should be negligible in comparison to benefits of change.
