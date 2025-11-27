@@ -50,14 +50,16 @@ data_diag |>
   count(Prior_Diagnosis = `Prior Diagnosis`,
     Radiation_Therapy = `Radiation Therapy`,
     Survival = `Disease-specific Survival status (des)`) |> 
+  group_by(Survival) |> 
+  mutate(percentage = n / sum(n) * 100) |>
   ggplot(aes(x = Prior_Diagnosis,
     y = Radiation_Therapy,
     fill = n)) +
   geom_tile() +
-  geom_text(aes(label = n),
-    color = "white") +
+  geom_text(aes(label = paste0(n, "\n(", round(percentage, 1), "%)")),
+    color = "white", size = 3) +
   facet_wrap(~ Survival) +
-  labs(title = "Number of Patients Survival by Prior Diagnosis and Radiation Therapy",
+  labs(title = "Patient Survival by Prior Diagnosis and Radiation Therapy",
     x = "Prior Diagnosis",
     y = "Radiation Therapy",
     fill = "Count") +
@@ -116,10 +118,11 @@ bind_cols(data_diag |>
 
 ```
 
-### Average Scores Across Age Groups Divided by Sex
+### Average biological scores (Aneuploidy, hypoxia, MSI) Across Age Groups Divided by Sex
+
+André Comment - \> values different scales so heatmap coloring is not valuable.
 
 ```{r}
-
 data_score |>
   left_join(data_metrics |>
   select(`Patient ID`,
@@ -142,6 +145,7 @@ data_score |>
     y = Metric,
     fill = Mean_Score)) +
   geom_tile(color = "white") +
+  geom_text(aes(label = round(Mean_Score, 2)), color = "black", size=2) +
   scale_fill_viridis_c(option = "plasma") +
   facet_wrap(~ Sex) +
   labs(title = "Average Scores by Age Group",
@@ -193,6 +197,10 @@ data_score |>
 ```
 
 ### Coding System Comparison From Site Code to Histiology Code to Cancer Code
+
+Comment André: This should go to describe as well
+
+Undestand the ideia but for starters we have other codying systems and lables are weird
 
 ```{r}
 data_code |>
