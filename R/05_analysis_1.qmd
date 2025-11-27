@@ -44,16 +44,6 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 data_metrics
 ```
 
-Needs to go to data_aug this!
-
-```{r}
-data_metrics <- data_metrics |>
-  mutate(Age_Group = cut(
-    `Diagnosis Age`,
-    breaks = seq(20, 90, by = 10),
-    right = FALSE))
-```
-
 ```{r}
 plot_data <- data_metrics |> 
   count(Sex, Age_Group)
