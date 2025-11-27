@@ -19,6 +19,7 @@ library("here")
 Loading the data from the previous augmentation step *03_augment*.
 
 ```{r}
+#| message: false
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
@@ -26,15 +27,11 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
--   data_metrics: Contains clinical and demographic metadata for patients, including diagnosis age, sex, genetic ancestry, race, and ethnicity. This dataset provides socio-demographic context and basic patient characteristics important for stratification and subgroup analyses.
-
--   data_gene: Contains genomic alteration metrics per patient, such as fraction of the genome altered, mutation counts, tumor mutation burden (TMB), and tumor break load. This data captures key genomic instability features relevant to tumor biology and mutation burden.
-
--   data_score: Contains various biological and clinical scores and codes, including aneuploidy score, multiple hypoxia-related scores, microsatellite instability (MSI) scores from different methods, and tissue source site identifiers. These functional scores inform on genomic instability, tumor microenvironment, and sample origin.
-
--   data_code: Contains standardized oncology disease stage and classification codes per patient. This includes AJCC cancer staging codes, ICD-O-3 histology and site codes, and codes for metastasis and lymph node staging. This set provides clinical staging and diagnostic classification for tumors.
-
--   data_diag: Contains detailed clinical diagnosis and outcome variables such as tumor type, overall survival time and status, disease-specific survival, disease-free survival, progression-free survival, prior diagnoses, and therapy details. Also includes cancer status indicators, neoplasm histologic grade, and ICD-10 classification. This dataset focuses on clinical endpoints and diagnostic outcomes.
+-   **data_metrics** — patient demographics (age, sex, race, ancestry)
+-   **data_gene** — genomic instability metrics (mutation count, TMB, fraction genome altered).
+-   **data_score** — biological scores (aneuploidy, hypoxia, MSI).
+-   **data_code** — cancer staging and clinical classification codes.
+-   **data_diag** — diagnoses, survival outcomes, therapy history.
 
 ## Plotting
 

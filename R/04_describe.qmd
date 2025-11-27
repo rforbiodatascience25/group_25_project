@@ -449,3 +449,21 @@ dispersion_tbl
 ```
 
 The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
+
+### Tumor Types distribuiton (**data_diag)**
+
+```{r}
+#| fig-height: 5
+
+data_diag |>
+  ggplot(aes(x = `Tumor Type`, 
+             fill = `Tumor Type`)) +
+  geom_bar() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+```
+
+Not enough disersity in tumor types.

@@ -3,7 +3,29 @@ title: "05_analysis_2"
 format: html
 ---
 
-## Analysis 2
+## **Loading libraries**
+
+```{r}
+library(patchwork)
+library(tidyverse)
+library(ggplot2)
+
+library(survival)
+library(survminer)
+```
+
+## **Loading data**
+
+Loading the data from the previous augmentation step *03_augment*.
+
+```{r}
+#| message: false
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
 
 Previous analysis from André (just for context):
 
@@ -21,34 +43,23 @@ Important context from before:
 
 -   Joined `data_gene` + `data_code` (cancer stage classifications)→ data_gene_code. Conclusions: ??? confusion
 
-### Loading libraries
-
-```{r}
-library(patchwork)
-library(tidyverse)
-library(ggplot2)
-
-library(survival)
-library(survminer)
-```
-
 ### Next Analysis (in points)
 
 #### Genomic alterations and instability (data_gene)
 
 -   **Comparing survival time between high and low** genomic instability measures / Relationship between genomic instability and survival status
 
+Comment André -\> i don´t know if you can´t do this in tydiverse
+
 ```{r}
-#| fig.width=30
-#| fig.height=20
+#| fig-width: 10
+#| fig-height: 7
 
 data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID")
 data_gene_diag <- data_gene_diag |>
   filter(`Mutation Count` < 5000) |>
   filter(`TMB (nonsynonymous)` < 400)
   
-
-
 # Survival days vs TMB
 tmb_med <- median(data_gene_diag[["TMB (nonsynonymous)"]], na.rm = TRUE)  
 
@@ -69,8 +80,8 @@ plt1 <- ggplot(data_gene_diag,
   ggtitle("Overall Survival vs TMB")
 
 plt2 <- data_gene_diag |>
-  ggplot(aes(x = `TMB (nonsynonymous)`, 
-             y = `Overall Survival (days)`,
+  ggplot(aes(y = `TMB (nonsynonymous)`, 
+             x = `Overall Survival (days)`,
              color = TMB_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
@@ -99,8 +110,8 @@ plt3 <- ggplot(data_gene_diag,
   ggtitle("Overall Survival vs Mutation Count")
 
 plt4 <- data_gene_diag |>
-  ggplot(aes(x = `Mutation Count`, 
-             y = `Overall Survival (days)`,
+  ggplot(aes(y = `Mutation Count`, 
+             x = `Overall Survival (days)`,
              color = MutCount_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
@@ -129,8 +140,8 @@ plt5 <- ggplot(data_gene_diag,
   ggtitle("Overall Survival vs Fraction Genome Altered")
 
 plt6 <- data_gene_diag |>
-  ggplot(aes(x = `Fraction Genome Altered`, 
-             y = `Overall Survival (days)`,
+  ggplot(aes(y = `Fraction Genome Altered`, 
+             x = `Overall Survival (days)`,
              color = Frac_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
@@ -160,8 +171,8 @@ plt7 <- ggplot(data_gene_diag,
   ggtitle("Overall Survival vs Tumor Break Load")
 
 plt8 <- data_gene_diag |>
-  ggplot(aes(x = `Tumor Break Load`, 
-             y = `Overall Survival (days)`,
+  ggplot(aes(y = `Tumor Break Load`, 
+             x = `Overall Survival (days)`,
              color = TumorLoad_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
@@ -169,73 +180,47 @@ plt8 <- data_gene_diag |>
   ggtitle("Overall Survival vs Tumor Break Load")
 
 plt7 / plt8
-
-  
 ```
 
 -   **Tumor types and Genomic differences across them (not meaningful for further analysis)**
 
 ```{r}
-#| fig.width=10
-#| fig.height=6
-
-data_diag |>
-  ggplot(aes(x = `Tumor Type`, 
-             fill = `Tumor Type`)) +
-  geom_bar() +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1))
-
-
-# I STILL HAVE TO PUT ALL THE GRAPHS IN THE SAME FIGUREEE
-data_gene_diag <- data_gene_diag |>
-  filter(`Tumor Type` == "Pancreas Adenocarcinoma, Ductal Type" |
-           `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")
+#| fig-width: 8
+#| fig-height: 5
 
 data_gene_diag |>
-  filter(`Mutation Count` < 5000) |>    #same filter as before (andre)
-  ggplot(aes(x = `Tumor Type`,
-             y = `Mutation Count`,
-             fill = `Tumor Type`)) +
+  filter(
+    `Tumor Type` %in% c(
+      "Pancreas Adenocarcinoma, Ductal Type",
+      "Pancreas Adenocarcinoma, Other Subtype"
+    ),
+    `Mutation Count` < 5000,
+    `TMB (nonsynonymous)` < 400
+  ) |>
+  pivot_longer(
+    cols = c(
+      `Mutation Count`,
+      `TMB (nonsynonymous)`,
+      `Fraction Genome Altered`,
+      `Tumor Break Load`
+    ),
+    names_to = "Metric",
+    values_to = "Value"
+  ) |>
+  ggplot(aes(x = `Tumor Type`, y = Value, fill = `Tumor Type`)) +
   geom_boxplot() +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1))
-
-data_gene_diag |>
-  filter(`TMB (nonsynonymous)` < 400) |>  #same filter as before (andre)
-  ggplot(aes(x = `Tumor Type`,
-             y = `TMB (nonsynonymous)`,
-             fill = `Tumor Type`)) +
-  geom_boxplot() +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1))
-
-data_gene_diag |>
-  ggplot(aes(x = `Tumor Type`,
-             y = `Fraction Genome Altered`,
-             fill = `Tumor Type`)) +
-  geom_boxplot() +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1))
-
-data_gene_diag |>
-  ggplot(aes(x = `Tumor Type`,
-             y = `Tumor Break Load`,
-             fill = `Tumor Type`)) +
-  geom_boxplot() +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1))
-
+  facet_wrap(~ Metric, ncol = 2, scales = "free_y") +
+  theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank()
+  )
 
 
 ```
 
-[Conclusion]{.underline}: Not enough disersity in tumor types, but other subtypes of adenocarcinoma have a higher fraction of the genome altered compared to others. From now on discart all tumor types that are not pancreas adenocarcinoma (ductal type or other subtype)
+[Conclusion]{.underline}: Other subtypes of adenocarcinoma have a higher fraction of the genome altered compared to others. From now on discart all tumor types that are not pancreas adenocarcinoma (ductal type or other subtype)
 
 -   Show similarities in **tumor type** + stage + genomic instability measures
 
