@@ -176,8 +176,8 @@ plt7 / plt8
 -   **Tumor types and Genomic differences across them (not meaningful for further analysis)**
 
 ```{r}
-#| fig.width=10
-#| fig.height=6
+#| fig.width=200
+#| fig.height=100
 
 data_diag |>
   ggplot(aes(x = `Tumor Type`, 
@@ -188,13 +188,46 @@ data_diag |>
     hjust = 1))
 
 
-# I STILL HAVE TO PUT ALL THE GRAPHS IN THE SAME FIGUREEE
+# Difference between genomic instability measures in 
 data_gene_diag <- data_gene_diag |>
   filter(`Tumor Type` == "Pancreas Adenocarcinoma, Ductal Type" |
-           `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")
-
-data_gene_diag |>
+           `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")|>
   filter(`Mutation Count` < 5000) |>    #same filter as before (andre)
+  filter(`TMB (nonsynonymous)` < 400)   #same filter as before (andre)
+
+  
+# Change data format to add all graphs together easily
+data_gene_diag_long <- data_gene_diag |>
+  pivot_longer(cols = c(
+      `Mutation Count`,
+      `TMB (nonsynonymous)`,
+      `Fraction Genome Altered`,
+      `Tumor Break Load`
+    ),
+    names_to = "Variable",
+    values_to = "Value"
+  )
+
+
+#Plots together
+data_gene_diag_long |>
+  ggplot(aes(x = `Tumor Type`,
+             y = Variable,
+             fill = `Tumor Type`)) +
+  geom_boxplot() + 
+  facet_wrap(~ Variable, scales = "free_y") +
+  theme(axis.text.x = element_text(
+    angle = 45, 
+    hjust = 1),
+    strip.text = element_text(
+      size = 12, 
+      face = "bold"),
+    legend.position = "bottom") +
+  labs(title = "Genomic Instability Measures by Tumor Type")
+  
+  
+  
+data_gene_diag |>
   ggplot(aes(x = `Tumor Type`,
              y = `Mutation Count`,
              fill = `Tumor Type`)) +
@@ -204,7 +237,6 @@ data_gene_diag |>
     hjust = 1))
 
 data_gene_diag |>
-  filter(`TMB (nonsynonymous)` < 400) |>  #same filter as before (andre)
   ggplot(aes(x = `Tumor Type`,
              y = `TMB (nonsynonymous)`,
              fill = `Tumor Type`)) +
@@ -230,6 +262,8 @@ data_gene_diag |>
   theme(axis.text.x = element_text(
     angle = 45, 
     hjust = 1))
+    
+
 
 
 
