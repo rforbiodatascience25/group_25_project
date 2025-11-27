@@ -72,4 +72,90 @@ ggplot(mapping =
   facet_wrap(~ Genomic_Metric, scales = "free_y")
 ```
 
-Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.  
+Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
+
+```{r}
+metric_for_order <- "Buffa Hypoxia Score"
+
+df_long <- data_score |>
+  select(`Patient ID`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -`Patient ID`,
+    names_to = "Metric",
+    values_to = "Score"
+  ) |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score[Metric == metric_for_order][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+ggplot(df_long,
+       aes(x = `Patient ID`, y = Metric, fill = Score)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  labs(
+    title = "Hypoxia and MSI scores across patients",
+    x = "Patient", y = "Metric", fill = "Score"
+  )
+
+```
+
+```{r}
+metric_for_order <- "Winter Hypoxia Score"
+
+df_long <- data_score |>
+  select(`Patient ID`,
+         `MSI MANTIS Score`,
+         `MSIsensor Score`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -`Patient ID`,
+    names_to = "Metric",
+    values_to = "Score"
+  ) |>
+  group_by(Metric) |>
+  mutate(
+    Score_scaled = (Score - mean(Score, na.rm = TRUE)) /
+                   sd(Score, na.rm = TRUE)
+  ) |>
+  ungroup() |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score_scaled[Metric == metric_for_order][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+ggplot(df_long,
+       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  labs(
+    title = "MSI scores across patients (z-scaled)",
+    x = "Patient", y = "Metric", fill = "z-score"
+  )
+
+```
