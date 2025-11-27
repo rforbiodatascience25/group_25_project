@@ -435,9 +435,13 @@ dispersion_tbl <-
   mutate(
     entropy = map_dbl(var_name, ~ {
       x <- data_code[[.x]]
+      x <- x[!is.na(x)]         # remove NAs for this variable
       entropy_cat(x)
     }),
-    n_levels = map_int(var_name, ~ n_distinct(data_code[[.x]], na.rm = TRUE))
+    n_levels = map_int(var_name, ~ {
+      x <- data_code[[.x]]
+      n_distinct(x, na.rm = TRUE)
+    })
   ) |>
   arrange(desc(entropy))
 

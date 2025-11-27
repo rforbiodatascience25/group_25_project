@@ -38,44 +38,6 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Plotting
 
-### Demographic & Clinical Metadata (data_metrics) 
-
-```{r}
-data_metrics
-```
-
-```{r}
-plot_data <- data_metrics |> 
-  count(Sex, Age_Group)
-
-sex_number <- data_metrics |> 
-  count(Sex) |> 
-  mutate(Age_Group = "Total")
-
-# Bind rows
-plot_data_total <- bind_rows(plot_data, sex_number)
-
-# We can try to add a dummy row to separate it from the others
-# I don´t know if it´s a freat ideia to plot the Total in there, it was just an ideia
-
-# Now plot, showing "Total" along x-axis
-
-plot_data_total |> 
-  ggplot(mapping = 
-           aes(x = Sex,
-               y = n,
-               fill = Age_Group)) +
-  geom_bar(stat = "identity", position = position_dodge(preserve = "single"), color = "black", alpha = 0.5)
-```
-
-```{r}
-data_metrics |> 
-  ggplot(mapping = 
-           aes(x = `Diagnosis Age`,
-               fill = Sex)) +
-  geom_density(alpha = 0.3)
-```
-
 ### Genomic Alterations & Instability (data_gene) 
 
 ```{r}
@@ -83,86 +45,13 @@ data_metrics |>
   select(-c(`Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`))
 
 data_metrics_gene <- full_join( data_metrics, data_gene, by="Patient ID")
-
-data_metrics_gene
-```
-
-Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
-
-Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
-
-TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
-
-Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
-
-```{r}
-library(corrplot)
-cor_matrix <- cor(data_metrics_gene |>
-                    select(`Fraction Genome Altered`, 
-                           `Mutation Count`, 
-                           `TMB (nonsynonymous)`, 
-                           `Tumor Break Load`), 
-                    use = "complete.obs")
-
-corrplot(cor_matrix, method = "color")
 ```
 
 ------------------------------------------------------------------------
 
 ```{r}
 data_metrics_gene |>
-  filter(`Mutation Count` < 5000)
-```
-
-Before plotting, that one strange outlier should be removed to avoid skewing the results. The resulting trend makes sense, since mutations occur randomly across the genome, the proportion that are nonsynonymous tends to follow a predictable pattern, assuming random mutagenesis within tumor DNA and consistent coding sequence proportions.
-
-```{r}
-data_metrics_gene |> 
-  filter(`TMB (nonsynonymous)` < 400) |> 
-  ggplot(mapping = 
-           aes(x = `Mutation Count`,
-               y = `TMB (nonsynonymous)`,
-               color = Age_Group)) +
-  geom_point()
-```
-
-```{r}
-data_metrics_gene |> 
-  filter(`TMB (nonsynonymous)` < 400) |> 
-  ggplot(mapping = 
-           aes(x = `Fraction Genome Altered`,
-               y = `Tumor Break Load`,
-               color = Age_Group)) +
-  geom_point()
-```
-
-### Box Plots of data_gene on certain groups to uncover whether certain groups harbor more genomic instability.
-
-```{r}
-ClassificationSystems <- c(
-  "Neoplasm Disease Stage American Joint Committee on Cancer Code",
-  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
-  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
-  "American Joint Committee on Cancer Metastasis Stage Code",
-  "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
-  "American Joint Committee on Cancer Tumor Stage Code"
-)
-```
-
-```{r}
-data_code |>
-  count(
-    `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`
-  ) |> 
-  ggplot(
-    mapping = aes(
-  x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-  y = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
-  fill = n)) +
-  geom_tile() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  labs(fill = "Count")
+  filter(`Mutation Count` < 5000) # take out outlier
 ```
 
 ```{r}
@@ -181,81 +70,7 @@ data_gene_code |>
 ggplot(mapping = 
          aes(x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`, 
              y = Value)) +
-  geom_boxplot() +
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   facet_wrap(~ Genomic_Metric, scales = "free_y")
-```
-
-### Different Classification Methods Coherence
-
-```{r}
-data_code
-```
-
-```{r}
-data_code |>
-  count(
-    `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`
-  ) |> 
-  ggplot(
-    mapping = aes(
-      x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-      y = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
-      fill = n)
-  ) +
-  geom_tile() +
-  geom_text(aes(label = n), color = "white") +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  labs(fill = "Count")
-```
-
-```{r}
-data_code |>
-  count(
-    `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`
-    
-  ) |> 
-  ggplot(
-    mapping = aes(
-  x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-  y = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
-  fill = n)) +
-  geom_tile() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  labs(fill = "Count")
-```
-
-### Bin
-
-```{r}
-working_df |> 
-  ggplot(mapping =
-           aes(x= `Age_Group`, 
-               y = `Fraction Genome Altered`,
-               color = Sex)) +
-  geom_boxplot()
-```
-
-```{r}
-working_df |> 
-  ggplot(mapping = 
-           aes( x = `Disease Free (days)`,
-                color = Sex)) +
-  geom_density()
-```
-
-```{r}
-#| fig-height: 
-working_df |> 
-  ggplot(mapping = 
-           aes( x = `Tumor Type`,
-                fill = `Overall Survival Status (des)`)) +
-  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.5) +
-  theme(
-    panel.grid.major.x =  element_blank(),
-    axis.text.x = element_text(angle = 70, 
-                               hjust = 1,
-                               vjust = 1)
-  )
 ```
