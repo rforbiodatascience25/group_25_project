@@ -71,3 +71,5 @@ ggplot(mapping =
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   facet_wrap(~ Genomic_Metric, scales = "free_y")
 ```
+
+Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.  

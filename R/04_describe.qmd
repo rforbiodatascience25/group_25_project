@@ -476,6 +476,12 @@ corrplot(correl_matrix,
          tl.col = "black")
 ```
 
+-   Aneuploidy Score → chromosome-level copy-number changes.
+
+-   MSI MANTIS / MSIsensor → microsatellite instability (DNA repair).
+
+-   Buffa / Ragnum / Winter → hypoxia from expression, different gene signatures.
+
 ```{r}
 data_score |> 
   ggplot(mapping = 
