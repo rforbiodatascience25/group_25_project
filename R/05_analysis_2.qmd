@@ -21,15 +21,26 @@ Important context from before:
 
 -   Joined `data_gene` + `data_code` (cancer stage classifications)→ data_gene_code. Conclusions: ??? confusion
 
+### Loading libraries
+
+```{r}
+library(patchwork)
+library(tidyverse)
+library(ggplot2)
+
+library(survival)
+library(survminer)
+```
+
 ### Next Analysis (in points)
 
-#### First check some possible ways for data analysis
+#### Genomic alterations and instability (data_gene)
 
 -   **Comparing survival time between high and low** genomic instability measures / Relationship between genomic instability and survival status
 
-```{r, fig.width=10, fig.height=6}
-
-library(patchwork)
+```{r}
+#| fig.width=30
+#| fig.height=20
 
 data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID")
 data_gene_diag <- data_gene_diag |>
@@ -39,7 +50,7 @@ data_gene_diag <- data_gene_diag |>
 
 
 # Survival days vs TMB
-tmb_med <- median(data_gene_diag[["TMB (nonsynonymous)"]], na.rm = TRUE)
+tmb_med <- median(data_gene_diag[["TMB (nonsynonymous)"]], na.rm = TRUE)  
 
 data_gene_diag <- data_gene_diag |>
   mutate(
@@ -49,8 +60,8 @@ data_gene_diag <- data_gene_diag |>
     ))
 
 plt1 <- ggplot(data_gene_diag, 
-               aes(x = TMB_Group, 
-                   y = `Overall Survival (days)`, 
+               aes(x = `Overall Survival (days)`, 
+                   y = TMB_Group, 
                    fill = TMB_Group)) +
   geom_violin(alpha = 0.6) +
   geom_jitter(width = 0.2, alpha = 0.6) +
@@ -59,13 +70,14 @@ plt1 <- ggplot(data_gene_diag,
 
 plt2 <- data_gene_diag |>
   ggplot(aes(x = `TMB (nonsynonymous)`, 
-             y = `Overall Survival (days)`)) +
+             y = `Overall Survival (days)`,
+             color = TMB_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   theme_minimal() +
   ggtitle("Overall Survival vs TMB")
 
-plt1 + plt2
+plt1 / plt2
 
 # Survival days vs Mutation Count
 mutcount_med <- median(data_gene_diag[["Mutation Count"]], na.rm = TRUE)
@@ -78,8 +90,8 @@ data_gene_diag <- data_gene_diag |>
     ))
 
 plt3 <- ggplot(data_gene_diag, 
-               aes(x = MutCount_Group, 
-                   y = `Overall Survival (days)`, 
+               aes(x = `Overall Survival (days)`, 
+                   y = MutCount_Group, 
                    fill = MutCount_Group)) +
   geom_violin(alpha = 0.6) +
   geom_jitter(width = 0.2, alpha = 0.6) +
@@ -88,13 +100,14 @@ plt3 <- ggplot(data_gene_diag,
 
 plt4 <- data_gene_diag |>
   ggplot(aes(x = `Mutation Count`, 
-             y = `Overall Survival (days)`)) +
+             y = `Overall Survival (days)`,
+             color = MutCount_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   theme_minimal() +
   ggtitle("Overall Survival vs Mutation Count")
 
-plt3 + plt4
+plt3 / plt4
 
 # Survival days vs Fraction Genome Altered
 frac_med <- median(data_gene_diag[["Fraction Genome Altered"]], na.rm = TRUE)
@@ -107,8 +120,8 @@ data_gene_diag <- data_gene_diag |>
     ))
 
 plt5 <- ggplot(data_gene_diag, 
-               aes(x = Frac_Group, 
-                   y = `Overall Survival (days)`, 
+               aes(x = `Overall Survival (days)`, 
+                   y = Frac_Group, 
                    fill = Frac_Group)) +
   geom_violin(alpha = 0.6) +
   geom_jitter(width = 0.2, alpha = 0.6) +
@@ -117,13 +130,14 @@ plt5 <- ggplot(data_gene_diag,
 
 plt6 <- data_gene_diag |>
   ggplot(aes(x = `Fraction Genome Altered`, 
-             y = `Overall Survival (days)`)) +
+             y = `Overall Survival (days)`,
+             color = Frac_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   theme_minimal() +
   ggtitle("Overall Survival vs Fraction Genome Altered")
 
-plt5 + plt6
+plt5 / plt6
 
 # Survival days vs Tumor Break Load
 tbload_med <- median(data_gene_diag[["Tumor Break Load"]], na.rm = TRUE)
@@ -137,8 +151,8 @@ data_gene_diag <- data_gene_diag |>
   )
 
 plt7 <- ggplot(data_gene_diag, 
-               aes(x = TumorLoad_Group, 
-                   y = `Overall Survival (days)`, 
+               aes(x = `Overall Survival (days)`, 
+                   y = TumorLoad_Group, 
                    fill = TumorLoad_Group)) +
   geom_violin(alpha = 0.6) +
   geom_jitter(width = 0.2, alpha = 0.6) +
@@ -147,19 +161,23 @@ plt7 <- ggplot(data_gene_diag,
 
 plt8 <- data_gene_diag |>
   ggplot(aes(x = `Tumor Break Load`, 
-             y = `Overall Survival (days)`)) +
+             y = `Overall Survival (days)`,
+             color = TumorLoad_Group)) +
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   theme_minimal() +
   ggtitle("Overall Survival vs Tumor Break Load")
 
-plt7 + plt8
+plt7 / plt8
+
   
 ```
 
 -   **Tumor types and Genomic differences across them (not meaningful for further analysis)**
 
-```{r, fig.width=10, fig.height=6}
+```{r}
+#| fig.width=10
+#| fig.height=6
 
 data_diag |>
   ggplot(aes(x = `Tumor Type`, 
@@ -168,6 +186,12 @@ data_diag |>
   theme(axis.text.x = element_text(
     angle = 45, 
     hjust = 1))
+
+
+# I STILL HAVE TO PUT ALL THE GRAPHS IN THE SAME FIGUREEE
+data_gene_diag <- data_gene_diag |>
+  filter(`Tumor Type` == "Pancreas Adenocarcinoma, Ductal Type" |
+           `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")
 
 data_gene_diag |>
   filter(`Mutation Count` < 5000) |>    #same filter as before (andre)
@@ -211,16 +235,14 @@ data_gene_diag |>
 
 ```
 
-[Conclusion]{.underline}: Not enough disersity in tumor types, but other subtypes of adenocarcinoma have a higher fraction of the genome altered compared to others
+[Conclusion]{.underline}: Not enough disersity in tumor types, but other subtypes of adenocarcinoma have a higher fraction of the genome altered compared to others. From now on discart all tumor types that are not pancreas adenocarcinoma (ductal type or other subtype)
 
--   Show similarities in tumor type + stage + genomic instability measures
+-   Show similarities in **tumor type** + stage + genomic instability measures
 
-    ```{r, fig.width=10, fig.height=6}
+    ```{r}
+    #| fig.width=10
+    #| fig.height=6
 
-
-    library(dplyr)
-    library(ggplot2)
-    library(patchwork)
 
     # Merge data_gene, data_code, and data_diag
     data_full <- data_gene |>
@@ -230,25 +252,28 @@ data_gene_diag |>
     data_full <- data_full |>
       rename(`Cancer Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
       filter(`Mutation Count` < 5000) |>
-      filter(`TMB (nonsynonymous)` < 400)
+      filter(`TMB (nonsynonymous)` < 400) |>
+      filter(`Tumor Type` == "Pancreas Adenocarcinoma, Ductal Type" |
+        `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")
 
 
+    #### Just tumor type first
     # Stage distribution per tumor type
     plt_stage_dist <- data_full |>
-      ggplot(aes(x = `Tumor Type`, 
-                 fill = `Cancer Stage`)) +
-      geom_bar(position = "fill") +  
+      ggplot(aes(x = `Cancer Stage`, fill = `Cancer Stage`)) +
+      geom_bar() +
+      facet_wrap(~ `Tumor Type`, scales = "free_y") +
       theme_minimal() +
-      ggtitle("Proportion of Cancer Stages by Tumor Type") +
-      theme(axis.text.x = element_text(
-        angle = 45, 
-        hjust = 1)) +
-      labs(x = "", 
-           y = "Proportion") 
+      ggtitle("Cancer Stage Distribution by Tumor Type") +
+      theme(axis.text.x = element_text(angle = 45, 
+                                       hjust = 1),
+            legend.position = "none") +
+      labs(x = "Cancer Stage", y = "Count")
+
 
     # Mutation Count by Tumor Type and Stage
     plt_mut_stage <- data_full |>
-      ggplot(aes(x = `Tumor Type`, 
+      ggplot(aes(x = `Cancer Stage`, 
                  y = `Mutation Count`, 
                  fill = `Cancer Stage`)) +
       geom_boxplot() +
@@ -256,11 +281,12 @@ data_gene_diag |>
       ggtitle("Mutation Count by Tumor Type and Stage") +
       theme(axis.text.x = element_text(
         angle = 45,
-        hjust = 1))
+        hjust = 1)) +
+      facet_wrap(~ `Tumor Type`, scales = "free_x")
 
     # Fraction Genome Altered by Tumor Type and Stage
     plt_frac_stage <- data_full |>
-      ggplot(aes(x = `Tumor Type`, 
+      ggplot(aes(x = `Cancer Stage`, 
                  y = `Fraction Genome Altered`, 
                  fill = `Cancer Stage`)) +
       geom_boxplot() +
@@ -268,11 +294,12 @@ data_gene_diag |>
       ggtitle("Fraction Genome Altered by Tumor Type and Stage") +
       theme(axis.text.x = element_text(
         angle = 45, 
-        hjust = 1))
+        hjust = 1)) +
+      facet_wrap(~ `Tumor Type`, scales = "free_x")
 
     # Tumor Break Load by Tumor Type and Stage
     plt_tbload_stage <- data_full |>
-      ggplot(aes(x = `Tumor Type`, 
+      ggplot(aes(x = `Cancer Stage`, 
                  y = `Tumor Break Load`, 
                  fill = `Cancer Stage`)) +
       geom_boxplot() +
@@ -280,7 +307,8 @@ data_gene_diag |>
       ggtitle("Tumor Break Load by Tumor Type and Stage") +
       theme(axis.text.x = element_text(
         angle = 45, 
-        hjust = 1))
+        hjust = 1)) +
+      facet_wrap(~ `Tumor Type`, scales = "free_x")
 
     # Combine plots
     plt_stage_dist 
@@ -288,7 +316,10 @@ data_gene_diag |>
     plt_frac_stage 
     plt_tbload_stage
 
+
     ```
+
+-   One more test with tumor_type
 
 #### Tests with the tumor scores
 
@@ -296,19 +327,38 @@ IDEAAA: comparing all together the **genomic instability measures** (TMB, Mutati
 
 Meaning of the Biological scores:
 
--   **Aneuploidy Score** -\> measures the level of chromosome instability in a tumor, how many chromosomes or chromosome segments have abnormal copy numbers -\> correlates with tumor aggressiveness and poor prognosis
+-   **Aneuploidy Score** -\> measures the level of chromosome instability in a tumor, how many chromosomes or chromosome segments have abnormal copy numbers -\> correlates with tumor aggressiveness and poor prognosis -\> relate with stages (HOPEFULLY more advanced stages = more aneuploidy score)
+
+    ```{r}
+    #| fig.width=10
+    #| fig.height=6
+
+    # Relate Cancer Stage with Aneuploidy Score
+    plt_aneuploidy_stage <- data_code |>
+      full_join(data_score, by = "Patient ID") |> 
+      rename(`Cancer Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+      ggplot(aes(x = `Cancer Stage`, 
+                 y = `Aneuploidy Score`, 
+                 fill = `Cancer Stage`)) +
+      geom_boxplot() +
+      theme_minimal() +
+      ggtitle("Aneuploidy Score by Cancer Stage") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+    plt_aneuploidy_stage
+    ```
 
 -   **Buffa Hypoxia Score** -\> Tumor hypoxia (low oxygen levels) based on a gene expression - note: Hypoxic tumors tend to be more resistant to radiotherapy (test that) -\> same for Ragnum Hypoxia Score; Winter Hypoxia Score
 
-    ```{r, fig.width=10, fig.height=6}
+    ```{r}
+    #| fig.width=20
+    #| fig.height=50
 
-    library(dplyr)
-    library(ggplot2)
-    library(survival)
-    library(survminer)
-
-    #  Data Preparation and Filtering 
+    # Hypoxia Data  
     data_hypoxia <- data_full |>
+      full_join(data_score, by = "Patient ID")
+
+    data_hypoxia <- data_hypoxia |>
       select(PatientID = `Patient ID`,
              `Buffa Hypoxia Score`,
              `Ragnum Hypoxia Score`,
@@ -316,9 +366,9 @@ Meaning of the Biological scores:
              `Radiation Therapy`,
              `Overall Survival (days)`,
              `Disease-specific Survival status (des)`,
-              # Include covariates for Cox model
               `Tumor Type`) |>
       filter(!is.na(`Radiation Therapy`))
+
 
     ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
                              y = `Buffa Hypoxia Score`,
@@ -327,86 +377,185 @@ Meaning of the Biological scores:
       geom_jitter(width = 0.2,
                   alpha = 0.5) +
       theme_minimal() +
-      ggtitle("Buffa Hypoxia Score vs Radiation Therapy")
+      labs(title = "Buffa Hypoxia Score vs Radiation Therapy")
 
-    # Hypoxia Grouping
-    hyp_med <- median(data_hypoxia$`Buffa Hypoxia Score`, na.rm = TRUE)
+    # Hypoxia Groups (low vs high) 
+    hyp_med <- median(data_hypoxia[["Buffa Hypoxia Score"]], na.rm = TRUE)
+
     data_hypoxia <- data_hypoxia |>
-      mutate(Hypoxia_Group = ifelse(`Buffa Hypoxia Score` > hyp_med, "High", "Low"))
+      mutate(Hypoxia_Group = case_when(
+          `Buffa Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
+          `Buffa Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
+        ))
 
-    # Correct Status String Conversion 
-    # 1 = Event ('dead with tumor'). 0 = Censored ('alive or dead tumor free').
+     
+    # Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
     data_hypoxia <- data_hypoxia |> 
-      mutate(DSS_Status_Numeric = ifelse(`Disease-specific Survival status (des)` == "dead with tumor", 1, 0))
-
-    # Survival Object Creation 
-    # This step is now correct as it uses the numeric status column
-    surv_obj <- Surv(
-      time = data_hypoxia$`Overall Survival (days)`,
-      event = data_hypoxia$DSS_Status_Numeric)
-
-    #  Kaplan-Meier Analysis to Test Interaction (4 Groups) 
-    # Create the four groups necessary to visually test the hypothesis:
-    # e.g., High_Yes, High_No, Low_Yes, Low_No
-    data_hypoxia <- data_hypoxia |>
-      mutate(Group = paste(Hypoxia_Group, `Radiation Therapy`, sep = "_"))
-
-    fit <- survfit(surv_obj ~ Group, data = data_hypoxia)
-
-    # Plotting the 4-group comparison
-    ggsurvplot(fit, data = data_hypoxia, pval = TRUE,
-               palette = c("red", "blue", "green", "black", "yellow","purple"),
-               legend.title = "Hypoxia + Radiation (Buffa)")
-
-    #  Cox Proportional Hazards Model (Main Effects) ---
-    # Use the continuous Buffa Score for better power/precision
-    cox_fit <- coxph(surv_obj ~ `Buffa Hypoxia Score` + `Radiation Therapy` + `Tumor Type`, data = data_hypoxia)
-    summary(cox_fit)
-
-    #  Cox Proportional Hazards Model (Interaction Test) ---
-    # This is the PRIMARY STATISTICAL TEST for your hypothesis:
-    # 'Hypoxic tumors tend to be more resistant to radiotherapy'
-    # A significant interaction term means the effect of Radiotherapy depends on the Hypoxia Score.
-    cox_fit_int <- coxph(surv_obj ~ `Buffa Hypoxia Score` * `Radiation Therapy` + `Tumor Type`, data = data_hypoxia)
-    summary(cox_fit_int)
+      mutate(Status_Tumor = case_when(
+          `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
+          `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
+        ))
 
 
-    # Survival Plot: High vs Low Hypoxia *among Radiation Therapy patients only
+    # Survival Plot: High vs Low Hypoxia in Radiation therapy
 
     # Filter only patients who received radiation therapy
-    data_RT_only <- data_hypoxia |>
+    data_Radiation_Hyp <- data_hypoxia |>
       filter(`Radiation Therapy` == "Yes")
 
-    # Create survival object for this subset
-    surv_obj_RT <- Surv(
-      time = data_RT_only$`Overall Survival (days)`,
-      event = data_RT_only$DSS_Status_Numeric
-    )
+    #  survival 
+    surv_Rad <- Surv(
+      time = data_Radiation_Hyp$`Overall Survival (days)`,
+      event = data_Radiation_Hyp$`Status_Tumor`)
 
-    # Fit KM model comparing High vs Low hypoxia in RT-treated patients
-    fit_RT <- survfit(surv_obj_RT ~ Hypoxia_Group, data = data_RT_only)
+    # KM model comparing High vs Low hypoxia 
+    compare_Rad <- survfit(surv_Rad ~ Hypoxia_Group, data = data_Radiation_Hyp)
 
     # Plot
     ggsurvplot(
-      fit_RT,
-      data = data_RT_only,
-      pval = TRUE,
-      risk.table = TRUE,
+      compare_Rad,
+      data = data_Radiation_Hyp,
+      pval = TRUE,    # Take out if we just want to vizualize
+      risk.table = FALSE,     # I think its cool but but we can take out
       palette = c("red", "blue"),
       legend.title = "Hypoxia Group",
       legend.labs = c("High Hypoxia", "Low Hypoxia"),
-      title = "Survival Among Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)"
+      title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)"
     )
 
+    ```
+
+    Everything again with the **Winter hypoxia score**
+
+    ```{r}
+    #| fig.width=20
+    #| fig.height=50
+
+    ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
+                             y = `Winter Hypoxia Score`,
+                             fill = `Radiation Therapy`)) +
+      geom_boxplot(alpha = 0.6) +
+      geom_jitter(width = 0.2,
+                  alpha = 0.5) +
+      theme_minimal() +
+      labs(title = "Winter Hypoxia Score vs Radiation Therapy")
+
+    # Hypoxia Groups (low vs high) 
+    hyp_med <- median(data_hypoxia[["Winter Hypoxia Score"]], na.rm = TRUE)
+
+    data_hypoxia <- data_hypoxia |>
+      mutate(Hypoxia_Group = case_when(
+          `Winter Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
+          `Winter Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
+        ))
+
+     
+    # Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
+    data_hypoxia <- data_hypoxia |> 
+      mutate(Status_Tumor = case_when(
+          `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
+          `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
+        ))
+
+
+    # Survival Plot: High vs Low Hypoxia in Radiation therapy
+
+    # Filter only patients who received radiation therapy
+    data_Radiation_Hyp <- data_hypoxia |>
+      filter(`Radiation Therapy` == "Yes")
+
+    #  survival 
+    surv_Rad <- Surv(
+      time = data_Radiation_Hyp$`Overall Survival (days)`,
+      event = data_Radiation_Hyp$`Status_Tumor`)
+
+    # KM model comparing High  Low hypoxia 
+    compare_Rad <- survfit(surv_Rad ~ Hypoxia_Group, data = data_Radiation_Hyp)
+
+    # Plot
+    ggsurvplot(
+      compare_Rad,
+      data = data_Radiation_Hyp,
+      pval = TRUE,    # Take out if we just want to vizualize
+      risk.table = FALSE,     # I think its cool but but we can take out
+      palette = c("red", "blue"),
+      legend.title = "Hypoxia Group",
+      legend.labs = c("High Hypoxia", "Low Hypoxia"),
+      title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Winter Score)"
+    )
+
+
+    ```
+
+-   Everything again with **Ragnum Hypoxia Score**
+
+    ```{r}
+    #| fig.width=20
+    #| fig.height=50
+
+    ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
+                             y = `Ragnum Hypoxia Score`,
+                             fill = `Radiation Therapy`)) +
+      geom_boxplot(alpha = 0.6) +
+      geom_jitter(width = 0.2,
+                  alpha = 0.5) +
+      theme_minimal() +
+      labs(title = "Ragnum Hypoxia Score vs Radiation Therapy")
+
+    # Hypoxia Groups (low vs high) 
+    hyp_med <- median(data_hypoxia[["Ragnum Hypoxia Score"]], na.rm = TRUE)
+
+    data_hypoxia <- data_hypoxia |>
+      mutate(Hypoxia_Group = case_when(
+          `Ragnum Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
+          `Ragnum Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
+        ))
+
+     
+    # Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
+    data_hypoxia <- data_hypoxia |> 
+      mutate(Status_Tumor = case_when(
+          `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
+          `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
+        ))
+
+
+    # Survival Plot: High vs Low Hypoxia in Radiation therapy
+
+    # Filter only patients who received radiation therapy
+    data_Radiation_Hyp <- data_hypoxia |>
+      filter(`Radiation Therapy` == "Yes")
+
+    #  survival 
+    surv_Rad <- Surv(
+      time = data_Radiation_Hyp$`Overall Survival (days)`,
+      event = data_Radiation_Hyp$`Status_Tumor`)
+
+    # KM model comparing High  Low hypoxia 
+    compare_Rad <- survfit(surv_Rad ~ Hypoxia_Group, data = data_Radiation_Hyp)
+
+    # Plot
+    ggsurvplot(
+      compare_Rad,
+      data = data_Radiation_Hyp,
+      pval = TRUE,    # Take out if we just want to vizualize
+      risk.table = FALSE,     # I think its cool but but we can take out
+      palette = c("red", "blue"),
+      legend.title = "Hypoxia Group",
+      legend.labs = c("High Hypoxia", "Low Hypoxia"),
+      title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Ragnum Score)"
+    )
     ```
 
 -   **MSI MANTIS Score** -\> measures microsatellite instability (MSI), a condition where repetitive DNA sequences (microsatellites) are prone to errors due to defective DNA mismatch repair
 
 -   MSIsensor Score -\> same as MSI MANTIS Score, but in percentage basically
 
-Overall correlation between tumor metrics (genomic instability vs biological scores)
+**Overall correlation between tumor metrics (genomic instability vs biological scores) -\>\> in description??**
 
-```{r, fig.width=10, fig.height=6}
+```{r}
+#| fig.width=10
+#| fig.height=6
 
 library(ggplot2)
 library(corrplot)
