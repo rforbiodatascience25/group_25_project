@@ -22,6 +22,9 @@ library("ggalluvial")
 Load in the data from the augmentation step *03_augment*.
 
 ```{r}
+#| echo: true
+#| eval: true
+#| message: false
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
@@ -36,13 +39,17 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
 
 ```{r}
+data_diag
+```
+
+```{r}
 data_diag |> 
   drop_na(`Prior Diagnosis`,
-    `Disease-specific Survival status`,
+    `Disease-specific Survival status (des)`,
     `Radiation Therapy`) |> 
   count(Prior_Diagnosis = `Prior Diagnosis`,
     Radiation_Therapy = `Radiation Therapy`,
-    Survival = `Disease-specific Survival status`) |> 
+    Survival = `Disease-specific Survival status (des)`) |> 
   ggplot(aes(x = Prior_Diagnosis,
     y = Radiation_Therapy,
     fill = n)) +
@@ -90,7 +97,7 @@ This plot shows that for both those who became tumor free and those who died fro
 ```{r}
 bind_cols(data_diag |>
   select(Months_Disease = `Months of disease-specific survival`,
-    Survival_Status = `Disease-specific Survival status`),
+    Survival_Status = `Disease-specific Survival status (des)`),
     data_gene |>
   select(TMB = `TMB (nonsynonymous)`)) |>
   filter(TMB < 10) |>
