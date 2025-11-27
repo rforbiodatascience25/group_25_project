@@ -307,12 +307,35 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 
 #### Age distribution
 
+Males exhibit a slightly higher mean age at diagnosis compared to females.
+
+```{r}
+data_metrics |> 
+  group_by(Sex) |> 
+  summarise(n = n())
+
+lab_female <- paste0("Women (n = ", counts$n[counts$Sex == "Female"], ")")
+lab_male   <- paste0("Men (n = ", counts$n[counts$Sex == "Male"], ")")
+
+data_metrics |>
+  ggplot(aes(x = `Diagnosis Age`, fill = Sex)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_discrete(
+    name   = "Sex",
+    labels = c("Female" = lab_female,
+               "Male"   = lab_male)
+  )
+```
+
+Age groups of \[30,40\] and \[80,90\] contain too few individuals to support reliable statistical analysis.​
+
 ```{r}
 data_metrics |> 
   ggplot(mapping = 
-           aes(x = `Diagnosis Age`,
-               fill = Sex)) +
-  geom_density(alpha = 0.3)
+           aes( x = Sex,
+                fill = Age_Group)) +
+  geom_bar(position = "dodge", color = "black", alpha = 0.5) +
+  theme_minimal()
 ```
 
 #### Race, Genetic Ancestry Label, and Ethnicity Category
@@ -332,3 +355,93 @@ data_metrics |>
 This was kinda proven by the tables above, but we build on it to show off correlation.
 
 ### Genomic Alterations & Instability (data_gene) 
+
+Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
+
+Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
+
+TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
+
+Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
+
+```{r}
+library(corrplot)
+cor_matrix <- cor(data_gene |>
+                    select(`Fraction Genome Altered`, 
+                           `Mutation Count`, 
+                           `TMB (nonsynonymous)`, 
+                           `Tumor Break Load`), 
+                    use = "complete.obs")
+
+corrplot(cor_matrix, method = "color")
+```
+
+We excluded one extreme outlier before plotting; the resulting positive correlation is consistent with random mutagenesis, where the proportion of nonsynonymous mutations remains relatively stable given a fixed coding sequence fraction.
+
+### Cancer Classification Systems (data_code)
+
+```{r}
+ClassificationSystems <- c(
+  "Neoplasm Disease Stage American Joint Committee on Cancer Code",
+  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
+  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
+  "American Joint Committee on Cancer Metastasis Stage Code",
+  "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
+  "American Joint Committee on Cancer Tumor Stage Code"
+)
+```
+
+```{r}
+class_sym_1 <- ClassificationSystems[1]  
+class_sym_2 <- ClassificationSystems[3]
+
+data_code |>
+  count(!!sym(class_sym_1),
+        !!sym(class_sym_2)) |>
+  ggplot(aes(x = !!sym(class_sym_1),
+             y = !!sym(class_sym_2),
+             fill = n)) +
+  geom_tile() +
+  geom_text(aes(label = n), color = "white", size = 3) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(fill = "Count")
+```
+
+It is also inherently difficult to evaluate “coherence” between these systems quantitatively, because they use different numbers of categories and different underlying metrics.
+
+American Joint Committee on Cancer Metastasis Stage Code (MX) -\> Metastasis cannot be assessed or information is insufficient to assign an M category
+
+Besides this always one class that has the greatest
+
+```{r}
+entropy_cat <- function(x) {
+  p <- prop.table(table(x))
+  -sum(p * log(p))
+}
+```
+
+```{r}
+vars_to_check <- c(
+  ClassificationSystems[1], # Neoplasm disease stage
+  ClassificationSystems[2], 
+  ClassificationSystems[3],
+  ClassificationSystems[4], # AJCC metastasis stage code
+  ClassificationSystems[5], # Lymph node stage
+  ClassificationSystems[6]  # Tumor stage
+)
+
+dispersion_tbl <-
+  tibble(var_name = vars_to_check) |>
+  mutate(
+    entropy = map_dbl(var_name, ~ {
+      x <- data_code[[.x]]
+      entropy_cat(x)
+    }),
+    n_levels = map_int(var_name, ~ n_distinct(data_code[[.x]], na.rm = TRUE))
+  ) |>
+  arrange(desc(entropy))
+
+dispersion_tbl
+```
+
+The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
