@@ -296,3 +296,25 @@ diagnosis_categorical_summary <- data.frame(
 diagnosis_categorical_summary
 #---------------
 ```
+
+## Comparative Analysis of Variables Within a Common Theme
+
+In our dataset (divided ones), multiple variables often classify similar attributes or quantify related parameters, so it is essential to analyze the correlations between these variables to uncover their relationships and potential interdependencies.
+
+Furthermore, some variables may not be meaningful for analysis. For example, nominal variables that overwhelmingly dominate the dataset, where one category accounts for the vast majority of observations, may offer limited insight and can be excluded from detailed examination.
+
+### Race, Genetic Ancestry Label, and Ethnicity Category
+
+Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This high correlation limits diversity across subgroups, rendering analyses stratified by these categories unreliable for drawing meaningful conclusions.
+
+```{r}
+data_metrics |> 
+  ggplot(mapping = 
+           aes(x = `Race Category`,
+               fill = `Ethnicity Category`)) +
+  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.7) +
+  geom_vline(xintercept = seq(0.5, length(unique(data_metrics$`Race Category`)) + 0.5, by = 1), linetype = "dashed") +
+  theme_minimal()
+```
+
+This was kinda proven by the tables above, but we build on it to show off correlation.

@@ -86,18 +86,6 @@ data_metrics |>
   geom_density(alpha = 0.3)
 ```
 
-Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This means we lack sufficient diversity to draw meaningful conclusions from subgroup analyses of these categories.
-
-```{r}
-data_metrics |> 
-  ggplot(mapping = 
-           aes(x = `Race Category`,
-               fill = `Genetic Ancestry Label`)) +
-  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.7) +
-  geom_vline(xintercept = seq(0.5, length(unique(data_metrics$`Race Category`)) + 0.5, by = 1), linetype = "dashed") +
-  theme_minimal()
-```
-
 ### Genomic Alterations & Instability (data_gene) 
 
 ```{r}
