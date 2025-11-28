@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+# 03_augment
+
 ## Loading libraries
 
 For any work to proceed, first libraries need to be loaded
