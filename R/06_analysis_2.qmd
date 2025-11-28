@@ -595,3 +595,9 @@ correl_matrix <- cor(data_numeric |>
 corrplot(correl_matrix, method = "color",tl.col = "black")
 
 ```
+
+-   Magnus does the Kaplan-Meier
+
+-   Catarina - change plots filter them classes that don´have meanigful representation
+
+-   Need to do Kaplan-Meier in tydiverse

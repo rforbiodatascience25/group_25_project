@@ -16,27 +16,30 @@ format:
       - presentation_css.css
 ---
 
-## 1º slide
+## Introduction (Szymon)
 
--   Turn off alarm
--   Get out of bed
-
-------------------------------------------------------------------------
-
-## 2º slide
-
--   Get in bed
--   Count sheep
+-   What are we doing
+-   What is the core problem
 
 ------------------------------------------------------------------------
 
-## 3º slide
+## Methods and Materials (Szymon)
 
 ::::: columns
-test columns
+R 
+tidyverse in ggplot
+
+```{r}
+library("tidyverse")
+library("dplyr")
+library("here")
+library("patchwork")
+```
 
 ::: {.column width="20%"}
-hello
+git colaboration
+Describe pipeline
+Show code
 :::
 
 ::: {.column width="80%"}
@@ -44,9 +47,13 @@ it´s me
 :::
 :::::
 
-## 4º Slide
+## Describing the data (1) (Magnus)
 
-Let´s work with the iris dataset
+-  Explain the division of variables trough the different datasets
+
+------------------------------------------------------------------------
+
+## Descring the data (2) (Magnus)
 
 ```{r}
 #| echo: true
@@ -56,7 +63,7 @@ Let´s work with the iris dataset
 iris
 ```
 
-## 5º Slide
+## Results (1) (Andre)
 
 ```{r}
 #| output: false   # show results/output? (default true)
@@ -93,7 +100,7 @@ geom_point()
 :::
 :::::
 
-## 6º Slide {background-color="aquamarine"}
+## Results (2) (Andre) {background-color="aquamarine"}
 
 ```{r}
 #| echo: true
@@ -109,10 +116,20 @@ iris |>
 
 ```
 
-## 7º Slide
+## Results (3) (Catarina)
 
-## 8º Slide
+## Discussion (2) (Catarina)
 
-## 9º Slide
+## Discussion (3) (Lilly)
 
-## 10'º Slide
+## Conclusion (Lilly)
+
+quick remarks
+
+weird data, not enough variance
+
+other types code
+
+ways to go forward
+
+more data

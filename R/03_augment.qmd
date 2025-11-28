@@ -20,6 +20,7 @@ library("here")
 To process data it first needs to be loaded into memory. Even if some tables are not processed in this segment they will be loaded to be saved under different name for the sake of naming convention. In this advantages of clearing the ambiguity are higher than that of saving resources.
 
 ```{r}
+#| message: false
 data_metrics <- read_tsv(here("data","data_metrics.tsv"))
 data_gene <- read_tsv(here("data","data_gene.tsv"))
 data_score <- read_tsv(here("data","data_score.tsv"))

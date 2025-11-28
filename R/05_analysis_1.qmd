@@ -56,6 +56,7 @@ data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
 ```
 
 ```{r}
+
 data_gene_code |>
   filter(`Mutation Count` < 5000) |> 
   pivot_longer(cols = c(`Fraction Genome Altered`, 
