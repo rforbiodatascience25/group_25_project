@@ -15,13 +15,12 @@ editor: visual
 ```{r child = "03_augment.qmd"}
 ```
 
-```{#{r child = "04_describe.qmd"}
-```
+`{#{r child = "04_describe.qmd"}`
 
 ```{r child = "05_analysis_1.qmd"}
 ```
 
-```{#{r child = "06_analysis_2.qmd"}
+```{r child = "06_analysis_2.qmd"}
 ```
 
 ```{r child = "07_analysis_3.qmd"}
