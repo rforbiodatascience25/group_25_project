@@ -1,5 +1,5 @@
 ---
-title: "06_analysis_2"
+title: "07_analysis_3"
 format:
   html:
     embed-resources: true
@@ -15,6 +15,7 @@ library("tidyverse")
 library("here")
 library("ggridges")
 library("ggalluvial")
+
 ```
 
 ## Loading data
@@ -25,11 +26,72 @@ Load in the data from the augmentation step *03_augment*.
 #| echo: true
 #| eval: true
 #| message: false
+
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
 data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
+
+## Load in Visual Guidelines
+
+```{r}
+data_diag
+theme_uniform <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      plot.title    = element_text(face = "bold", size = base_size + 2, hjust = 0),
+      axis.title    = element_text(face = "bold"),
+      axis.text     = element_text(color = "gray20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray90", size = 0.3),
+      strip.text    = element_text(face = "bold"),
+      strip.background = element_rect(fill = "gray95", color = NA),
+      legend.position = "right",
+      legend.title = element_text(face = "bold"),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+#colorblind-safe color PALETTE
+#pick values for color and fill
+palette <- c(
+  "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+)
+
+#colorblind-safe color GRADIENTS
+scale_fill_uniform_continuous  <- scale_fill_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+scale_color_uniform_continuous <- scale_color_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+
+#geometry defaults
+update_geom_defaults("line",   list(linewidth = 1))
+update_geom_defaults("point",  list(size = 2, stroke = 0.5))
+update_geom_defaults("boxplot", list(linewidth = 0.6))
+update_geom_defaults("violin",  list(linewidth = 0.6))
+
+#presentation settings
+presentation_fig_width  <- 7
+presentation_fig_height <- 4.5
+presentation_dpi        <- 200
+
+#aspect ratios
+aspect_wide    <- c(width = 7,  height = 4)   #wide (16:9) for time series / line plots:
+aspect_square  <- c(width = 5,  height = 5)   #square (1:1) for correlations & scatter:
+aspect_tall    <- c(width = 5,  height = 7)   #tall (3:4) for barplots with long labels:
+
+#annotation settings high contrast
+annotation_text <- list(color = "black", size = 5, fontface = "bold")
+
+#remove excess padding
+scale_y_continuous_uniform <- scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+scale_x_continuous_uniform <- scale_x_continuous(expand = expansion(mult = c(0.02, 0.02)))
+
 ```
 
 ## Plots
@@ -39,131 +101,167 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
 
 ```{r}
-data_diag
-```
-
-```{r}
+#| fig-width: 10
+#| fig-height: 6
 data_diag |> 
   drop_na(`Prior Diagnosis`,
-    `Disease-specific Survival status (des)`,
+    `Disease-specific Survival status`,
     `Radiation Therapy`) |> 
   count(Prior_Diagnosis = `Prior Diagnosis`,
     Radiation_Therapy = `Radiation Therapy`,
-    Survival = `Disease-specific Survival status (des)`) |> 
+    Survival = `Disease-specific Survival status`) |> 
   group_by(Survival) |> 
-  mutate(percentage = n / sum(n) * 100) |>
+  mutate(percentage = n / sum(n) * 100) |> 
   ggplot(aes(x = Prior_Diagnosis,
     y = Radiation_Therapy,
     fill = n)) +
   geom_tile() +
-  geom_text(aes(label = paste0(n, "\n(", round(percentage, 1), "%)")),
-    color = "white", size = 3) +
+  geom_text(aes(label = paste0(n,
+    "\n(",
+    round(percentage,
+    1), "%)")),
+    color = "black",                     
+    size  = 4,
+    fontface = "bold") +
   facet_wrap(~ Survival) +
+  scale_fill_uniform_continuous +       
   labs(title = "Patient Survival by Prior Diagnosis and Radiation Therapy",
-    x = "Prior Diagnosis",
+    x  = "Prior Diagnosis",
     y = "Radiation Therapy",
     fill = "Count") +
-  theme_minimal()
+  theme_uniform()
 
 ```
 
 ### Age Density Between Sexes Across Neoplasm Histologic Grades
 
-GX was removed due to there being only 3 instances of it and also that it represents an inability to properly assign a grade. G4 was removed due to there being only 2 instances and therefore not being able to show statistacally significant data.
+GX was removed due to there being only 3 instances of it and also that it represents an inability to properly assign a grade. G4 was removed due to there being only 2 instances and therefore not being able to show statistically significant data.
 
-This plot shows that in both men and women, in all 3 grades, a majority of sampes were between the 40 to 80 age range. However, it is interesting to note, that in general, density was highest for females in all grades slightly before males. In G1 females seem to peak in their mid-60s, in G2 the peak is near early-70s, and in G3 the peak is near early-60s. For men however, in G1 the peak is near early-70s, in G2 the peak is also near early-70s, and for G3 the peak is near mid-70s. Along with this difference in ages between the sexes, it is also interesting to note that G3 is found more commonly at a younger age than G1 or G2. This could be important to note as it shows that a more advanced cancer being found in younger women.
+This plot shows that in both men and women, in all 3 grades, a majority of samples were between the 40 to 80 age range. However, it is interesting to note, that in general, density was highest for females in all grades slightly before males. In G1 females seem to peak in their mid-60s, in G2 the peak is near early-70s, and in G3 the peak is near early-60s. For men however, in G1 the peak is near early-70s, in G2 the peak is also near early-70s, and for G3 the peak is near mid-70s. Along with this difference in ages between the sexes, it is also interesting to note that G3 is found more commonly at a younger age than G1 or G2. This could be important to note as it shows that a more advanced cancer being found in younger women.
 
 ```{r}
+#| fig-width: 10
+#| fig-height: 6
 bind_cols(data_metrics |> 
   select(Age = `Diagnosis Age`,
     Sex),
     data_diag |> 
   select(Neo_Grade = `Neoplasm Histologic Grade`)) |> 
-  filter(!Neo_Grade %in% c("GX", "G4")) |> 
+  filter(!Neo_Grade %in% c("GX",
+    "G4")) |> 
   ggplot(aes(x = Age,
     y = Neo_Grade,
-    fill = Neo_Grade)) +
-  geom_density_ridges(alpha = 0.7) +
+    fill = Neo_Grade,
+    color = Neo_Grade)) +
+  geom_density_ridges(alpha = 0.6,
+    linewidth = 0.6) +
   facet_wrap(~ Sex) +
+  scale_fill_manual(values = palette) +
+  scale_color_manual(values = palette) +
+  scale_x_continuous_uniform + 
+  scale_y_discrete(expand = expansion(mult = c(0.05,
+    0.05))) +
   labs(title = "Age Distribution Across Neoplasm Histologic Grades",
     x = "Diagnosis Age",
-    y = "Histologic Grade") +
-  theme_ridges() +
+    y = "Histologic Grade",
+    fill = "Grade") +
+  theme_uniform() +
   theme(legend.position = "none")
+
 ```
 
 ### TMB Comparison With Months of Survival Across Survival Status
 
-This plot shows that for both those who became tumor free and those who died from the tumor, a similar trend was followed where, in general, a higher TMB meant fewer months of survival. The trend was mainly differentiated in that there were more months survived for those who became tumor free. This follows the general trend that we would expect to see. However, it is interesting to note that in those who died with a tumor, there was a slight positive slope until after 1 TMB, where it then sharply drops. This could indicate that as long as a persons TMB is less than 1, they may have the same estimated survival time.
+This plot shows that for both those who became tumor free and those who died from the tumor, a similar trend was followed where, in general, a higher TMB meant fewer months of survival. The trend was mainly differentiated in that there were more months survived for those who became tumor free. This follows the general trend that we would expect to see. However, it is interesting to note that in those who died with a tumor, there was a hump in the slope before 12.5 months, showing that there was diversity in the TMB. After those initial months, there was a negative slope, showing that those that survived longer tended to have lower TMB. For those who did not have a tumor, there was a slight positive slope before 30 months and then a negative slope afterwards.
 
 ```{r}
+#| fig-width: 10
+#| fig-height: 6
 bind_cols(data_diag |>
   select(Months_Disease = `Months of disease-specific survival`,
-    Survival_Status = `Disease-specific Survival status (des)`),
+    Survival_Status = `Disease-specific Survival status`),
     data_gene |>
   select(TMB = `TMB (nonsynonymous)`)) |>
   filter(TMB < 10) |>
   drop_na(Survival_Status) |>
   ggplot(aes(x = Months_Disease,
     y = TMB)) +
-  geom_point(alpha = 0.5) +
+  geom_point(alpha = 0.7,
+    color = palette[1]) +
   geom_smooth(method = "loess",
     se = FALSE,
-    color = "blue") +
+    color = palette[2],
+    linewidth = 1) +
   facet_wrap(~ Survival_Status) +
+  scale_x_continuous_uniform +
+  scale_y_continuous_uniform +
   labs(title = "TMB vs Disease-Specific Survival by Survival Status",
-    x = "TMB (nonsynonymous)",
-    y = "Disease-Specific Survival (Months)") +
-  theme_minimal()
-
+    x = "Disease-Specific Survival (Months)",
+    y = "TMB (nonsynonymous)") +
+  theme_uniform()
 ```
 
-### Average biological scores (Aneuploidy, hypoxia, MSI) Across Age Groups Divided by Sex
+### Average Standardized biological scores (Aneuploidy, hypoxia, MSI) Across Age Groups Divided by Sex
 
-André Comment - \> values different scales so heatmap coloring is not valuable.
+From this plot we can see that males in general had higher MSI Mantis Scores, both sexes had their highest MSI Mantis Scores at 30-40, and that women had the lowest of all scores at 80-90. It is interesting to note that females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, while men had higher Buffa Hypoxia Scores at both 30-40 and 80-90. Men also had the lowest scores for all MSI Sensor Scores at 30-40 and 80-90.
 
 ```{r}
-data_score |>
-  left_join(data_metrics |>
-  select(`Patient ID`,
-    Age_Group, Sex),
-    by = "Patient ID") |>
+#| fig-width: 10
+#| fig-height: 6
+ data_score |>
+   left_join(data_metrics |>
+   select(`Patient ID`,
+     Age_Group,
+     Sex),
+     by = "Patient ID") |>
+  mutate(across(c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    ~ scale(.)[, 1])) |>
   pivot_longer(cols = c(`Buffa Hypoxia Score`,
     `Ragnum Hypoxia Score`,
     `MSI MANTIS Score`,
     `MSIsensor Score`),
-    names_to = "Metric",
+    names_to  = "Metric",
     values_to = "Score") |>
-  drop_na(Score, Age_Group, Sex) |>
+  drop_na(Score,
+    Age_Group,
+    Sex) |>
   group_by(Age_Group,
     Sex,
     Metric) |>
-  summarise(Mean_Score = mean(Score,
+  summarise(Mean_Z = mean(Score,
     na.rm = TRUE),
     .groups = "drop") |>
   ggplot(aes(x = Age_Group,
     y = Metric,
-    fill = Mean_Score)) +
-  geom_tile(color = "white") +
-  geom_text(aes(label = round(Mean_Score, 2)), color = "black", size=2) +
-  scale_fill_viridis_c(option = "plasma") +
+    fill = Mean_Z)) +
+  geom_tile(color = "gray90") +
+  geom_text(aes(label = round(Mean_Z, 2)),
+    color = "black",
+    fontface = "bold",
+    size = 4) +
+  scale_fill_uniform_continuous +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
   facet_wrap(~ Sex) +
-  labs(title = "Average Scores by Age Group",
+  labs(title = "Standardized Scores by Age Group",
     x = "Age Group",
     y = "Metric",
-    fill = "Mean Score") +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45,
-    hjust = 1),
-    axis.text.y = element_text(face = "bold"),
-    panel.grid = element_blank())
+    fill = "Mean Z-Score") +
+  theme_uniform() +
+  theme(axis.text.x = element_text(angle = 45))
 
 ```
 
 ### Score Distribution Along Neoplasm Histological Grades Divided by Cancer Status
 
-```{r}
+For the Buffia Hypoxia Scores, both statuses had increasing trends as Grades went up, with those who had tumors having generally larger scores. For the MSI Mantis Scores, there didn't seem to be a particular trend for those who did not have tumors. But for those who had a tumor, there was a decreasing trend as Grades went up. For the MSI Sensor Scores, those who did not have tumors had a slight increasing trend as Grades went up, while those who had tumors did not seem to follow a trend. Lastly, for Ragnum Hypoxia Scores, both those who had tumors and who did not have tumors had an increasing trend as Grades went up. Other than G1, those who had tumors had higher scores than those who did not.
 
+```{r}
+#| fig-width: 10
+#| fig-height: 6
 data_score |>
   left_join(data_diag |>
   select(`Patient ID`,
@@ -171,13 +269,12 @@ data_score |>
     `Person Neoplasm Cancer Status`),
     by = "Patient ID") |>
   filter(!is.na(`Neoplasm Histologic Grade`),
-    !`Neoplasm Histologic Grade` %in% c("GX",
-    "G4")) |>
+    !`Neoplasm Histologic Grade` %in% c("GX", "G4")) |>
   pivot_longer(cols = c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`, 
+    `Ragnum Hypoxia Score`,
     `MSI MANTIS Score`,
     `MSIsensor Score`),
-    names_to = "Metric",
+    names_to  = "Metric",
     values_to = "Score") |>
   filter(!is.na(Score),
     !is.na(`Neoplasm Histologic Grade`),
@@ -189,20 +286,25 @@ data_score |>
     outlier.shape = NA) +
   facet_wrap(~ Metric,
     scales = "free_y") +
+  scale_fill_manual(values = palette) +
+  scale_y_continuous_uniform +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
   labs(title = "Distribution of Scores Across Histologic Grades by Cancer Status",
     x = "Neoplasm Histologic Grade",
     y = "Score",
-    fill = "Cancer Status") +
-  theme_minimal(base_size = 12)
+    fill  = "Cancer Status") +
+  theme_uniform()
 ```
 
 ### Coding System Comparison From Site Code to Histiology Code to Cancer Code
 
+This plot shows how patients flow across three different categorical systems, revealing how tumor location, pathologic subtype, and disease stage are related. In general, the data is dominated by one histologic type, 8500/3 which is invasive ductal carcinoma. Most of the tumors were taken from C25.0, the pancreatic head region, which can be seen as most patients flow from this section. It can be seen that the main pathway is from C25.0 to 8500/3 to Stage IIB.
+
 Comment André: This should go to describe as well
 
-Undestand the ideia but for starters we have other codying systems and lables are weird
-
 ```{r}
+#| fig-width: 10
+#| fig-height: 6
 data_code |>
   drop_na(`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
     `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
@@ -214,19 +316,23 @@ data_code |>
     axis2 = ICD_O3_Histology,
     axis3 = AJCC_Stage,
     y = n)) +
-  geom_alluvium(aes(fill = ICD_O3_Histology)) +
-  geom_stratum(fill = "white",
-    color = "black") +
+  geom_alluvium(aes(fill = ICD_O3_Histology),
+    alpha = 0.8) +
+  geom_stratum(fill  = "white",
+    color = "gray40",
+    linewidth = 0.6) +
   geom_text(stat = "stratum",
     aes(label = after_stat(stratum)),
-    size = 3) +
-  scale_x_discrete(limits = c("ICD_O3_Site",
-    "ICD_O3_Histology",
-    "AJCC_Stage")) +
+    color = "black",
+    fontface = "bold",
+    size = 3.5) +
+  scale_fill_manual(values = palette) +
+  scale_x_discrete(limits = c("ICD_O3_Site", "ICD_O3_Histology", "AJCC_Stage"),
+    expand = expansion(mult = 0.02)) +
+  scale_y_continuous_uniform +
   labs(title = "ICD-O-3 Site to Histology Code to AJCC Stage",
     x = "Coding System",
     y = "Number of Patients",
     fill = "ICD-O-3 Histology") +
-  theme_minimal()
-
+  theme_uniform()
 ```

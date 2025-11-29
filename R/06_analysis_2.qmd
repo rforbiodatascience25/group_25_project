@@ -1,6 +1,9 @@
 ---
-title: "05_analysis_2"
-format: html
+title: "06_analysis_2"
+format:
+  html:
+    embed-resources: true
+editor: visual
 ---
 
 ## **Loading libraries**
@@ -201,8 +204,8 @@ data_gene_diag |>
     -   No clear, consistent trend is observed where the genomic instability measures (Mutation Count, TMB (nonsynonymous), Fraction Genome Altered, and Tumor Break Load) predictably increase or decrease with advancing cancer stage across the subtypes. (see this better)
 
 ```{r}
-#| figwidth=30
-#| fig.height=6
+#| fig-width: 30
+#| fig-height: 6
 
 
 # Merge data_gene, data_code, and data_diag
@@ -327,8 +330,8 @@ plt_tmb_stage
 -   **Analysis from plot**: No clear increase in Aneuploidy score with advancing cancer stage was observed, which may be due to the limited diversity of stages in the dataset, specifically the small number of Stage I cases, but other biological or technical factors could also con
 
 ```{r}
-#| fig.width=10
-#| fig.height=6
+#| fig-width: 10
+#| fig-height: 6
 
 # Relate Cancer Stage with Aneuploidy Score
 plt_aneuploidy_stage <- data_code |>
@@ -367,8 +370,8 @@ plt_aneuploidy_stage
 -   **Buffa Hypoxia Score**:
 
 ```{r}
-#| fig.width=30
-#| fig.height=50
+#| fig-width: 30
+#| fig-height: 50
 
 # Hypoxia Data  
 data_hypoxia <- data_full |>
@@ -471,8 +474,8 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 -   **Winter hypoxia score:**
 
 ```{r}
-#| fig.width=30
-#| fig.height=50
+#| fig-width: 30
+#| fig-height: 50
 
 # Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
@@ -554,8 +557,8 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 -   **Ragnum Hypoxia Score:**
 
 ```{r}
-#| fig.width=30
-#| fig.height=50
+#| fig-width: 30
+#| fig-height: 50
 
 # Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
@@ -646,8 +649,8 @@ ggplot(Kaplan_meier_calc, aes(x = time,
     -   **Aneuploidy:** Aneuploidy Score and Fraction of Genome Altered (FGA) show a moderate positive correlation. This is expected, as both are direct measures of chromosomal instability.
 
 ```{r}
-#| fig.width=10
-#| fig.height=6
+#| fig-width: 10
+#| fig-height: 6
 
 data_full <- data_gene |>
   full_join(data_score, by = "Patient ID") |>

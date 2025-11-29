@@ -1,0 +1,78 @@
+---
+title: "08_analysis_4"
+format: html
+editor: visual
+---
+
+```{r}
+#| message: false
+library("tidyverse")
+library("dplyr")
+library("here")
+library("broom")
+library("cowplot)
+```
+
+```{r}
+#| message: false
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
+
+## PCA
+
+```{r}
+data_all <- data_metrics |>
+  left_join(data_gene,  by = "Patient ID") |>
+  left_join(data_score, by = "Patient ID") |>
+  left_join(data_code,  by = "Patient ID") |>
+  left_join(data_diag,  by = "Patient ID")
+```
+
+```{r}
+data_all_num <- data_all |>
+  select(where(is.numeric)) |>
+  select(-c(`Disease Free (days)`, `Disease Free (Months)`, `Disease-specific Survival status (bin)`, `Overall Survival Status (bin)` )) |> 
+  filter(`Mutation Count` < 5000 | is.na(`Mutation Count`)) |> 
+  filter(`Tumor Break Load` < 200 | is.na(`Tumor Break Load`))
+
+data_all_num_imp <- data_all_num |>
+  mutate(across(
+    .cols = everything(),
+    .fns  = ~ if_else(is.na(.x),
+                      mean(.x, na.rm = TRUE),
+                      .x)
+  ))
+```
+
+```{r}
+data_pca <- data_all_num_imp |>
+  select(where(is.numeric)) |>
+  drop_na() 
+
+
+pca_fit <- prcomp(data_pca, scale. = TRUE)
+```
+
+```{r}
+pca_fit <- data_all_num_imp %>% 
+  select(where(is.numeric)) %>% # retain only numeric columns
+  prcomp(scale = TRUE) # do PCA on scaled data
+```
+
+```{r}
+pca_fit %>%
+  augment(data_all_num_imp) %>% # add original dataset back in
+  ggplot(aes(.fittedPC1, .fittedPC2)) + 
+  geom_point(size = 1.5) +
+  theme_half_open(12) + 
+  background_grid()
+```
+
+```{r}
+pca_fit %>%
+  tidy(matrix = "eigenvalues")
+```

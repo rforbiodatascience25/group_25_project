@@ -80,7 +80,8 @@ data_gene_code_filtered |>
     values_to = "Value"
   ) |>
   ggplot(aes(x = stage_label, y = Value)) +
-  geom_boxplot() +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
              nrow = 1) +
@@ -97,7 +98,7 @@ data_gene_code_filtered |>
 
 -   **TBL measures:** it is the sum of unbalanced structural-variant breakpoints, a quantitative readout of **Structural Variants driven chromosomal instability**.
 
--   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease
+-   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease.
 
 Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
 
