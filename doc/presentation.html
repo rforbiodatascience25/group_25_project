@@ -609,9 +609,10 @@ Catarina Anastácio s253709
 </div>
 </section>
 <section id="genomic-alterations-across-ajcc-cancer-stages" class="slide level2">
-<h2><strong>Genomic Alterations Across AJCC Cancer Stages</strong></h2>
+<h2><span class="smalltitle">Genomic Alterations Across AJCC Cancer Stages</span></h2>
+<p>Genomic instability is present at all AJCC stages, not just in advanced disease.</p>
 <div class="columns">
-<div class="column" style="width:65%;">
+<div class="column" style="width:60%;">
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
 <span id="cb3-2"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
@@ -634,12 +635,16 @@ Catarina Anastácio s253709
 <span id="cb3-19"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
 <span id="cb3-20"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div><div class="column" style="width:35%;">
-<div class="cell">
+<ul>
+<li>Later stages tend to include more extreme values;</li>
+<li>Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden</li>
+</ul>
+</div><div class="column" style="width:40%;">
+<div class="cell" data-layout-align="right">
 <div class="cell-output-display">
-<div>
+<div class="quarto-figure quarto-figure-right">
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-8-1.svg" width="288"></p>
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-8-1.svg" class="quarto-figure quarto-figure-right" style="width:80.0%"></p>
 </figure>
 </div>
 </div>
@@ -684,7 +689,7 @@ Catarina Anastácio s253709
 <div class="quarto-auto-generated-content">
 <p><img src="DTU_logo.png" class="slide-logo"></p>
 <div class="footer footer-default">
-<p>R for Bio Data Science 2025 - group 25 Project</p>
+<p>R for Bio Data Science 2025 - Group 25 Project</p>
 </div>
 </div>
 </section>

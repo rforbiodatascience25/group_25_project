@@ -10,8 +10,8 @@ format:
   revealjs: 
     theme: serif # choose different themes
     logo: DTU_logo.png #choose a logo to put in here
-    footer: "R for Bio Data Science 2025 - group 25 Project"
-    code-block-height: 400px # maximum height of a code block, if it surpases this height becames scrollbar
+    footer: "R for Bio Data Science 2025 - Group 25 Project"
+    code-block-height: 500px # maximum height of a code block, if it surpases this height becames scrollbar
     css: 
       - presentation_css.css
 ---
@@ -87,7 +87,8 @@ it´s me
 iris
 ```
 
-## **Genomic Alterations Across AJCC Cancer Stages**
+## [Genomic Alterations Across AJCC Cancer Stages]{.smalltitle}
+Genomic instability is present at all AJCC stages, not just in advanced disease.
 
 ```{r}
 #| echo: false
@@ -123,7 +124,7 @@ data_gene_code_filtered <- data_gene_code_filtered |>
 ```
 
 ::::: columns
-::: {.column width="65%"}
+::: {.column width="60%"}
 ```{r}
 #| echo: true
 #| eval: false
@@ -150,16 +151,21 @@ data_gene_code_filtered |>
     x = "AJCC stage (n per stage)",
     y = "Genomic metric")
 ```
+- Later stages tend to include more extreme values;
+- Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden
+
 :::
 
-::: {.column width="35%"}
+::: {.column width="40%"}
 ```{r}
 #| echo: false
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 3
+#| fig-width: 4
 #| fig-height: 6
+#| fig-align: "center"
+#| out-width: 80%
 data_gene_code_filtered |>
   pivot_longer(
     cols = c(

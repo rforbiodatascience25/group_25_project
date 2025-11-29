@@ -2,10 +2,24 @@
   transform: translateY(-50px);
 }
 
+.title {
+  font-size: 3em !important;
+  /* add color or font-weight if you want */
+}
+
 .quarto-title-author-name {
   font-size: 0.6em !important;
 }
 
 .reveal section {
   zoom: 0.8;         /* overall slide scale; try 0.8–0.95 */
+}
+
+.reveal h2 .smalltitle {
+  font-size: 0.8em !important;
+}
+
+.reveal p,
+.reveal li {
+  font-size: 0.8em;
 }
