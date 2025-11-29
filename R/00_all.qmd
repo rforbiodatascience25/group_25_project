@@ -15,7 +15,7 @@ editor: visual
 ```{r child = "03_augment.qmd"}
 ```
 
-```{r child = "04_describe.qmd"}
+```{#{r child = "04_describe.qmd"}
 ```
 
 ```{r child = "05_analysis_1.qmd"}
