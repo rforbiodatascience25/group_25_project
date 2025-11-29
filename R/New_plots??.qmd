@@ -1,0 +1,361 @@
+---
+title: "New_plots??"
+format: html
+---
+
+## **Loading libraries**
+
+```{r}
+library("patchwork")
+library("tidyverse")
+library("ggplot2")
+library("corrplot")
+library("here")
+
+```
+
+## **Loading data**
+
+Loading the data from the previous augmentation step *03_augment*.
+
+```{r}
+#| message: false
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
+
+## **Plotting data**
+
+#### Genomic Plot
+
+-   **Goal**: See if the patients with the highest mutation burdens are the ones surviving or dying
+
+-   **Analysis of the plots**: Overall no correlation between the high values of the genomic instability and the status (dead with tumor or alive/ death tumor free). Surprisingly, the higher fraction of genome altered corresponded to a status of alive/ dead tumor free.
+
+```{r}
+#| fig.width=30
+#| fig.height=6
+
+
+# Preparing the data
+data_waterfall <- data_gene |>
+  full_join(data_diag, by = "Patient ID") |>
+  drop_na(`Disease-specific Survival status (des)`) |>
+  mutate(Status = `Disease-specific Survival status (des)`)
+
+#  Colors to separate cancer status
+status_colors <- c(
+  "DEAD WITH TUMOR" = "red",
+  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
+)
+
+## Plotting
+# Plot - Mutation Count
+plt_mut_count <- data_waterfall |>
+  filter(`Mutation Count` < 5000) |>
+  arrange(desc(`Mutation Count`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Mutation Count`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Mutation Count vs Survival",
+       x = "Patients", 
+       y = "Mutation Count")
+
+
+# Plot - Tumor Break Load
+plt_tbl <- data_waterfall |>
+  filter(`Tumor Break Load` < 300) |>
+  arrange(desc(`Tumor Break Load`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Tumor Break Load`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Tumor Break Load vs Survival",
+       x = "Patients", 
+       y = "Tumor Break Load")
+
+
+# Plot - TMB (nonsynonymous)
+plt_tmb <- data_waterfall |>
+  filter(`TMB (nonsynonymous)` < 400) |>
+  arrange(desc(`TMB (nonsynonymous)`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`)) |>
+  ggplot(aes(x = Patient_Order, 
+             y = `TMB (nonsynonymous)`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "TMB (nonsynonymous) vs Survival",
+       x = "Patients", 
+       y = "TMB (nonsynonymous)")
+
+
+# Fraction Genome Altered (FGA) - Plot
+plt_fga <- data_waterfall |>
+  arrange(desc(`Fraction Genome Altered`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Fraction Genome Altered`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Fraction Genome Altered vs Survival",
+       x = "Patients", 
+       y = "Fraction Genome Altered")
+
+
+# Combine plots
+(plt_mut_count/ plt_tmb ) 
+(plt_tbl/ plt_fga)
+```
+
+#### Age vs. Genomic Instability
+
+-   **Goal**: correlate demographics with genomic metrics
+
+```{r}
+#| fig.width=10
+#| fig.height=8
+
+# Metrics vs demographics
+data_age_genomic <- data_gene |>
+  full_join(data_metrics, by = "Patient ID") |>
+  full_join(data_diag, by = "Patient ID") |>
+  filter(`TMB (nonsynonymous)` < 400) |>
+  filter(`Tumor Break Load` < 150) |>
+  filter(`Fraction Genome Altered` < 0.75) |>
+  mutate(Status = `Disease-specific Survival status (des)`) |>
+  drop_na(`Diagnosis Age`, `Status`, `Mutation Count`, 
+          `TMB (nonsynonymous)`, `Fraction Genome Altered`, `Tumor Break Load`)
+
+data_age_genomic_long <- data_age_genomic %>%
+  pivot_longer(
+    cols = c(`TMB (nonsynonymous)`, `Fraction Genome Altered`, `Tumor Break Load`, `Mutation Count`),
+    names_to = "Genomic_Metric",
+    values_to = "Value"
+  )
+status_colors <- c(
+  "DEAD WITH TUMOR" = "red",
+  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
+)
+
+# Main Scatter Plot
+plot <- ggplot(data_age_genomic_long, 
+               aes(x = `Diagnosis Age`, 
+                   y = Value,
+                   color = Status)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", color = "black", linetype = "dashed") +
+  scale_color_manual(values = status_colors) +
+  facet_wrap(~ Genomic_Metric, scales = "free_y") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16))+
+  labs(title = "Age vs Tumor Genomic Metrics",
+    x = "Diagnosis Age",
+    y = "Value")
+
+plot
+```
+
+#### Interaction between Hypoxia and TMB
+
+-   **Analysis before**: high TMB might correlate with survival, and Hypoxia scores also matter. This plot checks the interaction -\> see if patients with High Hypoxia AND High TMB have the worst survival?
+
+```{r}
+#| fig.width=8
+#| fig.height=6
+
+# Prepare data
+data_heatmap <- data_full |>
+  filter(`TMB (nonsynonymous)` < 400) |>
+  select(`TMB (nonsynonymous)`, 
+         `Buffa Hypoxia Score`, 
+         `Overall Survival (days)`) |>
+  drop_na() |>
+  mutate(
+    TMB_Bin = case_when(
+      `TMB (nonsynonymous)` > median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "High TMB",
+      `TMB (nonsynonymous)` <= median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "Low TMB"),
+    Hypoxia_Bin = case_when(
+      `Buffa Hypoxia Score` > median(`Buffa Hypoxia Score`, na.rm = TRUE) ~ "High Hypoxia",
+      `Buffa Hypoxia Score` <= median(`Buffa Hypoxia Score`, na.rm = TRUE) ~ "Low Hypoxia"))|>
+  group_by(TMB_Bin, Hypoxia_Bin) |>
+  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
+
+# Plot Heatmap
+ggplot(data_heatmap, aes(x = TMB_Bin, y = Hypoxia_Bin, fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Median_Survival, 0)), 
+            color = "white", 
+            size = 6) +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+theme_minimal() + 
+theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    plot.subtitle = element_text(hjust = 0.5),
+    axis.text = element_text(color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Median Overall Survival (Days)",
+    subtitle = "Interaction between TMB and Hypoxia (Buffa)",
+    fill = "Median Survival",
+    x = "TMB (nonsynonymous)", 
+    y = "Ragnum Hypoxia Score"
+  )
+```
+
+#### Interaction between Hypoxia/ Radiotherapy/ Overall survival
+
+-   **Context**: Continuation of the Last Hypoxia/ Radiotherapy/ Survival Analysis
+
+-   **Analysis from plot**: Significantly higher survival from patients with radiotherapy treatment and low hypoxia. This follows the results observed in the last plots and with the literature. However, the radiotherapy treatment of patients with high hypoxia has higher survival values than low hypoxia with no treatment, which means that, idependently og
+
+```{r}
+#| fig.width=15
+#| fig.height=8
+
+# Data preparing
+data_hypoxia <- data_diag |>
+  full_join(data_code, by = "Patient ID") |>
+  full_join(data_score, by = "Patient ID") |>
+  select(
+    PatientID = `Patient ID`,
+    `Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `Winter Hypoxia Score`,
+    `Radiation Therapy`,
+    `Overall Survival (days)`,
+  ) |>
+  drop_na(`Buffa Hypoxia Score`,`Ragnum Hypoxia Score`,
+    `Winter Hypoxia Score`,`Radiation Therapy`, `Overall Survival (days)`)
+  
+
+# Hypoxia Groups
+# Calculate the median Ragnum
+hyp_med <- median(data_hypoxia[["Ragnum Hypoxia Score"]], na.rm = TRUE)
+
+data_hypoxia <- data_hypoxia |>
+  mutate(
+    Hypoxia_Group = case_when(
+      `Ragnum Hypoxia Score` > hyp_med ~ "High Ragnum Hypoxia",
+      `Ragnum Hypoxia Score` <= hyp_med ~ "Low Ragnum Hypoxia"
+    ),
+    Radiation_Group = `Radiation Therapy`
+  )
+
+# Aggregate Data for Heatmap 
+# Group by the two variables and calculate the Median Overall Survival
+data_heatmap_RT <- data_hypoxia |>
+  group_by(Radiation_Group, Hypoxia_Group) |>
+  summarise(
+    Median_Survival = median(`Overall Survival (days)`),
+    .groups = 'drop'
+  )
+
+# Plot Heatmap
+ggplot(data_heatmap_RT, aes(x = Radiation_Group,
+                            y = Hypoxia_Group, 
+                            fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = str_c(round(Median_Survival, 0))), 
+            color = "white", 
+            size = 5,
+            fontface = "bold") +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.text = element_text(color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Median Overall Survival (Days) by Hypoxia and Radiotherapy",
+    x = "Radiation Therapy Received",
+    y = "Ragnum Hypoxia Score"
+  )
+```
+
+#### Interaction between Diagnosis Age and Overall survival
+
+```{r}
+#| fig.width=30
+#| fig.height=6
+
+
+# Preparing the data
+data_waterfall <- data_metrics |>
+  full_join(data_diag, by = "Patient ID") |>
+  drop_na(`Disease-specific Survival status (des)`) |>
+  mutate(Status = `Disease-specific Survival status (des)`)
+
+#  Colors to separate cancer status
+status_colors <- c(
+  "DEAD WITH TUMOR" = "red",
+  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
+)
+
+## Plotting
+plt_age_surv <- data_waterfall |>
+  arrange(desc(`Diagnosis Age`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Diagnosis Age`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Diagnosis Age vs Survival",
+       x = "Patients", 
+       y = "Diagnosis Age")
+plt_age_surv
+
+```
