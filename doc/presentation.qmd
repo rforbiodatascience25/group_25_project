@@ -165,7 +165,7 @@ data_gene_code_filtered |>
 #| fig-width: 4
 #| fig-height: 6
 #| fig-align: "center"
-#| out-width: 80%
+#| out-width: 90%
 data_gene_code_filtered |>
   pivot_longer(
     cols = c(
