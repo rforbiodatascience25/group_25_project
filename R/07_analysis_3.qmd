@@ -1,5 +1,5 @@
 ---
-title: "06_analysis_2"
+title: "07_analysis_3"
 format:
   html:
     embed-resources: true
@@ -16,7 +16,6 @@ library("here")
 library("ggridges")
 library("ggalluvial")
 
-data <- read_tsv("/net/pupil1/home/people/s243865/R/paad_tcga_pan_can_atlas_2018_clinical_data.tsv")
 ```
 
 ## Loading data
@@ -35,11 +34,7 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
-## Plots
-
-### Patient Survival Comparison with Radiation Therapy and Prior Diagnosis
-
-It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
+## Load in Visual Guidelines
 
 ```{r}
 data_diag
@@ -98,6 +93,12 @@ scale_y_continuous_uniform <- scale_y_continuous(expand = expansion(mult = c(0, 
 scale_x_continuous_uniform <- scale_x_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 ```
+
+## Plots
+
+### Patient Survival Comparison with Radiation Therapy and Prior Diagnosis
+
+It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
 
 ```{r}
 #| fig-width: 10
