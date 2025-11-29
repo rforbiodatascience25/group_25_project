@@ -9,6 +9,7 @@ editor: visual
 ## **Loading libraries**
 
 ```{r}
+#| message: false
 library("tidyverse")
 library("dplyr")
 library("here")
@@ -33,86 +34,72 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 -   **data_code** — cancer staging and clinical classification codes.
 -   **data_diag** — diagnoses, survival outcomes, therapy history.
 
-## Plotting
-
-### Genomic Alterations & Instability (data_gene) 
-
-```{r}
-data_metrics |> 
-  select(-c(`Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`))
-
-data_metrics_gene <- full_join( data_metrics, data_gene, by="Patient ID")
-```
-
 ------------------------------------------------------------------------
 
-```{r}
-data_metrics_gene |>
-  filter(`Mutation Count` < 5000) # take out outlier
-```
+## Analysis
+
+### Genomic Alterations & Instability (data_gene) 
 
 ```{r}
 data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
 ```
 
 ```{r}
+# 1) Find stages with > 10 samples
+stages_keep <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  count(NDSA_stage, name = "n_samples") |>
+  filter(n_samples > 10)
 
-data_gene_code |>
-  filter(`Mutation Count` < 5000) |> 
-  pivot_longer(cols = c(`Fraction Genome Altered`, 
-                        `Mutation Count`, 
-                        `TMB (nonsynonymous)`, 
-                        `Tumor Break Load`),
-               names_to = "Genomic_Metric", 
-               values_to = "Value") |> 
-ggplot(mapping = 
-         aes(x = `Neoplasm Disease Stage American Joint Committee on Cancer Code`, 
-             y = Value)) +
-  geom_boxplot() + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  facet_wrap(~ Genomic_Metric, scales = "free_y")
+# 2) Labels
+stage_labels <- stages_keep |>
+  mutate(stage_label = paste0(NDSA_stage, " (n=", n_samples, ")")) |>
+  select(NDSA_stage, stage_label)
+
+# 2) Keep full data only for those stages
+data_gene_code_filtered <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  filter(`Mutation Count` < 5000,
+         `Tumor Break Load` < 200,
+         !is.na(NDSA_stage)) |> 
+  semi_join(stages_keep, by = "NDSA_stage") 
 ```
-
-Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
 
 ```{r}
-metric_for_order <- "Buffa Hypoxia Score"
-
-df_long <- data_score |>
-  select(`Patient ID`,
-         `Buffa Hypoxia Score`,
-         `Ragnum Hypoxia Score`,
-         `Winter Hypoxia Score`) |>
-  drop_na() |>
+#| fig-width: 8
+#| fig-height: 5
+data_gene_code_filtered |>
+  left_join(stage_labels, by = "NDSA_stage") |>
   pivot_longer(
-    cols = -`Patient ID`,
-    names_to = "Metric",
-    values_to = "Score"
+    cols = c(
+      `Fraction Genome Altered`,
+      `Mutation Count`,
+      `Tumor Break Load`
+    ),
+    names_to = "Genomic_Metric",
+    values_to = "Value"
   ) |>
-  group_by(`Patient ID`) |>
-  mutate(
-    order_value = Score[Metric == metric_for_order][1]
-  ) |>
-  ungroup() |>
-  mutate(
-    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
-  )
-
-ggplot(df_long,
-       aes(x = `Patient ID`, y = Metric, fill = Score)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) +
+  ggplot(aes(x = stage_label, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Genomic_Metric, 
+             scales = "free_y", 
+             nrow = 1) +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
   labs(
-    title = "Hypoxia and MSI scores across patients",
-    x = "Patient", y = "Metric", fill = "Score"
-  )
-
+    x = "AJCC stage (n per stage)",
+    y = "Genomic metric")
 ```
+
+-   There’s considerable overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden.
+
+-   One could say that Tumor Break Load tends to increase with tumor stage, as indicated by higher medians and a wider spread of values in the boxplots for advanced stages.
+
+-   **TBL measures:** it is the sum of unbalanced structural-variant breakpoints, a quantitative readout of **Structural Variants driven chromosomal instability**.
+
+-   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease
+
+Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
 
 ```{r}
 metric_for_order <- "Winter Hypoxia Score"

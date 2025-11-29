@@ -9,6 +9,7 @@ editor: visual
 ## **Loading libraries**
 
 ```{r}
+#| message: false
 library("tidyverse")
 library("here")
 ```
@@ -18,6 +19,7 @@ library("here")
 Loading the data from the previous augmentation step *03_augment*.
 
 ```{r}
+#| message: false
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
@@ -209,6 +211,26 @@ code_summary <- data.frame(
 )
 
 code_summary
+```
+
+Magnus - I left here a tidy version of the one above
+
+```{r}
+data_code |>
+  select(all_of(cols)) |>
+  pivot_longer(everything(),
+                      names_to = "Column",
+                      values_to = "value") |>
+  filter(!is.na(value)) |>
+  group_by(Column) |>
+  summarise(
+    Distinct = n_distinct(value),
+    Types = {
+      tab <- sort(table(value), decreasing = TRUE)
+      str_c(names(tab), " (", tab, ")", collapse = ", ")
+    }) |> 
+  ungroup() |> 
+  arrange(-Distinct)
 ```
 
 ## Diagnoses Summary

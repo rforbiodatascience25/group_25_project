@@ -8,26 +8,52 @@ author:
   - "Catarina Anastácio s253709"
 format:
   revealjs: 
-    theme: default # choose different themes
+    theme: serif # choose different themes
     logo: DTU_logo.png #choose a logo to put in here
     footer: "R for Bio Data Science 2025 - group 25 Project"
-    code-block-height: 650px # maximum height of a code block, if it surpases this height becames scrollbar
+    code-block-height: 400px # maximum height of a code block, if it surpases this height becames scrollbar
     css: 
       - presentation_css.css
 ---
+
+```{r}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+# package import
+library("tidyverse")
+library("here")
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+# data input
+data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
+data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
+data_score <- read_tsv(here("data","data_score_aug.tsv"))
+data_code <- read_tsv(here("data","data_code_aug.tsv"))
+data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
+```
 
 ## Introduction (Szymon)
 
 -   What are we doing
 -   What is the core problem
 
-------------------------------------------------------------------------
-
 ## Methods and Materials (Szymon)
 
+```{r}
+#| echo: true
+#| eval: true
+#| output: true
+```
+
 ::::: columns
-R 
-tidyverse in ggplot
+R tidyverse in ggplot
 
 ```{r}
 library("tidyverse")
@@ -37,9 +63,7 @@ library("patchwork")
 ```
 
 ::: {.column width="20%"}
-git colaboration
-Describe pipeline
-Show code
+git colaboration Describe pipeline Show code
 :::
 
 ::: {.column width="80%"}
@@ -49,7 +73,7 @@ it´s me
 
 ## Describing the data (1) (Magnus)
 
--  Explain the division of variables trough the different datasets
+-   Explain the division of variables trough the different datasets
 
 ------------------------------------------------------------------------
 
@@ -63,39 +87,99 @@ it´s me
 iris
 ```
 
-## Results (1) (Andre)
+## **Genomic Alterations Across AJCC Cancer Stages**
 
 ```{r}
-#| output: false   # show results/output? (default true)
-#| echo: true
-library(ggplot2)
-```
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
 
-Sup
+# 0) Join data
+data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
+
+# 1) Find stages with > 10 samples
+stages_keep <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  count(NDSA_stage, name = "n_samples") |>
+  filter(n_samples > 10)
+
+# 2) Labels
+stage_labels <- stages_keep |>
+  mutate(stage_label = paste0(NDSA_stage, " (n=", n_samples, ")")) |>
+  select(NDSA_stage, stage_label)
+
+# 3) Keep full data only for those stages
+data_gene_code_filtered <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  filter(`Mutation Count` < 5000,
+         `Tumor Break Load` < 200,
+         !is.na(NDSA_stage)) |> 
+  semi_join(stages_keep, by = "NDSA_stage") 
+
+# 4) Working data with labels ready
+data_gene_code_filtered <- data_gene_code_filtered |>
+  left_join(stage_labels, by = "NDSA_stage")
+```
 
 ::::: columns
 ::: {.column width="65%"}
 ```{r}
 #| echo: true
 #| eval: false
-
-iris |>
-ggplot(mapping = 
-       aes(x=Sepal.Length, 
-           y=Sepal.Width)) +
-geom_point()
+#| output: false
+#| message: false
+data_gene_code_filtered |>
+  pivot_longer(
+    cols = c(
+      `Fraction Genome Altered`,
+      `Mutation Count`,
+      `Tumor Break Load`
+    ),
+    names_to = "Genomic_Metric",
+    values_to = "Value"
+  ) |>
+  ggplot(aes(x = stage_label, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Genomic_Metric, 
+             scales = "free_y", 
+             nrow = 1) +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
+  labs(
+    x = "AJCC stage (n per stage)",
+    y = "Genomic metric")
 ```
 :::
 
 ::: {.column width="35%"}
 ```{r}
 #| echo: false
-#| fig-height: 5
-#| fig-width: 2
-
-iris |>
-ggplot(mapping = aes(x=Sepal.Length, y=Sepal.Width)) +
-geom_point()
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 3
+#| fig-height: 6
+data_gene_code_filtered |>
+  pivot_longer(
+    cols = c(
+      `Fraction Genome Altered`,
+      `Mutation Count`,
+      `Tumor Break Load`
+    ),
+    names_to = "Genomic_Metric",
+    values_to = "Value"
+  ) |>
+  ggplot(aes(x = stage_label, y = Value)) +
+  geom_boxplot() +
+  facet_wrap(~ Genomic_Metric, 
+             scales = "free_y", 
+             ncol = 1) +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
+  labs(
+    x = "AJCC stage (n per stage)",
+    y = "Genomic metric")
 ```
 :::
 :::::

@@ -427,30 +427,30 @@ Catarina Anastácio s253709
 </div>
 
 </section>
-<section id="introduction" class="slide level2">
-<h2>Introduction</h2>
+<section id="introduction-szymon" class="slide level2">
+<h2>Introduction (Szymon)</h2>
 <ul>
-<li>Context about our data</li>
+<li>What are we doing</li>
+<li>What is the core problem</li>
 </ul>
 </section>
-<section id="materials-and-methods" class="slide level2">
-<h2>Materials and Methods</h2>
+<section id="methods-and-materials-szymon" class="slide level2">
+<h2>Methods and Materials (Szymon)</h2>
 <div class="columns">
 <p>R tidyverse in ggplot</p><div class="column" style="width:20%;">
-<p>git colaboration</p>
+<p>git colaboration Describe pipeline Show code</p>
 </div><div class="column" style="width:80%;">
 <p>it´s me</p>
 </div></div>
 </section>
-<section id="describing-the-data" class="slide level2">
-<h2>Describing the data</h2>
+<section id="describing-the-data-1-magnus" class="slide level2">
+<h2>Describing the data (1) (Magnus)</h2>
 <ul>
-<li>Describe</li>
+<li>Explain the division of variables trough the different datasets</li>
 </ul>
 </section>
-<section id="results-1" class="slide level2">
-<h2>Results (1)</h2>
-<p>Let´s work with the iris dataset</p>
+<section id="descring-the-data-2-magnus" class="slide level2">
+<h2>Descring the data (2) (Magnus)</h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a>iris</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -608,63 +608,74 @@ Catarina Anastácio s253709
 </div>
 </div>
 </section>
-<section id="results-2" class="slide level2">
-<h2>Results (2)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a><span class="fu">library</span>(ggplot2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>Sup</p>
+<section id="genomic-alterations-across-ajcc-cancer-stages" class="slide level2">
+<h2><strong>Genomic Alterations Across AJCC Cancer Stages</strong></h2>
 <div class="columns">
 <div class="column" style="width:65%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a>iris <span class="sc">|&gt;</span></span>
-<span id="cb4-2"><a href=""></a><span class="fu">ggplot</span>(<span class="at">mapping =</span> </span>
-<span id="cb4-3"><a href=""></a>       <span class="fu">aes</span>(<span class="at">x=</span>Sepal.Length, </span>
-<span id="cb4-4"><a href=""></a>           <span class="at">y=</span>Sepal.Width)) <span class="sc">+</span></span>
-<span id="cb4-5"><a href=""></a><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb3-3"><a href=""></a>    <span class="at">cols =</span> <span class="fu">c</span>(</span>
+<span id="cb3-4"><a href=""></a>      <span class="st">`</span><span class="at">Fraction Genome Altered</span><span class="st">`</span>,</span>
+<span id="cb3-5"><a href=""></a>      <span class="st">`</span><span class="at">Mutation Count</span><span class="st">`</span>,</span>
+<span id="cb3-6"><a href=""></a>      <span class="st">`</span><span class="at">Tumor Break Load</span><span class="st">`</span></span>
+<span id="cb3-7"><a href=""></a>    ),</span>
+<span id="cb3-8"><a href=""></a>    <span class="at">names_to =</span> <span class="st">"Genomic_Metric"</span>,</span>
+<span id="cb3-9"><a href=""></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
+<span id="cb3-10"><a href=""></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb3-11"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> stage_label, <span class="at">y =</span> Value)) <span class="sc">+</span></span>
+<span id="cb3-12"><a href=""></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
+<span id="cb3-13"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Genomic_Metric, </span>
+<span id="cb3-14"><a href=""></a>             <span class="at">scales =</span> <span class="st">"free_y"</span>, </span>
+<span id="cb3-15"><a href=""></a>             <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb3-16"><a href=""></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, </span>
+<span id="cb3-17"><a href=""></a>                                   <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb3-18"><a href=""></a>  <span class="fu">labs</span>(</span>
+<span id="cb3-19"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
+<span id="cb3-20"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div><div class="column" style="width:35%;">
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-5-1.svg" width="192"></p>
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-8-1.svg" width="288"></p>
 </figure>
 </div>
 </div>
 </div>
 </div></div>
 </section>
-<section id="results-3" class="slide level2" data-background-color="aquamarine">
-<h2>Results (3)</h2>
+<section id="results-2-andre" class="slide level2" data-background-color="aquamarine">
+<h2>Results (2) (Andre)</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a>iris <span class="sc">|&gt;</span> </span>
-<span id="cb5-2"><a href=""></a>  <span class="fu">ggplot</span>(<span class="at">mapping =</span> </span>
-<span id="cb5-3"><a href=""></a>           <span class="fu">aes</span>(<span class="at">x=</span>Sepal.Length, </span>
-<span id="cb5-4"><a href=""></a>               <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span></span>
-<span id="cb5-5"><a href=""></a>  <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a>iris <span class="sc">|&gt;</span> </span>
+<span id="cb4-2"><a href=""></a>  <span class="fu">ggplot</span>(<span class="at">mapping =</span> </span>
+<span id="cb4-3"><a href=""></a>           <span class="fu">aes</span>(<span class="at">x=</span>Sepal.Length, </span>
+<span id="cb4-4"><a href=""></a>               <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span></span>
+<span id="cb4-5"><a href=""></a>  <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 </section>
-<section id="results-3-output" class="slide level2 output-location-slide"><h2>Results (3)</h2><div class="cell output-location-slide">
+<section id="results-2-andre-output" class="slide level2 output-location-slide"><h2>Results (2) (Andre)</h2><div class="cell output-location-slide">
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-6-1.svg" width="960"></p>
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-9-1.svg" width="960"></p>
 </figure>
 </div>
 </div>
-</div></section><section id="results-4" class="slide level2">
-<h2>Results (4)</h2>
+</div></section><section id="results-3-catarina" class="slide level2">
+<h2>Results (3) (Catarina)</h2>
 </section>
-<section id="discussion-2" class="slide level2">
-<h2>Discussion (2)</h2>
+<section id="discussion-2-catarina" class="slide level2">
+<h2>Discussion (2) (Catarina)</h2>
 </section>
-<section id="discussion-3" class="slide level2">
-<h2>Discussion (3)</h2>
+<section id="discussion-3-lilly" class="slide level2">
+<h2>Discussion (3) (Lilly)</h2>
 </section>
-<section id="conclusion" class="slide level2">
-<h2>Conclusion</h2>
+<section id="conclusion-lilly" class="slide level2">
+<h2>Conclusion (Lilly)</h2>
 <p>quick remarks</p>
 <p>weird data, not enough variance</p>
 <p>other types code</p>

@@ -2,7 +2,10 @@
   transform: translateY(-50px);
 }
 
-
 .quarto-title-author-name {
-  font-size: 0.55em !important;
+  font-size: 0.6em !important;
+}
+
+.reveal section {
+  zoom: 0.8;         /* overall slide scale; try 0.8–0.95 */
 }
