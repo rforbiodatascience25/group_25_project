@@ -80,7 +80,8 @@ data_gene_code_filtered |>
     values_to = "Value"
   ) |>
   ggplot(aes(x = stage_label, y = Value)) +
-  geom_boxplot() +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
              nrow = 1) +
