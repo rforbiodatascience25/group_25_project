@@ -41,8 +41,29 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
--   What are we doing
--   What is the core problem
+```         
+-   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data \[ref: https://www.cbioportal.org/study/filesAndLinks?id=paad_tcga_pan_can_atlas_2018\]
+
+-   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 \[ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871\] -> relevant data
+
+-   Data contained cancer genomic data, scores and classification -> enough information to perform analysis
+
+-   After initial analysis it didn't look tidy -> ideal for the project purposes
+```
+
+::::: columns
+::: {.column width="50%"}
+![](ExampleTissue.png){width="650"}
+:::
+
+::: {.column width="50%"}
+![](ExampleTissue2.png)
+:::
+:::::
+
+```         
+Part of image (FFPE HE TP DX1) taken from [ref: https://viewer.imaging.datacommons.cancer.gov/viewer/2.25.50549866694142022371455976348397677571]
+```
 
 ## Methods and Materials (Szymon)
 
@@ -52,45 +73,23 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 #| output: true
 ```
 
-::::: columns
-R tidyverse in ggplot
+::::: rows
+::: {.row height="50%"}
+Materials:
 
-```{r}
-library("tidyverse")
-library("dplyr")
-library("here")
-library("patchwork")
-```
+-   Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer dataset \[ref:\]
 
-::: {.column width="20%"}
-git colaboration Describe pipeline Show code
+-   R studio (R, tidyverse)
+
+-   draw.io (just presentation)
 :::
 
-::: {.column width="80%"}
-it´s me
-:::
-:::::
+::: {.row height="50%"}
+Methodology
 
-::::: columns
-R tidyverse in ggplot
-
-```{r}
-library("tidyverse")
-library("dplyr")
-library("here")
-library("patchwork")
-```
-
-::: {.column width="20%"}
-git colaboration Describe pipeline Show code
-:::
-
-::: {.column width="80%"}
-it´s me
+![](Project flow.drawio.png){width="925"}
 :::
 :::::
-
-## 
 
 ## Describing the data (1) (Magnus)
 
@@ -246,4 +245,4 @@ other types code
 
 ways to go forward
 
-more data
+more data ::::::::::::
