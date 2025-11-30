@@ -11,9 +11,10 @@ editor: visual
 ```{r}
 #| message: false
 library("tidyverse")
-library("dplyr")
 library("here")
 ```
+
+------------------------------------------------------------------------
 
 ## **Loading data**
 
@@ -38,57 +39,120 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## PCA
 
-...
-
-## Genomic Alterations & Instability
-
-## Heatmap of hypoxia and MSI scores
-
-Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
+We performed PCA to reduce the dimensionality of our clinical and genomic variables and to explore major patterns of variation across patients. We first selected the continuous variables of interest from the merged dataset, then centered and scaled them so they were on comparable scales, and finally ran PCA with `prcomp()` to obtain principal components for visualization and downstream analyses.
 
 ```{r}
-metric_for_order <- "Winter Hypoxia Score"
+data_all <- data_metrics |>
+  left_join(data_gene,  by = "Patient ID") |>
+  left_join(data_score, by = "Patient ID") |>
+  left_join(data_code,  by = "Patient ID") |>
+  left_join(data_diag,  by = "Patient ID")
+```
 
-df_long <- data_score |>
-  select(`Patient ID`,
-         `MSI MANTIS Score`,
-         `MSIsensor Score`,
-         `Buffa Hypoxia Score`,
-         `Ragnum Hypoxia Score`,
-         `Winter Hypoxia Score`) |>
-  drop_na() |>
-  pivot_longer(
-    cols = -`Patient ID`,
-    names_to = "Metric",
-    values_to = "Score"
-  ) |>
-  group_by(Metric) |>
-  mutate(
-    Score_scaled = (Score - mean(Score, na.rm = TRUE)) /
-                   sd(Score, na.rm = TRUE)
-  ) |>
-  ungroup() |>
-  group_by(`Patient ID`) |>
-  mutate(
-    order_value = Score_scaled[Metric == metric_for_order][1]
-  ) |>
-  ungroup() |>
-  mutate(
-    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
-  )
+The correlation matrix of diagnostic endpoints revealed very strong positive correlations among the different survival time measures and their corresponding status variables, indicating that these outcomes largely capture the same underlying prognosis information. This redundancy was especially clear for variable pairs measuring the same outcome in different units (days vs. months), which showed extremely high correlations, confirming that they encode equivalent survival information. Overall, only modest variation in correlation strength was observed across endpoints, highlighting high redundancy between disease-free, progression-free, and overall survival metrics.
 
-ggplot(df_long,
-       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
-  geom_tile() +
-  scale_fill_viridis_c() +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
+```{r}
+correl_matrix <- data_diag |>
+  select(where(is.numeric)) |> 
+  cor(use = "complete.obs")
+
+corrplot(correl_matrix, method = "color", tl.col = "black")
+```
+
+We used the correlation matrix to identify highly redundant diagnostic variables, particularly pairs that measured the same survival outcome in different time units (days vs. months). Based on this, we selected a subset of endpoints that did not show strong mutual correlations to avoid duplication and to keep only non-redundant variables for subsequent analyses.
+
+```{r}
+pca_data <- data_all |>
+  select(
+    where(is.numeric),
+    -c(`Overall Survival (Months)`,
+       `Disease Free (Months)`,
+       `Months of disease-specific survival`,
+       `Progress Free Survival (Months)`,
+       `Disease Free Status (bin)`,
+       `Disease Free (days)`, # loads of NA because some die
+       `Days of disease-specific survival`,
+       `Progress Free Survival (days)`
+    )
+  ) 
+```
+
+```{r}
+data_pca <- pca_data |>
+  filter(`Mutation Count` < 5000 | is.na(`Mutation Count`)) |> 
+  filter(`Tumor Break Load` < 200 | is.na(`Tumor Break Load`)) |> 
+  drop_na()
+```
+
+```{r}
+pca_fit <- data_pca |> 
+  select(-`Disease-specific Survival status (bin)`) |> 
+  scale() |> 
+  prcomp()
+```
+
+We ran a principal component analysis on the selected standardized diagnostic variables (excluding the overall survival status indicator) to summarize variation in a low-dimensional space. The first two principal components were then plotted, and the points were colored by Overall Survival Status (bin) to visually assess whether the main axes of variation separated patients with different survival outcomes.
+
+```{r}
+pca_fit |>
+  augment(data_pca) |>
+  ggplot(aes(x = .fittedPC1,
+             y = .fittedPC2,
+             color = factor(`Overall Survival Status (bin)`))) +
+  geom_point(size = 1.5) +
+  scale_color_discrete(
+    name   = "Overall survival status",
+    labels = c("ALIVE OR DEAD TUMOR FREE", "DEAD WITH TUMOR")  # 0 -> "Alive", 1 -> "Dead"
   ) +
   labs(
-    title = "MSI scores across patients (z-scaled)",
-    x = "Patient", y = "Metric", fill = "z-score"
-  )
+    title = "PCA of diagnostic variables",
+    x = "Principal Component 1",
+    y = "Principal Component 2"
+  ) +
+  theme_half_open(12) +
+  background_grid()
+```
 
+```{r}
+data_diag
+```
+
+```{r}
+pca_fit |> 
+  tidy(matrix = "eigenvalues") |> 
+  ggplot(aes(PC, cumulative)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  geom_hline(yintercept = 0.9,
+             linetype = "dashed",
+             color = "grey30",
+             linewidth = 0.6) +
+  scale_x_continuous(breaks = 1:14) +
+  scale_y_continuous(
+  breaks = c(0, 0.25, 0.5, 0.75, 0.9, 1),
+  labels = scales::percent_format(),
+  expand = expansion(mult = c(0, 0.01))
+) +
+  theme_minimal_hgrid(12) +
+  labs( x = "PC",
+        y = "Cumulative Variance across PC´s")
+```
+
+```{r}
+rotation_matrix <- pca_fit |> 
+  tidy(matrix = "rotation")
+```
+
+```{r}
+number_of_PC = 4
+minimum_value_for_coef = 0.2
+
+rotation_matrix |>
+  filter(PC %in% c(1:number_of_PC),
+         abs(value) > minimum_value_for_coef) |> 
+  ggplot(mapping = aes(x = PC,
+                       y = value,
+                       fill = column)) +
+  geom_col(position = "dodge") +
+  geom_vline(xintercept = seq(0.5, length(c(1:number_of_PC)) + 0.5, by = 1), linetype = "dashed")
+  theme_minimal()
 ```
