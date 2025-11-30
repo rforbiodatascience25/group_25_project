@@ -430,27 +430,35 @@ Catarina Anastácio s253709
 <section id="introduction-szymon" class="slide level2">
 <h2>Introduction (Szymon)</h2>
 <ul>
-<li>What are we doing</li>
-<li>What is the core problem</li>
+<li><p>Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data [ref: https://www.cbioportal.org/study/filesAndLinks?id=paad_tcga_pan_can_atlas_2018]</p></li>
+<li><p>Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 [ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871] -&gt; relevant data</p></li>
+<li><p>Data contained cancer genomic data, scores and classification -&gt; enough information to perform analysis</p></li>
+<li><p>After initial analysis it didn’t look tidy -&gt; ideal for the project purposes</p></li>
 </ul>
+<div class="columns">
+<div class="column" style="width:50%;">
+<p><img data-src="ExampleTissue.png" width="650"></p>
+</div><div class="column" style="width:50%;">
+<p><img data-src="ExampleTissue2.png"></p>
+</div></div>
+<pre><code>Part of image (FFPE HE TP DX1) taken from [ref: https://viewer.imaging.datacommons.cancer.gov/viewer/2.25.50549866694142022371455976348397677571]</code></pre>
 </section>
 <section id="methods-and-materials-szymon" class="slide level2">
 <h2>Methods and Materials (Szymon)</h2>
-<div class="columns">
-<p>R tidyverse in ggplot</p><div class="column" style="width:20%;">
-<p>git colaboration Describe pipeline Show code</p>
-</div><div class="column" style="width:80%;">
-<p>it´s me</p>
-</div></div>
-<div class="columns">
-<p>R tidyverse in ggplot</p><div class="column" style="width:20%;">
-<p>git colaboration Describe pipeline Show code</p>
-</div><div class="column" style="width:80%;">
-<p>it´s me</p>
-</div></div>
-</section>
-<section id="section" class="slide level2">
-<h2></h2>
+<div class="rows">
+<div class="row" height="50%">
+<p>Materials:</p>
+<ul>
+<li><p>Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer dataset [ref:]</p></li>
+<li><p>R studio (R, tidyverse)</p></li>
+<li><p>draw.io (just presentation)</p></li>
+</ul>
+</div>
+<div class="row" height="50%">
+<p>Methodology</p>
+<p><img data-src="Project%20flow.drawio.png" width="925"></p>
+</div>
+</div>
 </section>
 <section id="describing-the-data-1-magnus" class="slide level2">
 <h2>Describing the data (1) (Magnus)</h2>
@@ -464,7 +472,7 @@ Catarina Anastácio s253709
 <section id="descring-the-data-2-magnus" class="slide level2">
 <h2>Descring the data (2) (Magnus)</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a>iris</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a>iris</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
 1            5.1         3.5          1.4         0.2     setosa
@@ -620,32 +628,75 @@ Catarina Anastácio s253709
 </div>
 </div>
 </section>
+<section id="pca-on-numeric-data" class="slide level2">
+<h2>PCA on numeric data</h2>
+<ul>
+<li><p>PCA on variables reduced the data to a few components while retaining most of the variance.</p></li>
+<li><p>PCA loadings were ploted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.</p></li>
+</ul>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a>pca_fit <span class="sc">|&gt;</span> </span>
+<span id="cb4-2"><a href=""></a>  <span class="fu">tidy</span>(<span class="at">matrix =</span> <span class="st">"eigenvalues"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb4-3"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(PC, cumulative)) <span class="sc">+</span></span>
+<span id="cb4-4"><a href=""></a>  <span class="fu">geom_col</span>(<span class="at">fill =</span> <span class="st">"#56B4E9"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb4-5"><a href=""></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.8</span>,</span>
+<span id="cb4-6"><a href=""></a>             <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
+<span id="cb4-7"><a href=""></a>             <span class="at">color =</span> <span class="st">"grey30"</span>,</span>
+<span id="cb4-8"><a href=""></a>             <span class="at">linewidth =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb4-9"><a href=""></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb4-10"><a href=""></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb4-11"><a href=""></a>  <span class="at">breaks =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">0.8</span>, <span class="dv">1</span>),</span>
+<span id="cb4-12"><a href=""></a>  <span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(),</span>
+<span id="cb4-13"><a href=""></a>  <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.01</span>))</span>
+<span id="cb4-14"><a href=""></a>) <span class="sc">+</span></span>
+<span id="cb4-15"><a href=""></a>  <span class="fu">labs</span>(</span>
+<span id="cb4-16"><a href=""></a>  <span class="at">x =</span> <span class="st">"Principal component"</span>,</span>
+<span id="cb4-17"><a href=""></a>  <span class="at">y =</span> <span class="st">"Cumulative variance across PCs"</span>,</span>
+<span id="cb4-18"><a href=""></a>  <span class="at">title =</span> <span class="st">"Cumulative explained </span></span>
+<span id="cb4-19"><a href=""></a><span class="st">  variance by principal component"</span></span>
+<span id="cb4-20"><a href=""></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-7-1.svg" class="quarto-figure quarto-figure-center" style="width:90.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div></div>
+</section>
 <section id="genomic-alterations-across-ajcc-cancer-stages" class="slide level2">
 <h2><span class="smalltitle">Genomic Alterations Across AJCC Cancer Stages</span></h2>
 <p>Genomic instability is present at all AJCC stages, not just in advanced disease.</p>
 <div class="columns">
 <div class="column" style="width:60%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb3-3"><a href=""></a>    <span class="at">cols =</span> <span class="fu">c</span>(</span>
-<span id="cb3-4"><a href=""></a>      <span class="st">`</span><span class="at">Fraction Genome Altered</span><span class="st">`</span>,</span>
-<span id="cb3-5"><a href=""></a>      <span class="st">`</span><span class="at">Mutation Count</span><span class="st">`</span>,</span>
-<span id="cb3-6"><a href=""></a>      <span class="st">`</span><span class="at">Tumor Break Load</span><span class="st">`</span></span>
-<span id="cb3-7"><a href=""></a>    ),</span>
-<span id="cb3-8"><a href=""></a>    <span class="at">names_to =</span> <span class="st">"Genomic_Metric"</span>,</span>
-<span id="cb3-9"><a href=""></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
-<span id="cb3-10"><a href=""></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb3-11"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> stage_label, <span class="at">y =</span> Value)) <span class="sc">+</span></span>
-<span id="cb3-12"><a href=""></a>  <span class="fu">geom_boxplot</span>() <span class="sc">+</span></span>
-<span id="cb3-13"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Genomic_Metric, </span>
-<span id="cb3-14"><a href=""></a>             <span class="at">scales =</span> <span class="st">"free_y"</span>, </span>
-<span id="cb3-15"><a href=""></a>             <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb3-16"><a href=""></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, </span>
-<span id="cb3-17"><a href=""></a>                                   <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb3-18"><a href=""></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-19"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
-<span id="cb3-20"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb5-3"><a href=""></a>    <span class="at">cols =</span> <span class="fu">c</span>(</span>
+<span id="cb5-4"><a href=""></a>      <span class="st">`</span><span class="at">Fraction Genome Altered</span><span class="st">`</span>,</span>
+<span id="cb5-5"><a href=""></a>      <span class="st">`</span><span class="at">Mutation Count</span><span class="st">`</span>,</span>
+<span id="cb5-6"><a href=""></a>      <span class="st">`</span><span class="at">Tumor Break Load</span><span class="st">`</span></span>
+<span id="cb5-7"><a href=""></a>    ),</span>
+<span id="cb5-8"><a href=""></a>    <span class="at">names_to =</span> <span class="st">"Genomic_Metric"</span>,</span>
+<span id="cb5-9"><a href=""></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
+<span id="cb5-10"><a href=""></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> stage_label, <span class="at">y =</span> Value)) <span class="sc">+</span></span>
+<span id="cb5-12"><a href=""></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span></span>
+<span id="cb5-13"><a href=""></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb5-14"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Genomic_Metric, </span>
+<span id="cb5-15"><a href=""></a>             <span class="at">scales =</span> <span class="st">"free_y"</span>, </span>
+<span id="cb5-16"><a href=""></a>             <span class="at">nrow =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-17"><a href=""></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, </span>
+<span id="cb5-18"><a href=""></a>                                   <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb5-19"><a href=""></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-20"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
+<span id="cb5-21"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Later stages tend to include more extreme values;</li>
@@ -656,37 +707,14 @@ Catarina Anastácio s253709
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<<<<<<< HEAD
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-9-1.svg" class="quarto-figure quarto-figure-center" style="width:80.0%"></p>
-=======
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-8-1.svg" class="quarto-figure quarto-figure-center" style="width:80.0%"></p>
->>>>>>> 0e3f846ac635a0e27ca6aaf519180b27b968a885
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-10-1.svg" class="quarto-figure quarto-figure-center" style="width:80.0%"></p>
 </figure>
 </div>
 </div>
 </div>
 </div></div>
 </section>
-<section id="results-2-andre" class="slide level2" data-background-color="aquamarine">
-<h2>Results (2) (Andre)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a>iris <span class="sc">|&gt;</span> </span>
-<span id="cb4-2"><a href=""></a>  <span class="fu">ggplot</span>(<span class="at">mapping =</span> </span>
-<span id="cb4-3"><a href=""></a>           <span class="fu">aes</span>(<span class="at">x=</span>Sepal.Length, </span>
-<span id="cb4-4"><a href=""></a>               <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span></span>
-<span id="cb4-5"><a href=""></a>  <span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-
-</section>
-<section id="results-2-andre-output" class="slide level2 output-location-slide"><h2>Results (2) (Andre)</h2><div class="cell output-location-slide">
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-10-1.svg" width="960"></p>
-</figure>
-</div>
-</div>
-</div></section><section id="results-3-catarina" class="slide level2">
+<section id="results-3-catarina" class="slide level2">
 <h2>Results (3) (Catarina)</h2>
 </section>
 <section id="discussion-2-catarina" class="slide level2">
@@ -701,7 +729,7 @@ Catarina Anastácio s253709
 <p>weird data, not enough variance</p>
 <p>other types code</p>
 <p>ways to go forward</p>
-<p>more data</p>
+<p>more data ::::::::::::</p>
 <div class="quarto-auto-generated-content">
 <p><img src="DTU_logo.png" class="slide-logo"></p>
 <div class="footer footer-default">

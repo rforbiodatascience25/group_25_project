@@ -186,10 +186,7 @@ data_gene_diag |>
 
 -   **Context**: Cancer stage reflects the extent of tumor progression, while genomic instability measures (Mutation Count, Fraction Genome Altered, and Tumor Break Load) capture different aspects of chromosomal and genetic instability. These features are often associated with tumor aggressiveness and poor prognosis. This set of plots explores how cancer stage distributions relate to genomic instability across pancreatic adenocarcinoma subtypes (Ductal Type vs Other Subtypes).
 
--   **Analysis from the Plot**:
-
-    -   The stage distribution plot shows a concentration of patients in **Stage IIB**, indicating the dataset is heavily skewed toward mid-stage disease.
-    -   No clear, consistent trend is observed where the genomic instability measures (Mutation Count, TMB (nonsynonymous), Fraction Genome Altered, and Tumor Break Load) predictably increase or decrease with advancing cancer stage across the subtypes. (see this better)
+-   The stage distribution plot in describe shows a concentration of patients in **Stage IIB**, indicating the dataset is heavily skewed toward mid-stage disease.
 
 ```{r}
 data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
@@ -210,14 +207,12 @@ stage_labels <- stages_keep |>
 # 2) Keep full data only for those stages
 data_gene_code_filtered <- data_gene_code |>
   rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
-  filter(`Mutation Count` < 5000,
-         `Tumor Break Load` < 200,
-         !is.na(NDSA_stage)) |> 
+  filter(!is.na(NDSA_stage)) |> 
   semi_join(stages_keep, by = "NDSA_stage") 
 ```
 
 ```{r}
-#| fig-width: 8
+#| fig-width: 10
 #| fig-height: 5
 data_gene_code_filtered |>
   left_join(stage_labels, by = "NDSA_stage") |>
@@ -243,6 +238,8 @@ data_gene_code_filtered |>
     y = "Genomic metric")
 ```
 
+To begin, we only included tumor classes with at least 10 patients per AJCC stage, as smaller groups would not provide a reliable representation of the underlying distribution.
+
 -   There’s considerable overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden.
 
 -   One could say that Tumor Break Load tends to increase with tumor stage, as indicated by higher medians and a wider spread of values in the boxplots for advanced stages.
@@ -250,6 +247,8 @@ data_gene_code_filtered |>
 -   **TBL measures:** it is the sum of unbalanced structural-variant breakpoints, a quantitative readout of **Structural Variants driven chromosomal instability**.
 
 -   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease.
+
+### Heatmap of the pairwise correlations between genomic instability and hypoxia-related metrics
 
 ```{r}
 #| fig-width: 10
@@ -277,6 +276,8 @@ correl_matrix <- cor(data_numeric |>
 corrplot(correl_matrix, method = "color",tl.col = "black")
 
 ```
+
+This plot was used to assess relationships between genomic instability metrics and hypoxia scores. Focusing on the first four columns (genomic instability measures) and the last six rows (hypoxia scores), no strong blue stand out, indicating that hypoxia scores are not strongly correlated with the genomic instability variables in this dataset.
 
 ### SCORE
 

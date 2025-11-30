@@ -52,6 +52,7 @@ data_all <- data_metrics |>
 The correlation matrix of diagnostic endpoints revealed very strong positive correlations among the different survival time measures and their corresponding status variables, indicating that these outcomes largely capture the same underlying prognosis information. This redundancy was especially clear for variable pairs measuring the same outcome in different units (days vs. months), which showed extremely high correlations, confirming that they encode equivalent survival information. Overall, only modest variation in correlation strength was observed across endpoints, highlighting high redundancy between disease-free, progression-free, and overall survival metrics.
 
 ```{r}
+#| fig-height: 6
 correl_matrix <- data_diag |>
   select(where(is.numeric)) |> 
   cor(use = "complete.obs")
@@ -73,8 +74,9 @@ pca_data <- data_all |>
        `Disease Free (days)`, # loads of NA because some die
        `Days of disease-specific survival`,
        `Progress Free Survival (days)`
-    )
-  ) 
+    ) 
+  )  |> 
+  drop_na()
 ```
 
 ```{r}
@@ -98,10 +100,10 @@ pca_fit |>
   augment(data_pca) |>
   ggplot(aes(x = .fittedPC1,
              y = .fittedPC2,
-             color = factor(`Overall Survival Status (bin)`))) +
+             color = factor(`Disease-specific Survival status (bin)`))) +
   geom_point(size = 1.5) +
   scale_color_discrete(
-    name   = "Overall survival status",
+    name   = "Disease-specific Survival status",
     labels = c("ALIVE OR DEAD TUMOR FREE", "DEAD WITH TUMOR")  # 0 -> "Alive", 1 -> "Dead"
   ) +
   labs(
@@ -113,28 +115,54 @@ pca_fit |>
   background_grid()
 ```
 
-```{r}
-data_diag
-```
+In the PCA plot of the first two components, patients who were dead with tumor and those who were alive or dead tumor‑free occupy partially distinct regions of the PC1–PC2 space, suggesting some degree of separation between the two groups. However, there is substantial overlap between clusters, indicating that the main axes of variation in the selected diagnostic variables only moderately discriminate disease specific survival status.
 
 ```{r}
 pca_fit |> 
   tidy(matrix = "eigenvalues") |> 
   ggplot(aes(PC, cumulative)) +
   geom_col(fill = "#56B4E9", alpha = 0.8) +
-  geom_hline(yintercept = 0.9,
+  geom_hline(yintercept = 0.8,
              linetype = "dashed",
              color = "grey30",
              linewidth = 0.6) +
   scale_x_continuous(breaks = 1:14) +
   scale_y_continuous(
-  breaks = c(0, 0.25, 0.5, 0.75, 0.9, 1),
+  breaks = c(0, 0.25, 0.5, 0.75, 0.8, 1),
   labels = scales::percent_format(),
   expand = expansion(mult = c(0, 0.01))
 ) +
   theme_minimal_hgrid(12) +
-  labs( x = "PC",
-        y = "Cumulative Variance across PC´s")
+  labs(
+  x = "Principal component",
+  y = "Cumulative variance across PCs",
+  title = "Cumulative explained variance by principal component"
+)
+```
+
+The cumulative variance plot shows that the first few principal components already explain most of the variability in the diagnostic variables. In our data, the first PC accounts for about one third of the variance, and the first 7-8 PCs together exceed the commonly used 80–90% threshold, indicating that a relatively low-dimensional representation captures the majority of information in the original feature set.
+
+```{r}
+pca_fit |> 
+  tidy(matrix = "eigenvalues") |> 
+  ggplot(aes(PC, cumulative)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  geom_hline(yintercept = 0.8,
+             linetype = "dashed",
+             color = "grey30",
+             linewidth = 0.6) +
+  scale_x_continuous(breaks = 1:14) +
+  scale_y_continuous(
+  breaks = c(0, 0.25, 0.5, 0.75, 0.8, 1),
+  labels = scales::percent_format(),
+  expand = expansion(mult = c(0, 0.01))
+) +
+  theme_minimal_hgrid(12) +
+  labs(
+  x = "Principal component",
+  y = "Cumulative variance across PCs",
+  title = "Cumulative explained variance by principal component"
+)
 ```
 
 ```{r}
@@ -147,12 +175,27 @@ number_of_PC = 4
 minimum_value_for_coef = 0.2
 
 rotation_matrix |>
-  filter(PC %in% c(1:number_of_PC),
-         abs(value) > minimum_value_for_coef) |> 
-  ggplot(mapping = aes(x = PC,
-                       y = value,
-                       fill = column)) +
+  filter(
+    PC %in% c(1:number_of_PC),
+    abs(value) > minimum_value_for_coef
+  ) |>
+  ggplot(aes(x = PC,
+             y = value,
+             fill = column)) +
   geom_col(position = "dodge") +
-  geom_vline(xintercept = seq(0.5, length(c(1:number_of_PC)) + 0.5, by = 1), linetype = "dashed")
+  geom_vline(
+    xintercept = seq(1.5, length(c(1:number_of_PC)) + 0.5, by = 1),
+    linetype = "dashed"
+  ) +
+  labs(
+    title = "Loadings of selected variables on principal components",
+    x = "Principal Component",
+    y = "Loading coefficient",
+    fill = "Variable"
+  ) +
   theme_minimal()
 ```
+
+The loading plot for the first four principal components shows which diagnostic and biological variables contribute most strongly to each PC. PC1 is mainly driven by hypoxia scores and genomic instability metrics, whereas PC2 and PC3 capture additional variation related to survival endpoints and mutation/TMB measures, with opposite signs indicating variables that vary in contrasting directions. Overall, the pattern of loadings suggests that the main PCs summarize combined effects of hypoxia, genomic instability, and survival outcomes rather than being dominated by a single variable.
+
+The PCA of the selected diagnostic and molecular variables provided a compact, low‑dimensional representation that explained most of the variance with only a handful of components. The PCA loadings highlighted clusters of variables with similar contributions to the same components, consistent with the strong correlations observed among several variables, and reinforcing that part of the information in the feature set is redundant.

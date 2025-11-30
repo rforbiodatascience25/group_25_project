@@ -24,6 +24,7 @@ format:
 # package import
 library("tidyverse")
 library("here")
+library("broom")
 ```
 
 ```{r}
@@ -41,15 +42,13 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
-```         
 -   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data \[ref: https://www.cbioportal.org/study/filesAndLinks?id=paad_tcga_pan_can_atlas_2018\]
 
--   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 \[ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871\] -> relevant data
+-   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 \[ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871\] -\> relevant data
 
--   Data contained cancer genomic data, scores and classification -> enough information to perform analysis
+-   Data contained cancer genomic data, scores and classification -\> enough information to perform analysis
 
--   After initial analysis it didn't look tidy -> ideal for the project purposes
-```
+-   After initial analysis it didn't look tidy -\> ideal for the project purposes
 
 ::::: columns
 ::: {.column width="50%"}
@@ -87,7 +86,7 @@ Materials:
 ::: {.row height="50%"}
 Methodology
 
-![](Project flow.drawio.png){width="925"}
+![](Project%20flow.drawio.png){width="925"}
 :::
 :::::
 
@@ -108,6 +107,113 @@ Methodology
 
 iris
 ```
+
+## PCA on numeric data
+
+-   PCA on variables reduced the data to a few components while retaining most of the variance.
+
+-   PCA loadings were ploted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.
+
+```{r}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+
+
+data_all <- data_metrics |>
+  left_join(data_gene,  by = "Patient ID") |>
+  left_join(data_score, by = "Patient ID") |>
+  left_join(data_code,  by = "Patient ID") |>
+  left_join(data_diag,  by = "Patient ID")
+
+pca_data <- data_all |>
+  select(
+    where(is.numeric),
+    -c(`Overall Survival (Months)`,
+       `Disease Free (Months)`,
+       `Months of disease-specific survival`,
+       `Progress Free Survival (Months)`,
+       `Disease Free Status (bin)`,
+       `Disease Free (days)`, # loads of NA because some die
+       `Days of disease-specific survival`,
+       `Progress Free Survival (days)`
+    ) 
+  )  |> 
+  drop_na()
+
+pca_fit <- pca_data |> 
+  select(-`Disease-specific Survival status (bin)`) |> 
+  scale() |> 
+  prcomp()
+```
+
+::::: columns
+::: {.column width="50%"}
+```{r}
+#| echo: true
+#| eval: false
+#| output: false
+#| message: false
+
+pca_fit |> 
+  tidy(matrix = "eigenvalues") |> 
+  ggplot(aes(PC, cumulative)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  geom_hline(yintercept = 0.8,
+             linetype = "dashed",
+             color = "grey30",
+             linewidth = 0.6) +
+  scale_x_continuous(breaks = 1:14) +
+  scale_y_continuous(
+  breaks = c(0, 0.25, 0.5, 0.75, 0.8, 1),
+  labels = scales::percent_format(),
+  expand = expansion(mult = c(0, 0.01))
+) +
+  labs(
+  x = "Principal component",
+  y = "Cumulative variance across PCs",
+  title = "Cumulative explained 
+  variance by principal component"
+)
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 7
+#| fig-height: 6
+#| fig-align: "center"
+#| out-width: 90%
+
+pca_fit |> 
+  tidy(matrix = "eigenvalues") |> 
+  ggplot(aes(PC, cumulative)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  geom_hline(yintercept = 0.8,
+             linetype = "dashed",
+             color = "grey30",
+             linewidth = 0.6) +
+  scale_x_continuous(breaks = 1:14) +
+  scale_y_continuous(
+  breaks = c(0, 0.25, 0.5, 0.75, 0.8, 1),
+  labels = scales::percent_format(),
+  expand = expansion(mult = c(0, 0.01))
+) +
+  theme_minimal() +
+  labs(
+  x = "Principal component",
+  y = "Cumulative variance across PCs",
+  title = "Cumulative explained variance by principal component"
+)
+
+```
+:::
+:::::
 
 ## [Genomic Alterations Across AJCC Cancer Stages]{.smalltitle}
 
@@ -164,7 +270,8 @@ data_gene_code_filtered |>
     values_to = "Value"
   ) |>
   ggplot(aes(x = stage_label, y = Value)) +
-  geom_boxplot() +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
              nrow = 1) +
@@ -175,8 +282,8 @@ data_gene_code_filtered |>
     y = "Genomic metric")
 ```
 
--   Later stages tend to include more extreme values;
--   Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden
+-   Later stages tend to include more extreme values.
+-   Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden.
 :::
 
 ::: {.column width="40%"}
@@ -185,8 +292,8 @@ data_gene_code_filtered |>
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 4
-#| fig-height: 6
+#| fig-width: 5
+#| fig-height: 8
 #| fig-align: "center"
 #| out-width: 80%
 data_gene_code_filtered |>
@@ -200,7 +307,8 @@ data_gene_code_filtered |>
     values_to = "Value"
   ) |>
   ggplot(aes(x = stage_label, y = Value)) +
-  geom_boxplot() +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
              ncol = 1) +
@@ -208,26 +316,11 @@ data_gene_code_filtered |>
                                    hjust = 1)) +
   labs(
     x = "AJCC stage (n per stage)",
-    y = "Genomic metric")
+    y = "Genomic metric",
+    title = "Genomic instability metrics across AJCC stages")
 ```
 :::
 :::::
-
-## Results (2) (Andre) {background-color="aquamarine"}
-
-```{r}
-#| echo: true
-#| eval: true
-#| output: true
-#| output-location: slide #slide, column, fragment, column-fragment
-
-iris |> 
-  ggplot(mapping = 
-           aes(x=Sepal.Length, 
-               y = Sepal.Width)) +
-  geom_point()
-
-```
 
 ## Results (3) (Catarina)
 
