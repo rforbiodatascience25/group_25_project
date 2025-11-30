@@ -14,6 +14,8 @@ format:
     code-block-height: 500px # maximum height of a code block, if it surpases this height becames scrollbar
     css: 
       - presentation_css.css
+bibliography: references.bib
+reference-location: section
 ---
 
 ```{r}
@@ -41,15 +43,13 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
-```         
--   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data \[ref: https://www.cbioportal.org/study/filesAndLinks?id=paad_tcga_pan_can_atlas_2018\]
+-   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data [@BioPortal; @TCGA_data]
 
--   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 \[ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871\] -> relevant data
+-   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 [@CancStat] -\> relevant data
 
--   Data contained cancer genomic data, scores and classification -> enough information to perform analysis
+-   Data contained cancer genomic data, scores and classification -\> enough information to perform analysis
 
--   After initial analysis it didn't look tidy -> ideal for the project purposes
-```
+-   After initial analysis it didn't look tidy -\> ideal for the project purposes
 
 ::::: columns
 ::: {.column width="50%"}
@@ -61,9 +61,9 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 :::
 :::::
 
-```         
-Part of image (FFPE HE TP DX1) taken from [ref: https://viewer.imaging.datacommons.cancer.gov/viewer/2.25.50549866694142022371455976348397677571]
-```
+::: {style="font-size: 40%;"}
+Parts of image TCGA-2L-AAQI-01Z taken from [@BioPortal; @TCGA_data; @Slide]
+:::
 
 ## Methods and Materials (Szymon)
 
@@ -77,7 +77,7 @@ Part of image (FFPE HE TP DX1) taken from [ref: https://viewer.imaging.datacommo
 ::: {.row height="50%"}
 Materials:
 
--   Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer dataset \[ref:\]
+-   Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer dataset [@BioPortal; @TCGA_data]
 
 -   R studio (R, tidyverse)
 
@@ -87,7 +87,7 @@ Materials:
 ::: {.row height="50%"}
 Methodology
 
-![](Project flow.drawio.png){width="925"}
+![](Project%20flow.drawio.png){width="925"}
 :::
 :::::
 
@@ -246,3 +246,5 @@ other types code
 ways to go forward
 
 more data ::::::::::::
+
+## References
