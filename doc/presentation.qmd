@@ -101,7 +101,6 @@ Methodology
 ## Describing the data (1) (Magnus)
 
 -   Explain the division of variables trough the different datasets
--   Includes clinical data for pancreatic adenocarcinoma (PAAD) patients from the TCGA Pan-Cancer Atlas.\
 -   Made of 184 patient samples and 63 clinical variables (demographics, diagnosis, staging, molecular metrics, outcomes).
 
 ------------------------------------------------------------------------
@@ -120,7 +119,7 @@ iris
 
 -   PCA on variables reduced the data to a few components while retaining most of the variance.
 
--   PCA loadings were ploted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.
+-   PCA loadings were plotted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.
 
 ```{r}
 #| echo: false
@@ -337,14 +336,17 @@ data_gene_code_filtered |>
 ## Discussion (3) (Lily)
 
 ## Conclusion (Lily)
+- Sex distribution was balanced, but age distribution was not.
 
-quick remarks
+- Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
 
-weird data, not enough variance
+- Predominantly White patient representation highlights the need for greater ethnic diversity.
 
-other types code
+- Limited variability in several categories may constrain findings.
 
-ways to go forward
+- Incorporating additional data types and clinical variables could strengthen analyses.
+
+- Future work should expand cohort diversity, increase representation of underrepresented groups, and integrate multi-omic data.
 
 more data ::::::::::::
 

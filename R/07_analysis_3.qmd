@@ -104,11 +104,11 @@ It can be seen that for those who had neither a prior diagnosis or radiation the
 #| fig-height: 6
 data_diag |> 
   drop_na(`Prior Diagnosis`,
-    `Disease-specific Survival status`,
+    `Disease-specific Survival status (days)`,
     `Radiation Therapy`) |> 
   count(Prior_Diagnosis = `Prior Diagnosis`,
     Radiation_Therapy = `Radiation Therapy`,
-    Survival = `Disease-specific Survival status`) |> 
+    Survival = `Disease-specific Survival status (days)`) |> 
   group_by(Survival) |> 
   mutate(percentage = n / sum(n) * 100) |> 
   ggplot(aes(x = Prior_Diagnosis,
@@ -198,21 +198,27 @@ bind_cols(data_diag |>
     x = "Disease-Specific Survival (Months)",
     y = "TMB (nonsynonymous)") +
   theme_uniform()
+
+
+
 ```
 
 ### Average Standardized biological scores (Aneuploidy, hypoxia, MSI) Across Age Groups Divided by Sex
 
-From this plot we can see that males in general had higher MSI Mantis Scores, both sexes had their highest MSI Mantis Scores at 30-40, and that women had the lowest of all scores at 80-90. It is interesting to note that females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, while men had higher Buffa Hypoxia Scores at both 30-40 and 80-90. Men also had the lowest scores for all MSI Sensor Scores at 30-40 and 80-90.
+From the total plot we can see that males in general had higher MSI Mantis Scores, both sexes had their highest MSI Mantis Scores at 30-40, and that women had the lowest of all scores at 80-90. It is interesting to note that females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, while men had higher Buffa Hypoxia Scores at both 30-40 and 80-90. Men also had the lowest scores for all MSI Sensor Scores at 30-40 and 80-90.
+
+From the two plots based on disease specific survival status, we can see that in general, across all sexes and sexes, those who died with tumor had lower scores, often in the negatives. While those who were alive or died without tumor followed the trend of females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, those who died with tumor did not. Those who were alive or dead tumor free also followed the trend of males having high MSI Mantis Scores and Buffia Hypoxia Scores at 30-40.
 
 ```{r}
 #| fig-width: 10
 #| fig-height: 6
- data_score |>
-   left_join(data_metrics |>
-   select(`Patient ID`,
-     Age_Group,
-     Sex),
-     by = "Patient ID") |>
+
+data_score |>
+  left_join(data_metrics |>
+  select(`Patient ID`,
+    Age_Group,
+    Sex),
+    by = "Patient ID") |>
   mutate(across(c(`Buffa Hypoxia Score`,
     `Ragnum Hypoxia Score`,
     `MSI MANTIS Score`,
@@ -222,7 +228,57 @@ From this plot we can see that males in general had higher MSI Mantis Scores, bo
     `Ragnum Hypoxia Score`,
     `MSI MANTIS Score`,
     `MSIsensor Score`),
-    names_to  = "Metric",
+    names_to = "Metric",
+    values_to = "Score") |>
+  drop_na(Score,
+    Age_Group,
+    Sex) |> 
+  group_by(Age_Group,
+    Sex,
+    Metric) |>
+  summarise(Mean_Z = mean(Score,
+    na.rm = TRUE),
+    .groups = "drop") |>
+  ggplot(aes(x = Age_Group,
+    y = Metric,
+    fill = Mean_Z)) +
+  geom_tile(color = "gray90") +
+  geom_text(aes(label = round(Mean_Z, 2)),
+    color = "black",
+    fontface = "bold",
+    size = 4) +
+  scale_fill_uniform_continuous +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  facet_wrap(~ Sex) +
+  labs(title = "Standardized Scores by Age Group (Total)",
+    x = "Age Group",
+    y = "Metric",
+    fill = "Mean Z-Score") +
+  theme_uniform() +
+  theme(axis.text.x = element_text(angle = 45))
+
+data_score |>
+  left_join(data_metrics |> 
+  select(`Patient ID`,
+    Age_Group,
+    Sex),
+    by = "Patient ID") |>
+  left_join(data_diag |> 
+  select(`Patient ID`,
+    `Disease-specific Survival status (days)`),
+    by = "Patient ID") |>
+  filter(`Disease-specific Survival status (days)` == "1:DEAD WITH TUMOR") |>
+  mutate(across(c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    ~ scale(.)[, 1])) |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to = "Metric",
     values_to = "Score") |>
   drop_na(Score,
     Age_Group,
@@ -245,12 +301,63 @@ From this plot we can see that males in general had higher MSI Mantis Scores, bo
   scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
   scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
   facet_wrap(~ Sex) +
-  labs(title = "Standardized Scores by Age Group",
+  labs(title = "Standardized Scores by Age Group (Dead With Tumor)",
     x = "Age Group",
     y = "Metric",
     fill = "Mean Z-Score") +
   theme_uniform() +
   theme(axis.text.x = element_text(angle = 45))
+
+
+data_score |>
+  left_join(data_metrics |> 
+  select(`Patient ID`,
+    Age_Group, Sex),
+    by = "Patient ID") |>
+  left_join(data_diag |> 
+  select(`Patient ID`,
+    `Disease-specific Survival status (days)`),
+    by = "Patient ID") |>
+  filter(`Disease-specific Survival status (days)` == "0:ALIVE OR DEAD TUMOR FREE") |>
+  mutate(across(c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    ~ scale(.)[, 1])) |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to = "Metric",
+    values_to = "Score") |>
+  drop_na(Score,
+    Age_Group,
+    Sex) |>
+  group_by(Age_Group,
+    Sex,
+    Metric) |>
+  summarise(Mean_Z = mean(Score,
+    na.rm = TRUE),
+    .groups = "drop") |>
+  ggplot(aes(x = Age_Group,
+    y = Metric,
+    fill = Mean_Z)) +
+  geom_tile(color = "gray90") +
+  geom_text(aes(label = round(Mean_Z, 2)),
+    color = "black",
+    fontface = "bold",
+    size = 4) +
+  scale_fill_uniform_continuous +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
+  facet_wrap(~ Sex) +
+  labs(title = "Standardized Scores by Age Group (Alive or Dead Tumor Free)",
+    x = "Age Group",
+    y = "Metric",
+    fill = "Mean Z-Score") +
+  theme_uniform() +
+  theme(axis.text.x = element_text(angle = 45))
+
 
 ```
 
@@ -292,46 +399,5 @@ data_score |>
     x = "Neoplasm Histologic Grade",
     y = "Score",
     fill  = "Cancer Status") +
-  theme_uniform()
-```
-
-### Coding System Comparison From Site Code to Histiology Code to Cancer Code
-
-This plot shows how patients flow across three different categorical systems, revealing how tumor location, pathologic subtype, and disease stage are related. In general, the data is dominated by one histologic type, 8500/3 which is invasive ductal carcinoma. Most of the tumors were taken from C25.0, the pancreatic head region, which can be seen as most patients flow from this section. It can be seen that the main pathway is from C25.0 to 8500/3 to Stage IIB.
-
-Comment André: This should go to describe as well
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-data_code |>
-  drop_na(`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
-    `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
-    `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
-  count(ICD_O3_Site = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
-    ICD_O3_Histology = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
-    AJCC_Stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
-  ggplot(aes(axis1 = ICD_O3_Site,
-    axis2 = ICD_O3_Histology,
-    axis3 = AJCC_Stage,
-    y = n)) +
-  geom_alluvium(aes(fill = ICD_O3_Histology),
-    alpha = 0.8) +
-  geom_stratum(fill  = "white",
-    color = "gray40",
-    linewidth = 0.6) +
-  geom_text(stat = "stratum",
-    aes(label = after_stat(stratum)),
-    color = "black",
-    fontface = "bold",
-    size = 3.5) +
-  scale_fill_manual(values = palette) +
-  scale_x_discrete(limits = c("ICD_O3_Site", "ICD_O3_Histology", "AJCC_Stage"),
-    expand = expansion(mult = 0.02)) +
-  scale_y_continuous_uniform +
-  labs(title = "ICD-O-3 Site to Histology Code to AJCC Stage",
-    x = "Coding System",
-    y = "Number of Patients",
-    fill = "ICD-O-3 Histology") +
   theme_uniform()
 ```
