@@ -41,7 +41,7 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 
 # Preparing the data
-data_waterfall <- data_gene |>
+data_full <- data_gene |>
   full_join(data_diag, by = "Patient ID") |>
   drop_na(`Disease-specific Survival status (des)`) |>
   mutate(Status = `Disease-specific Survival status (des)`)
@@ -54,7 +54,7 @@ status_colors <- c(
 
 ## Plotting
 # Plot - Mutation Count
-plt_mut_count <- data_waterfall |>
+plt_mut_count <- data_full |>
   filter(`Mutation Count` < 5000) |>
   arrange(desc(`Mutation Count`)) |>
   mutate(Patient_Order = factor(`Patient ID`, 
@@ -75,7 +75,7 @@ plt_mut_count <- data_waterfall |>
 
 
 # Plot - Tumor Break Load
-plt_tbl <- data_waterfall |>
+plt_tbl <- data_full |>
   filter(`Tumor Break Load` < 300) |>
   arrange(desc(`Tumor Break Load`)) |>
   mutate(Patient_Order = factor(`Patient ID`, 
@@ -96,7 +96,7 @@ plt_tbl <- data_waterfall |>
 
 
 # Plot - TMB (nonsynonymous)
-plt_tmb <- data_waterfall |>
+plt_tmb <- data_full |>
   filter(`TMB (nonsynonymous)` < 400) |>
   arrange(desc(`TMB (nonsynonymous)`)) |>
   mutate(Patient_Order = factor(`Patient ID`, 
@@ -117,7 +117,7 @@ plt_tmb <- data_waterfall |>
 
 
 # Fraction Genome Altered (FGA) - Plot
-plt_fga <- data_waterfall |>
+plt_fga <- data_full |>
   arrange(desc(`Fraction Genome Altered`)) |>
   mutate(Patient_Order = factor(`Patient ID`, 
                                 levels = `Patient ID`))|>
@@ -199,7 +199,9 @@ plot
 #| fig.height=6
 
 # Prepare data
-data_heatmap <- data_full |>
+data_heatmap <- data_gene |>
+  full_join(data_diag, by = "Patient ID") |>
+  full_join(data_score, by = "Patient ID") |>
   filter(`TMB (nonsynonymous)` < 400) |>
   select(`TMB (nonsynonymous)`, 
          `Buffa Hypoxia Score`, 
@@ -216,7 +218,9 @@ data_heatmap <- data_full |>
   summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
 
 # Plot Heatmap
-ggplot(data_heatmap, aes(x = TMB_Bin, y = Hypoxia_Bin, fill = Median_Survival)) +
+ggplot(data_heatmap, aes(x = TMB_Bin, 
+                         y = Hypoxia_Bin, 
+                         fill = Median_Survival)) +
   geom_tile(color = "white") +
   geom_text(aes(label = round(Median_Survival, 0)), 
             color = "white", 
@@ -358,4 +362,259 @@ plt_age_surv <- data_waterfall |>
        y = "Diagnosis Age")
 plt_age_surv
 
+```
+
+#### Kaplan-Meier survival analysis based on **Diagnosis Age**
+
+```{r}
+
+data_age <- data_diag |>
+  full_join(data_metrics, by = "Patient ID")
+
+## Select and clean necessary columns
+data_age <- data_age |>
+  select(
+    PatientID = `Patient ID`,
+    Diagnosis_Age = `Diagnosis Age`, 
+    `Overall Survival (days)`,
+    Status_Tumor = `Disease-specific Survival status (bin)` 
+  ) |>
+  drop_na(
+    Diagnosis_Age,
+    `Overall Survival (days)`,
+    Status_Tumor
+  )
+
+## Define Age Groups (Low vs High) using the median
+age_med <- median(data_age[["Diagnosis_Age"]], na.rm = TRUE)
+
+data_age <- data_age |>
+  mutate(
+    Age_Group = case_when(
+      Diagnosis_Age > age_med ~ "High Age",
+      Diagnosis_Age <= age_med ~ "Low Age"
+    )
+  )
+
+
+# Survival Calculation (Kaplan-Meier) 
+## Calculation of Kaplan-Meier
+Kaplan_meier_calc_age <- data_age |>
+  select(
+    time = `Overall Survival (days)`,
+    status = Status_Tumor,
+    group = Age_Group
+  ) |>
+  arrange(group, time) |>
+  group_by(group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |> 
+  group_by(group) |>
+  mutate(
+    # n_risk-> Calculate number at risk by summing all future events + censored
+    n_risk = rev(cumsum(rev(events + censored))),
+    # surv_step-> Calculate probability of survival at this time point
+    surv_step = 1 - events / n_risk,
+    # surv > Cumulative of surv_step gives the KM estimate
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM Curve 
+ggplot(Kaplan_meier_calc_age, aes(x = time,
+                                  y = surv,
+                                  color = group)) +
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    values = c("High Age" = "#E74C3C", 
+               "Low Age" = "#3498DB") ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(
+    title = "Survival of Patients\nHigh vs Low Diagnosis Age",
+    x = "Overall Survival Time (days)",
+    y = "Survival Probability",
+    color = "Diagnosis Age Group"
+  )
+```
+
+#### Kaplan-Meier survival analysis based on **Diagnosis Age and Tumor Type**
+
+```{r}
+
+# Define Data
+data_age_tumor <- data_diag |>
+  full_join(data_metrics, by = "Patient ID") |>
+  select(
+    PatientID = `Patient ID`,
+    Diagnosis_Age = `Diagnosis Age`, 
+    `Overall Survival (days)`,
+    Status_Tumor = `Disease-specific Survival status (bin)`,
+    Tumor_Type = `Tumor Type` 
+  ) |>
+  drop_na(
+    Diagnosis_Age,
+    `Overall Survival (days)`,
+    Status_Tumor,
+    Tumor_Type 
+  ) |>
+  filter(
+    Tumor_Type == "Pancreas Adenocarcinoma, Ductal Type" |
+    Tumor_Type == "Pancreas Adenocarcinoma, Other Subtype"
+  )
+
+## Define Age Groups (Low vs High) using the median
+age_med <- median(data_age_tumor[["Diagnosis_Age"]], na.rm = TRUE)
+
+data_age_tumor <- data_age_tumor |>
+  mutate(
+    Age_Group = case_when(
+      Diagnosis_Age > age_med ~ "High Age",
+      Diagnosis_Age <= age_med ~ "Low Age"
+    ),
+    Combined_Group = str_c(Age_Group, Tumor_Type, sep = " / ")
+  )
+
+# Survival Calculation (Kaplan-Meier) 
+## Calculation of Kaplan-Meier
+Kaplan_meier_calc_tumor <- data_age_tumor |>
+  select(
+    time = `Overall Survival (days)`,
+    status = Status_Tumor,
+    group = Combined_Group 
+  ) |>
+  arrange(group, time) |>
+  group_by(group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |> 
+  group_by(group) |>
+  mutate(
+    # n_risk-> Calculate number at risk by summing all future events + censored
+    n_risk = rev(cumsum(rev(events + censored))),
+    # surv_step-> Calculate probability of survival at this time point
+    surv_step = 1 - events / n_risk,
+    # surv > Cumulative of surv_step gives the KM estimate
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM Curve 
+ggplot(Kaplan_meier_calc_tumor, aes(x = time,
+                                    y = surv,
+                                    color = group)) + 
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    # Define colors for all four groups
+    values = c(
+      "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E74C3C", 
+      "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#3498DB", 
+      "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#2ECC71", 
+      "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F1C40F"  
+    ) 
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(
+    title = "Survival of Patients\nStratified by Diagnosis Age and Tumor Type",
+    x = "Overall Survival Time (days)",
+    y = "Survival Probability",
+    color = "Age and Tumor Type Group"
+  )
+```
+
+#### Kaplan-Meier survival analysis based on **Diagnosis Age/ Tumor Stage**
+
+```{r}
+
+# Define Data
+data_age_stage <- data_code |>
+  full_join(data_metrics, by = "Patient ID") |>
+  full_join(data_diag, by = "Patient ID") |>
+  rename(`Cancer Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  select(
+    PatientID = `Patient ID`,
+    Diagnosis_Age = `Diagnosis Age`, 
+    `Overall Survival (days)`,
+    Status_Tumor = `Disease-specific Survival status (bin)`,
+    Cancer_Stage = `Cancer Stage`
+  ) |>
+  drop_na(
+    Diagnosis_Age,
+    `Overall Survival (days)`,
+    Status_Tumor,
+    Cancer_Stage
+  ) |>
+  filter(Cancer_Stage == `STAGE IB`|
+         Cancer_Stage == `STAGE IIA`|
+         Cancer_Stage == `STAGE IIB`)
+
+## Define Age Groups (Low vs High) using the median
+age_med <- median(data_age_tumor[["Diagnosis_Age"]], na.rm = TRUE)
+
+data_age_stage <- data_age_stage |>
+  mutate(
+    Age_Group = case_when(
+      Diagnosis_Age > age_med ~ "High Age",
+      Diagnosis_Age <= age_med ~ "Low Age"
+    ),
+    Combined_Group = str_c(Age_Group, Cancer_Stage, sep = " / ")
+  )
+
+# Survival Calculation (Kaplan-Meier) 
+## Calculation of Kaplan-Meier
+Kaplan_meier_calc <- data_age_stage |>
+  select(
+    time = `Overall Survival (days)`,
+    status = Status_Tumor,
+    group = Combined_Group 
+  ) |>
+  arrange(group, time) |>
+  group_by(group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |> 
+  group_by(group) |>
+  mutate(
+    # n_risk-> Calculate number at risk by summing all future events + censored
+    n_risk = rev(cumsum(rev(events + censored))),
+    # surv_step-> Calculate probability of survival at this time point
+    surv_step = 1 - events / n_risk,
+    # surv > Cumulative of surv_step gives the KM estimate
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM Curve 
+ggplot(Kaplan_meier_calc, aes(x = time,
+                              y = surv,
+                              color = group)) + 
+  geom_step(linewidth = 1.1) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(
+    title = "Survival of Patients\nStratified by Diagnosis Age and Tumor Type",
+    x = "Overall Survival Time (days)",
+    y = "Survival Probability",
+    color = "Age and Tumor Type Group"
+  )
 ```
