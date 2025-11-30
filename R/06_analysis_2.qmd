@@ -182,7 +182,7 @@ data_gene_diag |>
   )
 ```
 
-### Distribution of Cancer Stages and Genomic Instability 
+### Distribution of Cancer Stages and Genomic Instability
 
 -   **Context**: Cancer stage reflects the extent of tumor progression, while genomic instability measures (Mutation Count, Fraction Genome Altered, and Tumor Break Load) capture different aspects of chromosomal and genetic instability. These features are often associated with tumor aggressiveness and poor prognosis. This set of plots explores how cancer stage distributions relate to genomic instability across pancreatic adenocarcinoma subtypes (Ductal Type vs Other Subtypes).
 
@@ -300,11 +300,11 @@ plt_aneuploidy_stage
 -   **Buffa Hypoxia Score**:
 
 ```{r}
-#| fig-width: 30
-#| fig-height: 50
+#| fig-width: 10
+#| fig-height: 6
 
 # Hypoxia Data  
-data_hypoxia <- data_full |>
+data_hypoxia <- data_diag |>
   full_join(data_score, by = "Patient ID")
 
 data_hypoxia <- data_hypoxia |>
@@ -404,8 +404,8 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 -   **Winter hypoxia score:**
 
 ```{r}
-#| fig-width: 30
-#| fig-height: 50
+#| fig-width: 10
+#| fig-height: 6
 
 # Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
@@ -487,8 +487,8 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 -   **Ragnum Hypoxia Score:**
 
 ```{r}
-#| fig-width: 30
-#| fig-height: 50
+#| fig-width: 10
+#| fig-height: 6
 
 # Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
