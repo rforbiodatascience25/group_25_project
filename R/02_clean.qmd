@@ -97,6 +97,17 @@ data|>
 
 ```
 
+## Filtering outliers
+
+During the analysis some outliers were identified. As they impact analysis negatively there is need to filter them out.
+
+```{r}
+data_red <-  data_red|>
+  filter(
+    `Mutation Count` < 5000,
+    `TMB (nonsynonymous)` < 400)
+```
+
 ## Separating data
 
 Used data has many features, which makes working on it harder. Fortunately data can be split into subcategories, which would make its processing and analysis easier. Observations in different tables would be identifiable by Patient ID.
