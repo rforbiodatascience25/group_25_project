@@ -14,7 +14,6 @@ library("tidyverse")
 library("ggplot2")
 library("corrplot")
 library("here")
-
 ```
 
 ## **Loading data**
@@ -40,11 +39,9 @@ Summary of the data:
 -   **data_code** — cancer staging and clinical classification codes.
 -   **data_diag** — diagnoses, survival outcomes, therapy history.
 
-## Data Analysis/ Plotting
+## Genomic Alterations & Instability Analysis (**data_gene)**
 
-### Genomic Alterations & Instability
-
-### **Comparison of overall survival across high and low levels of genomic instability,** and visualization of the relationship between continuous genomic instability measures and survival duration
+## **Comparison of overall survival across high and low levels of genomic instability,** and visualization of the relationship between continuous genomic instability measures and survival duration
 
 -   **Context**: The analysis compares overall survival across high and low levels of genomic instability, and visualizes the relationship between continuous genomic instability measures and survival duration, to determine if genomic instability has an impact on patient survival. Genomic instability measures used are TMB (nonsynonymous), Mutation Count, Fraction Genome Altered, and Tumor Break Load.
 
@@ -63,9 +60,7 @@ Summary of the data:
 # which one would you want
 
 # Joining tables and filter out outliers
-data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID") |>
-  filter(`Mutation Count` < 5000,
-         `TMB (nonsynonymous)` < 400)
+data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID")
 
 # Reshape to Long Dataset
 data_long <- data_gene_diag |>
@@ -105,21 +100,6 @@ data_long <- data_long |>
   )
 
 ## PLOTS
-# Violin Plot
-plt_violin <- ggplot(
-  data_long,
-  aes(x = `Overall Survival (days)`, 
-      y = Group)
-) +
-  geom_violin(aes(fill = Group),alpha = 0.6) +
-  geom_jitter(width = 0.2, alpha = 0.6) +
-  facet_wrap(~ Metric, scales = "free_y") +
-  theme_minimal() +
-  # theme(legend.position = "none") +          # use this to take out the legend in the right
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(title = "Overall Survival by High/Low Genomic Metrics")
 
 # Scatter/LOESS Plot
 plt_scatter <- ggplot(
@@ -138,9 +118,10 @@ plt_scatter <- ggplot(
   labs(title = "Overall Survival vs Genomic Metrics")
 
 # Present Plots
-plt_violin 
 plt_scatter
 ```
+
+As shown by both the scatter plot and descriptive statistics, Mutation Count and TMB (nonsynonymous) are highly correlated, with very similar distributions. Therefore, from this point forward only Mutation Count was visualized, since plotting both variables would not provide any additional insight.
 
 ### **Tumor types and Genomic differences across them (not meaningful for further analysis)**
 
@@ -149,7 +130,7 @@ plt_scatter
 -   **Analysis from Plots**: The 'Ductal Adenocarcinoma' appears to have lower fraction of the genome altered and a slight higher tumor break load compared to others subtypes, altough the differences are very discrete. The other tumor types were discarded due to lack of data.
 
 ```{r}
-#| fig-width: 8
+#| fig-width: 10
 #| fig-height: 5
 
 data_gene_diag |>
@@ -157,14 +138,11 @@ data_gene_diag |>
     `Tumor Type` %in% c(
       "Pancreas Adenocarcinoma, Ductal Type",
       "Pancreas Adenocarcinoma, Other Subtype"
-    ),
-    `Mutation Count` < 5000,
-    `TMB (nonsynonymous)` < 400
+    )
   ) |>
   pivot_longer(
     cols = c(
       `Mutation Count`,
-      `TMB (nonsynonymous)`,
       `Fraction Genome Altered`,
       `Tumor Break Load`
     ),
@@ -173,7 +151,7 @@ data_gene_diag |>
   ) |>
   ggplot(aes(x = `Tumor Type`, y = Value, fill = `Tumor Type`)) +
   geom_boxplot() +
-  facet_wrap(~ Metric, ncol = 2, scales = "free_y") +
+  facet_wrap(~ Metric, nrow = 1, scales = "free_y") +
   theme_minimal() +
   theme(
     axis.title.x = element_blank(),
@@ -279,7 +257,7 @@ corrplot(correl_matrix, method = "color",tl.col = "black")
 
 This plot was used to assess relationships between genomic instability metrics and hypoxia scores. Focusing on the first four columns (genomic instability measures) and the last six rows (hypoxia scores), no strong blue stand out, indicating that hypoxia scores are not strongly correlated with the genomic instability variables in this dataset.
 
-### SCORE
+## Biological scores Analysis (score_data)
 
 ### Distribution of Aneuploidy Scores across different Cancer Stages
 
@@ -355,7 +333,6 @@ ggplot(df_long,
     title = "MSI scores across patients (z-scaled)",
     x = "Patient", y = "Metric", fill = "z-score"
   )
-
 ```
 
 ## SURVIVAL 3
