@@ -1,6 +1,9 @@
 ---
-title: "New_plots??"
-format: html
+title: "Survival Analysis"
+format:
+  html:
+    embed-resources: true
+editor: visual
 ---
 
 ## **Loading libraries**
@@ -139,55 +142,6 @@ plt_fga <- data_full |>
 # Combine plots
 (plt_mut_count/ plt_tmb ) 
 (plt_tbl/ plt_fga)
-```
-
-#### Age vs. Genomic Instability
-
--   **Goal**: correlate demographics with genomic metrics
-
-```{r}
-#| fig.width=10
-#| fig.height=8
-
-# Metrics vs demographics
-data_age_genomic <- data_gene |>
-  full_join(data_metrics, by = "Patient ID") |>
-  full_join(data_diag, by = "Patient ID") |>
-  filter(`TMB (nonsynonymous)` < 400) |>
-  filter(`Tumor Break Load` < 150) |>
-  filter(`Fraction Genome Altered` < 0.75) |>
-  mutate(Status = `Disease-specific Survival status (des)`) |>
-  drop_na(`Diagnosis Age`, `Status`, `Mutation Count`, 
-          `TMB (nonsynonymous)`, `Fraction Genome Altered`, `Tumor Break Load`)
-
-data_age_genomic_long <- data_age_genomic %>%
-  pivot_longer(
-    cols = c(`TMB (nonsynonymous)`, `Fraction Genome Altered`, `Tumor Break Load`, `Mutation Count`),
-    names_to = "Genomic_Metric",
-    values_to = "Value"
-  )
-status_colors <- c(
-  "DEAD WITH TUMOR" = "red",
-  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
-)
-
-# Main Scatter Plot
-plot <- ggplot(data_age_genomic_long, 
-               aes(x = `Diagnosis Age`, 
-                   y = Value,
-                   color = Status)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed") +
-  scale_color_manual(values = status_colors) +
-  facet_wrap(~ Genomic_Metric, scales = "free_y") +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold", size = 16))+
-  labs(title = "Age vs Tumor Genomic Metrics",
-    x = "Diagnosis Age",
-    y = "Value")
-
-plot
 ```
 
 #### Interaction between Hypoxia and TMB

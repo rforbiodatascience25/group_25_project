@@ -251,6 +251,33 @@ data_gene_code_filtered |>
 
 -   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease.
 
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+data_full <- data_gene |>
+  full_join(data_score, by = "Patient ID") |>
+  full_join(data_diag, by = "Patient ID") |>
+  full_join(data_metrics, by = "Patient ID")
+
+# Select  columns of interest
+cols_to_compare <- c("TMB (nonsynonymous)", "Mutation Count", 
+                     "Fraction Genome Altered", "Tumor Break Load",
+                     "Aneuploidy Score", "Buffa Hypoxia Score",
+                     "MSI MANTIS Score", "MSIsensor Score",
+                     "Ragnum Hypoxia Score", "Winter Hypoxia Score")
+
+data_numeric <- data_full |> 
+  select(all_of(cols_to_compare))
+
+correl_matrix <- cor(data_numeric |>
+                    select(cols_to_compare), 
+                    use = "complete.obs")
+
+corrplot(correl_matrix, method = "color",tl.col = "black")
+
+```
+
 ### SCORE
 
 ### Distribution of Aneuploidy Scores across different Cancer Stages
@@ -282,6 +309,55 @@ plt_aneuploidy_stage <- data_code |>
 
 plt_aneuploidy_stage
 ```
+
+```{r}
+metric_for_order <- "Winter Hypoxia Score"
+
+df_long <- data_score |>
+  select(`Patient ID`,
+         `MSI MANTIS Score`,
+         `MSIsensor Score`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -`Patient ID`,
+    names_to = "Metric",
+    values_to = "Score"
+  ) |>
+  group_by(Metric) |>
+  mutate(
+    Score_scaled = (Score - mean(Score, na.rm = TRUE)) /
+                   sd(Score, na.rm = TRUE)
+  ) |>
+  ungroup() |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score_scaled[Metric == metric_for_order][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+ggplot(df_long,
+       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  labs(
+    title = "MSI scores across patients (z-scaled)",
+    x = "Patient", y = "Metric", fill = "z-score"
+  )
+
+```
+
+## SURVIVAL 3
 
 #### Distribution of Hypoxia Scores in Patients Receiving Radiation Therapy, and Comparison of overall survival (days) of patients treated with radiotherapy depending on levels of hypoxia.
 
@@ -577,30 +653,3 @@ ggplot(Kaplan_meier_calc, aes(x = time,
     -   The two MSI metrics (**MSI MANTIS** and **MSIsensor**) show almost no correlation, which is unexpected given they track the same defective DNA mismatch repair mechanism. The MSI MANTIS Score shows a slight positive correlation with Mutation Count and TMB. This is biologically plausible, as defective mismatch repair (causing MSI) simultaneously increases the rate of overall point mutations (TMB/Mutation Count).
 
     -   **Aneuploidy:** Aneuploidy Score and Fraction of Genome Altered (FGA) show a moderate positive correlation. This is expected, as both are direct measures of chromosomal instability.
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
-data_full <- data_gene |>
-  full_join(data_score, by = "Patient ID") |>
-  full_join(data_diag, by = "Patient ID") |>
-  full_join(data_metrics, by = "Patient ID")
-
-# Select  columns of interest
-cols_to_compare <- c("TMB (nonsynonymous)", "Mutation Count", 
-                     "Fraction Genome Altered", "Tumor Break Load",
-                     "Aneuploidy Score", "Buffa Hypoxia Score",
-                     "MSI MANTIS Score", "MSIsensor Score",
-                     "Ragnum Hypoxia Score", "Winter Hypoxia Score")
-
-data_numeric <- data_full |> 
-  select(all_of(cols_to_compare))
-
-correl_matrix <- cor(data_numeric |>
-                    select(cols_to_compare), 
-                    use = "complete.obs")
-
-corrplot(correl_matrix, method = "color",tl.col = "black")
-
-```

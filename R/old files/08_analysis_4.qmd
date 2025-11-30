@@ -9,8 +9,6 @@ editor: visual
 library("tidyverse")
 library("dplyr")
 library("here")
-library("broom")
-library("cowplot")
 ```
 
 ```{r}
