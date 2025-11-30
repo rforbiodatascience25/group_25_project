@@ -41,7 +41,7 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
--   What are we doing
+- What are we doing
 -   What is the core problem
 
 ## Methods and Materials (Szymon)
@@ -74,6 +74,8 @@ it´s me
 ## Describing the data (1) (Magnus)
 
 -   Explain the division of variables trough the different datasets
+- Includes clinical data for pancreatic adenocarcinoma (PAAD) patients from the TCGA Pan-Cancer Atlas.  
+- Made of 184 patient samples and 63 clinical variables (demographics, diagnosis, staging, molecular metrics, outcomes).
 
 ------------------------------------------------------------------------
 
@@ -210,9 +212,9 @@ iris |>
 
 ## Discussion (2) (Catarina)
 
-## Discussion (3) (Lilly)
+## Discussion (3) (Lily)
 
-## Conclusion (Lilly)
+## Conclusion (Lily)
 
 quick remarks
 

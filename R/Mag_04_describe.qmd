@@ -82,6 +82,24 @@ patient_row <-
 
 patient_row
 
+
+data_metrics |>
+  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
+  ggplot(aes(x = `Genetic Ancestry Label`, y = `Race Category`, fill = n)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = n), color = "black", size = 3) +
+  facet_wrap(Sex ~ `Ethnicity Category`) +
+  scale_fill_viridis_c(direction = -1)
+
+eur_sex_count <- data_metrics |>
+  filter(`Genetic Ancestry Label` == "EUR") |>
+  count(Sex)
+
+axis_labels <- c(
+  "Female" = paste0("Female (n = ", eur_sex_count$n[eur_sex_count$Sex == "Female"], ")"),
+  "Male"   = paste0("Male (n = ", eur_sex_count$n[eur_sex_count$Sex == "Male"], ")")
+)
+
 p_value <- data_metrics |>
   summarise(p = wilcox.test(`Diagnosis Age` ~ Sex)$p.value) |>
   pull(p) |>
@@ -91,6 +109,7 @@ ggplot(data = data_metrics, (aes(x=Sex, y=`Diagnosis Age`))) +
   geom_violin(aes(fill = Sex), color = NA, alpha = 0.5) +
   stat_summary(fun = median, geom = "crossbar", color = "red", size = 1) +
   geom_jitter(position = position_jitter(width = 0.3, seed = 123)) +
+  scale_x_discrete(labels = axis_labels) +
   annotate(
     "text",
     x = 1.5,
@@ -103,29 +122,28 @@ ggplot(data = data_metrics, (aes(x=Sex, y=`Diagnosis Age`))) +
         axis.title = element_text(size = 16),
         legend.text = element_text(size = 16),
         legend.title = element_text(size = 16))
-
-data_metrics |>
-  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
-  ggplot(aes(x = `Genetic Ancestry Label`, y = `Race Category`, fill = n)) +
-  geom_tile(color = "white") +
-  geom_text(aes(label = n), color = "black", size = 3) +
-  facet_wrap(Sex ~ `Ethnicity Category`) +
-  scale_fill_viridis_c(direction = -1)
-
 ```
 
-## **Gene summary**
+## **Gene summary (Genomic Alterations & Instability)**
 
 Providing core statistics overview of the genetic mutation data with a basic descriptive stats table and histograms and box plots. Outliers are removed to avoid making the graphs unreadable.
+
+Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
+
+Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
+
+TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
+
+Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
 
 ```{r}
 str(data_gene)
 
 gene_cols <- c(
+  "Tumor Break Load",
   "Fraction Genome Altered",
   "Mutation Count",
-  "TMB (nonsynonymous)",
-  "Tumor Break Load"
+  "TMB (nonsynonymous)"
 )
 
 gene_long <- data_gene |>
@@ -168,16 +186,48 @@ gene_summary <- gene_no_ext |>
   )
 
 gene_summary
+
+
+gene_vars <- data_gene |>
+  select(
+    `Tumor Break Load`,
+    `Fraction Genome Altered`,
+    `Mutation Count`,
+    `TMB (nonsynonymous)`
+  )
+
+cor_matrix <- cor(gene_vars, use = "pairwise.complete.obs")
+
+cor_df <- as.data.frame(cor_matrix) |>
+  rownames_to_column("Var1") |>
+  pivot_longer(-Var1, names_to = "Var2", values_to = "Correlation") |>
+  mutate(
+    Var1 = factor(Var1, levels = names(gene_vars)),
+    Var2 = factor(Var2, levels = names(gene_vars))
+  )
+
+ggplot(cor_df, aes(Var1, Var2, fill = Correlation)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Gene Variable Correlation Heatmap", x = NULL, y = NULL)
 ```
 
 ## Score Summary
 
 Providing core statistics overview of the cancer scoring data with a basic descriptive stats table and histograms and box plots. Outliers not removed/present.
 
+-   Aneuploidy Score → chromosome-level copy-number changes.
+
+-   MSI MANTIS / MSIsensor → microsatellite instability (DNA repair).
+
+-   Buffa / Ragnum / Winter → hypoxia from expression, different gene signatures.
+
 ```{r}
 str(data_score)
 
-score_cols_no_hypoxia <- c(
+score_cols <- c(
   "Aneuploidy Score",
   "MSI MANTIS Score",
   "MSIsensor Score",
@@ -187,7 +237,7 @@ score_cols_no_hypoxia <- c(
 )
 
 score_long <- data_score |>
-  select(all_of(score_cols_no_hypoxia)) |>
+  select(all_of(score_cols)) |>
   mutate(across(everything(), as.numeric)) |>
   pivot_longer(
     cols = everything(),
@@ -319,19 +369,23 @@ code_summary
 
 code_vars <- data_code |>
   select(
-    `Neoplasm Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`,
-    `AJCC Tumor` = `American Joint Committee on Cancer Tumor Stage Code`,
     `AJCC Metastasis` = `American Joint Committee on Cancer Metastasis Stage Code`,
-    `ICDO3 Histology` = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
     `ICDO3 Site` = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,
-    `AJCC Lymph_Node` = `Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`
+    `ICDO3 Histology` = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,
+    `AJCC Lymph Node` = `Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`,
+    `AJCC Tumor` = `American Joint Committee on Cancer Tumor Stage Code`,
+    `Neoplasm Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`
   ) |>
   mutate(across(everything(), ~ as.numeric(as.factor(.x))))
 
 cor_matrix <- cor(code_vars, use = "pairwise.complete.obs")
 cor_df <- as.data.frame(cor_matrix) |>
   rownames_to_column("Var1") |>
-  pivot_longer(-Var1, names_to = "Var2", values_to = "Correlation")
+  pivot_longer(-Var1, names_to = "Var2", values_to = "Correlation") |>
+  mutate(
+    Var1 = factor(Var1, levels = names(code_vars)),
+    Var2 = factor(Var2, levels = names(code_vars))
+  )
 
 ggplot(cor_df, aes(Var1, Var2, fill = Correlation)) +
   geom_tile() +
@@ -438,46 +492,6 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 
 ### Data metrics (data_metrics)
 
-```{r}
-counts <- data_metrics |> 
-  group_by(Sex) |> 
-  summarise(n = n())
-
-lab_female <- paste0("Women (n = ", counts$n[counts$Sex == "Female"], ")")
-lab_male   <- paste0("Men (n = ", counts$n[counts$Sex == "Male"], ")")
-
-data_metrics |>
-  ggplot(aes(x = `Diagnosis Age`, fill = Sex)) +
-  geom_density(alpha = 0.5) +
-  scale_fill_discrete(
-    name   = "Sex",
-    labels = c("Female" = lab_female,
-               "Male"   = lab_male)
-  )
-```
-
-### Genomic Alterations & Instability (data_gene) 
-
-Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
-
-Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
-
-TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
-
-Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
-
-```{r}
-library(corrplot)
-cor_matrix <- cor(data_gene |>
-                    select(`Fraction Genome Altered`, 
-                           `Mutation Count`, 
-                           `TMB (nonsynonymous)`, 
-                           `Tumor Break Load`), 
-                  use = "complete.obs")
-
-corrplot(cor_matrix, method = "color")
-```
-
 We excluded one extreme outlier before plotting; the resulting positive correlation is consistent with random mutagenesis, where the proportion of nonsynonymous mutations remains relatively stable given a fixed coding sequence fraction.
 
 ### Cancer Classification Systems (data_code)
@@ -491,9 +505,7 @@ ClassificationSystems <- c(
   "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
   "American Joint Committee on Cancer Tumor Stage Code"
 )
-```
 
-```{r}
 class_sym_1 <- ClassificationSystems[1]  
 class_sym_2 <- ClassificationSystems[3]
 
@@ -511,16 +523,9 @@ data_code |>
 
 It is also inherently difficult to evaluate “coherence” between these systems quantitatively, because they use different numbers of categories and different underlying metrics.
 
-American Joint Committee on Cancer Metastasis Stage Code (MX) -\> Metastasis cannot be assessed or information is insufficient to assign an M category
+American Joint Committee on Cancer Metastasis Stage Code (MX) -\> Metastasis cannot be assessed or information is insufficient to assign an M category. Besides this always one class that has the greatest...
 
-Besides this always one class that has the greatest
-
-```{r}
-entropy_cat <- function(x) {
-  p <- prop.table(table(x))
-  -sum(p * log(p))
-}
-```
+The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
 
 ```{r}
 vars_to_check <- c(
@@ -531,6 +536,11 @@ vars_to_check <- c(
   ClassificationSystems[5], # Lymph node stage
   ClassificationSystems[6]  # Tumor stage
 )
+
+entropy_cat <- function(x) {
+  p <- prop.table(table(x))
+  -sum(p * log(p))
+}
 
 dispersion_tbl <-
   tibble(var_name = vars_to_check) |>
@@ -550,25 +560,9 @@ dispersion_tbl <-
 dispersion_tbl
 ```
 
-The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
-
 ### Biological scores (aneuploidy, hypoxia, MSI) (**data_score)**
 
 ```{r}
-data_score
-```
-
-```{r}
-# Select only score columns
-score_cols <- c(
-  "Aneuploidy Score", 
-  "Buffa Hypoxia Score",
-  "MSI MANTIS Score", 
-  "MSIsensor Score",
-  "Ragnum Hypoxia Score", 
-  "Winter Hypoxia Score"
-)
-
 correl_matrix <- data_score |>
   select(all_of(score_cols)) |>
   cor(use = "complete.obs")
@@ -577,12 +571,6 @@ corrplot(correl_matrix,
          method = "color", 
          tl.col = "black")
 ```
-
--   Aneuploidy Score → chromosome-level copy-number changes.
-
--   MSI MANTIS / MSIsensor → microsatellite instability (DNA repair).
-
--   Buffa / Ragnum / Winter → hypoxia from expression, different gene signatures.
 
 ```{r}
 data_score |> 
@@ -608,4 +596,4 @@ data_diag |>
   )
 ```
 
-Not enough disersity in tumor types.
+Not enough diversity in tumor types.

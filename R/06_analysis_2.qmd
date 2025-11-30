@@ -253,9 +253,6 @@ plt_mut_stage <- data_full |>
   width = 0.9,
   colour = "black"
 ) +
-  geom_vline(xintercept = seq(1.5, length(unique(data_full$`Cancer Stage`)) - 0.5, by = 1), 
-             linetype = "dashed", 
-             color = "gray50") +
   theme_minimal() +
   ggtitle("Mutation Count by Tumor Type and Stage") +
   theme(axis.text.x = element_text(
@@ -274,9 +271,6 @@ plt_frac_stage <- data_full |>
   width = 0.9,
   colour = "black"
 ) +
-  geom_vline(xintercept = seq(1.5, length(unique(data_full$`Cancer Stage`)) - 0.5, by = 1), 
-             linetype = "dashed", 
-             color = "gray50") +
   theme_minimal() +
   ggtitle("Fraction Genome Altered by Tumor Type and Stage") +
   theme(axis.text.x = element_text(
@@ -295,9 +289,6 @@ plt_tbload_stage <- data_full |>
   width = 0.9,
   colour = "black"
 ) +
-  geom_vline(xintercept = seq(1.5, length(unique(data_full$`Cancer Stage`)) - 0.5, by = 1), 
-             linetype = "dashed", 
-             color = "gray50") +
   theme_minimal() +
   ggtitle("Tumor Break Load by Tumor Type and Stage") +
   theme(axis.text.x = element_text(
@@ -316,9 +307,6 @@ plt_tmb_stage <- data_full |>
   width = 0.9,
   colour = "black"
 ) +
-  geom_vline(xintercept = seq(1.5, length(unique(data_full$`Cancer Stage`)) - 0.5, by = 1), 
-             linetype = "dashed", 
-             color = "gray50") +
   theme_minimal() +
   ggtitle("TMB (nonsynonymous) by Tumor Type and Stage") +
   theme(axis.text.x = element_text(
@@ -396,14 +384,16 @@ data_hypoxia <- data_hypoxia |>
          `Winter Hypoxia Score`,
          `Radiation Therapy`,
          `Overall Survival (days)`,
-         `Disease-specific Survival status (des)`,
+         `Disease-specific Survival status (bin)`,
           `Tumor Type`) |>
   drop_na("Buffa Hypoxia Score", 
           "Ragnum Hypoxia Score",
           "Winter Hypoxia Score",
-          "Radiation Therapy",)
+          "Radiation Therapy") |>
+  rename(Status_Tumor = `Disease-specific Survival status (bin)`)
 
 
+# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
                          y = `Buffa Hypoxia Score`,
                          fill = `Radiation Therapy`)) +
@@ -426,13 +416,6 @@ data_hypoxia <- data_hypoxia |>
       `Buffa Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
     ))
 
-# Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
-data_hypoxia <- data_hypoxia |> 
-  mutate(Status_Tumor = case_when(
-      `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
-      `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
-    ))
-
 
 # Survival Plot: High vs Low Hypoxia in Radiation therapy
 
@@ -444,7 +427,7 @@ data_Rad <- data_hypoxia |>
 Kaplan_meier_calc <- data_Rad |>
   select(
     time = `Overall Survival (days)`,
-    status = Status_Tumor,
+    status = `Status_Tumor`,
     group = Hypoxia_Group
   ) |>
   arrange(group, time) |>
@@ -494,6 +477,7 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 #| fig-width: 30
 #| fig-height: 50
 
+# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
                          y = `Winter Hypoxia Score`,
                          fill = `Radiation Therapy`)) +
@@ -516,17 +500,7 @@ data_hypoxia <- data_hypoxia |>
       `Winter Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
     ))
 
- 
-# Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
-data_hypoxia <- data_hypoxia |> 
-  mutate(Status_Tumor = case_when(
-      `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
-      `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
-    ))
-
-
 # Survival Plot: High vs Low Hypoxia in Radiation therapy
-
 # Filter only patients who received radiation therapy
 data_Rad <- data_hypoxia |>
   filter(`Radiation Therapy` == "Yes")
@@ -535,7 +509,7 @@ data_Rad <- data_hypoxia |>
 Kaplan_meier_calc <- data_Rad |>
   select(
     time = `Overall Survival (days)`,
-    status = Status_Tumor,
+    status = `Status_Tumor`,
     group = Hypoxia_Group
   ) |>
   arrange(group, time) |>
@@ -586,6 +560,7 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 #| fig-width: 30
 #| fig-height: 50
 
+# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
 ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
                          y = `Ragnum Hypoxia Score`,
                          fill = `Radiation Therapy`)) +
@@ -595,8 +570,7 @@ ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
   theme_minimal() +
   theme(
     legend.position = "none",
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
   labs(title = "Ragnum Hypoxia Score vs Radiation Therapy")
 
 # Hypoxia Groups (low vs high) 
@@ -608,17 +582,8 @@ data_hypoxia <- data_hypoxia |>
       `Ragnum Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
     ))
 
- 
-# Assign values to the status: 1 = 'dead with tumor' and 0 = 'alive or dead tumor free'
-data_hypoxia <- data_hypoxia |> 
-  mutate(Status_Tumor = case_when(
-      `Disease-specific Survival status (des)` == "DEAD WITH TUMOR" ~ 1,
-      `Disease-specific Survival status (des)` == "ALIVE OR DEAD TUMOR FREE" ~ 0
-    ))
-
 
 # Survival Plot: High vs Low Hypoxia in Radiation therapy
-
 # Filter only patients who received radiation therapy
 data_Rad <- data_hypoxia |>
   filter(`Radiation Therapy` == "Yes")
@@ -627,7 +592,7 @@ data_Rad <- data_hypoxia |>
 Kaplan_meier_calc <- data_Rad |>
   select(
     time = `Overall Survival (days)`,
-    status = Status_Tumor,
+    status = `Status_Tumor`,
     group = Hypoxia_Group
   ) |>
   arrange(group, time) |>
@@ -686,9 +651,6 @@ ggplot(Kaplan_meier_calc, aes(x = time,
 ```{r}
 #| fig-width: 10
 #| fig-height: 6
-
-library(ggplot2)
-library(corrplot)
 
 data_full <- data_gene |>
   full_join(data_score, by = "Patient ID") |>
