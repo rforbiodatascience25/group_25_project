@@ -10,7 +10,7 @@ library("tidyverse")
 library("dplyr")
 library("here")
 library("broom")
-library("cowplot)
+library("cowplot")
 ```
 
 ```{r}
@@ -35,13 +35,20 @@ data_all <- data_metrics |>
 ```{r}
 data_all_num <- data_all |>
   select(where(is.numeric)) |>
-  select(-c(`Disease Free (days)`, `Disease Free (Months)`, `Disease-specific Survival status (bin)`, `Overall Survival Status (bin)` )) |> 
+  select(-c(`Disease Free (days)`, 
+            `Disease Free (Months)`, 
+            `Disease-specific Survival status (bin)`, 
+            `Progression Free Status (bin)`, 
+            `Disease Free Status (bin)`)) |> 
   filter(`Mutation Count` < 5000 | is.na(`Mutation Count`)) |> 
-  filter(`Tumor Break Load` < 200 | is.na(`Tumor Break Load`))
+  filter(`Tumor Break Load` < 200 | is.na(`Tumor Break Load`)) |> 
+  drop_na()
+```
 
-data_all_num_imp <- data_all_num |>
+```{r}
+data_pca <- data_all_num |>
   mutate(across(
-    .cols = everything(),
+    .cols = -`Overall Survival Status (bin)`,
     .fns  = ~ if_else(is.na(.x),
                       mean(.x, na.rm = TRUE),
                       .x)
@@ -49,30 +56,71 @@ data_all_num_imp <- data_all_num |>
 ```
 
 ```{r}
-data_pca <- data_all_num_imp |>
-  select(where(is.numeric)) |>
-  drop_na() 
-
-
-pca_fit <- prcomp(data_pca, scale. = TRUE)
+pca_fit <- data_pca |> 
+  select(-`Overall Survival Status (bin)`) |> 
+  scale() |> 
+  prcomp()
 ```
 
 ```{r}
-pca_fit <- data_all_num_imp %>% 
-  select(where(is.numeric)) %>% # retain only numeric columns
-  prcomp(scale = TRUE) # do PCA on scaled data
-```
-
-```{r}
-pca_fit %>%
-  augment(data_all_num_imp) %>% # add original dataset back in
-  ggplot(aes(.fittedPC1, .fittedPC2)) + 
+pca_fit |> 
+  augment(data_pca) |>  # add original dataset back in
+  ggplot(aes(x = .fittedPC1, 
+             y = .fittedPC2, 
+             color = factor(`Overall Survival Status (bin)`))) + 
   geom_point(size = 1.5) +
-  theme_half_open(12) + 
-  background_grid()
+  theme_half_open(12) + background_grid()
 ```
 
 ```{r}
-pca_fit %>%
+pca_fit |> 
   tidy(matrix = "eigenvalues")
+```
+
+```{r}
+pca_fit |> 
+  tidy(matrix = "eigenvalues") |> 
+  ggplot(aes(PC, cumulative)) +
+  geom_col(fill = "#56B4E9", alpha = 0.8) +
+  geom_hline(yintercept = 0.9,
+             linetype = "dashed",
+             color = "grey30",
+             linewidth = 0.6) +
+  scale_x_continuous(breaks = 1:17) +
+  scale_y_continuous(
+  breaks = c(0, 0.25, 0.5, 0.75, 0.9, 1),
+  labels = scales::percent_format(),
+  expand = expansion(mult = c(0, 0.01))
+) +
+  theme_minimal_hgrid(12) +
+  labs( x = "PC",
+        y = "Cumulative Variance across PC´s")
+```
+
+```{r}
+arrow_style <- arrow(
+  angle = 20, ends = "first", type = "closed", length = grid::unit(8, "pt")
+)
+
+# plot rotation matrix
+pca_fit %>%
+  tidy(matrix = "rotation") %>%
+  pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") %>%
+  ggplot(aes(PC1, PC2)) +
+  geom_segment(xend = 0, yend = 0, arrow = arrow_style) +
+  geom_text(
+    aes(label = column),
+    hjust = 1, nudge_x = -0.02, 
+    color = "#904C2F"
+  ) +
+  xlim(-1.25, .5) + ylim(-.5, 1) +
+  coord_fixed() + # fix aspect ratio to 1:1
+  theme_minimal_grid(12)
+```
+
+```{r}
+pca_fit |> 
+  tidy(matrix = "rotation") |> 
+  pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |> 
+  ggplot
 ```
