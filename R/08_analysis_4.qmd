@@ -74,11 +74,6 @@ pca_fit |>
 
 ```{r}
 pca_fit |> 
-  tidy(matrix = "eigenvalues")
-```
-
-```{r}
-pca_fit |> 
   tidy(matrix = "eigenvalues") |> 
   ggplot(aes(PC, cumulative)) +
   geom_col(fill = "#56B4E9", alpha = 0.8) +
@@ -98,29 +93,22 @@ pca_fit |>
 ```
 
 ```{r}
-arrow_style <- arrow(
-  angle = 20, ends = "first", type = "closed", length = grid::unit(8, "pt")
-)
-
-# plot rotation matrix
-pca_fit %>%
-  tidy(matrix = "rotation") %>%
-  pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") %>%
-  ggplot(aes(PC1, PC2)) +
-  geom_segment(xend = 0, yend = 0, arrow = arrow_style) +
-  geom_text(
-    aes(label = column),
-    hjust = 1, nudge_x = -0.02, 
-    color = "#904C2F"
-  ) +
-  xlim(-1.25, .5) + ylim(-.5, 1) +
-  coord_fixed() + # fix aspect ratio to 1:1
-  theme_minimal_grid(12)
+rotation_matrix <- pca_fit |> 
+  tidy(matrix = "rotation")
 ```
 
 ```{r}
-pca_fit |> 
-  tidy(matrix = "rotation") |> 
-  pivot_wider(names_from = "PC", names_prefix = "PC", values_from = "value") |> 
-  ggplot
+rotation_matrix |>
+  filter(PC %in% c(1:4),
+         abs(value) > 0.1) |> 
+  ggplot(mapping = aes(x = PC,
+                       y = value,
+                       fill = column)) +
+  geom_col(position = "dodge") +
+  geom_vline(xintercept = seq(0.5, length(c(1:4)) + 0.5, by = 1), linetype = "dashed")
+  theme_minimal()
+```
+
+```{r}
+length(unique(rotation_matrix$PC))
 ```
