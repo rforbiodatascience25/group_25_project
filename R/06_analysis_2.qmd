@@ -32,7 +32,7 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Data Description/ Notes for Analysis
 
-Summary of the datasets:
+Summary of the data:
 
 -   **data_metrics** — patient demographics (age, sex, race, ancestry)
 -   **data_gene** — genomic instability metrics (mutation count, TMB, fraction genome altered).
@@ -40,23 +40,9 @@ Summary of the datasets:
 -   **data_code** — cancer staging and clinical classification codes.
 -   **data_diag** — diagnoses, survival outcomes, therapy history.
 
-Meaning of the Biological scores:
-
--   **Aneuploidy Score** -\> measures the level of chromosome instability in a tumor, how many chromosomes or chromosome segments have abnormal copy numbers -\> correlates with tumor aggressiveness and poor prognosis
-
--   **MSI MANTIS Score** -\> measures microsatellite instability (MSI), a condition where repetitive DNA sequences (microsatellites) are prone to errors due to defective DNA mismatch repair
-
--   **MSIsensor Score** -\> same as MSI MANTIS Score, but expressed as a percentage of unstable loci
-
--   **Hypoxia Score** -\> All three hypoxia scores are derived from gene expression signatures that quantify low oxygen levels in the tumor microenvironment.
-
-    -   **Buffa Hypoxia Score**: A gene expression signature quantifying the degree of tumor hypoxia. Hypoxic tumors identified by this score are often more resistant to radiotherapy and are linked to a poorer progosis.
-
-    -   **Ragnum Hypoxia Score:** A specific gene expression signature developed to assess tumor hypoxia. Used to identify tumors resistant to oxygen-dependent therapies (like radiation) and predict outcomes.
-
-    -   **Winter Hypoxia Score:** A distinct gene expression signature used to quantify tumor hypoxia. Provides an alternative metric to assess tumor oxygen deprivation and predict treatment resistance.
-
 ## Data Analysis/ Plotting
+
+### Genomic Alterations & Instability
 
 ### **Comparison of overall survival across high and low levels of genomic instability,** and visualization of the relationship between continuous genomic instability measures and survival duration
 
@@ -73,6 +59,8 @@ Meaning of the Biological scores:
 ```{r}
 #| fig-width: 15
 #| fig-height: 7
+
+# which one would you want
 
 # Joining tables and filter out outliers
 data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID") |>
@@ -194,7 +182,7 @@ data_gene_diag |>
   )
 ```
 
-### Distribution of Cancer Stages and Genomic Instability in Pancreatic Adenocarcinoma Subtypes
+### Distribution of Cancer Stages and Genomic Instability 
 
 -   **Context**: Cancer stage reflects the extent of tumor progression, while genomic instability measures (Mutation Count, Fraction Genome Altered, and Tumor Break Load) capture different aspects of chromosomal and genetic instability. These features are often associated with tumor aggressiveness and poor prognosis. This set of plots explores how cancer stage distributions relate to genomic instability across pancreatic adenocarcinoma subtypes (Ductal Type vs Other Subtypes).
 
@@ -204,124 +192,66 @@ data_gene_diag |>
     -   No clear, consistent trend is observed where the genomic instability measures (Mutation Count, TMB (nonsynonymous), Fraction Genome Altered, and Tumor Break Load) predictably increase or decrease with advancing cancer stage across the subtypes. (see this better)
 
 ```{r}
-#| fig-width: 30
-#| fig-height: 6
-
-
-# Merge data_gene, data_code, and data_diag
-data_full <- data_gene |>
-  full_join(data_code, by = "Patient ID") |>
-  full_join(data_diag, by = "Patient ID")
-
-data_full <- data_full |>
-  rename(`Cancer Stage` = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
-  drop_na("Cancer Stage") |>
-  filter(`Mutation Count` < 5000) |>
-  filter(`TMB (nonsynonymous)` < 400) |>
-  filter(`Tumor Type` == "Pancreas Adenocarcinoma, Ductal Type" |
-    `Tumor Type` == "Pancreas Adenocarcinoma, Other Subtype")
-
-
-#### Just tumor type first
-# Stage distribution per tumor type
-plt_stage_dist <- data_full |>
-  ggplot(aes(x = `Cancer Stage`, 
-             fill = `Tumor Type`)) +
-  geom_bar(position = position_dodge(
-    preserve = "single",
-    width = 0.8),
-  width = 0.8,
-  colour = "black"
-) +
-  geom_hline(yintercept = 0) + 
-  theme_minimal() +
-  ggtitle("Cancer Stage Distribution by Tumor Type") +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1),
-    plot.title = element_text(hjust = 0.5, face = "bold")) +
-  labs(x = "Cancer Stage", y = "Count")
-
-# Mutation Count by Tumor Type and Stage
-plt_mut_stage <- data_full |>
-  ggplot(aes(x = `Cancer Stage`, 
-             y = `Mutation Count`, 
-             fill = `Tumor Type`)) +
-  geom_boxplot(position = position_dodge(
-    preserve = "single",
-    width = 0.9),
-  width = 0.9,
-  colour = "black"
-) +
-  theme_minimal() +
-  ggtitle("Mutation Count by Tumor Type and Stage") +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1),
-    plot.title = element_text(hjust = 0.5, face = "bold")) 
-
-# Fraction Genome Altered by Tumor Type and Stage
-plt_frac_stage <- data_full |>
-  ggplot(aes(x = `Cancer Stage`, 
-             y = `Fraction Genome Altered`, 
-             fill = `Tumor Type`)) +
-  geom_boxplot(position = position_dodge(
-    preserve = "single",
-    width = 0.9),
-  width = 0.9,
-  colour = "black"
-) +
-  theme_minimal() +
-  ggtitle("Fraction Genome Altered by Tumor Type and Stage") +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1),
-    plot.title = element_text(hjust = 0.5, face = "bold"))
-
-# Tumor Break Load by Tumor Type and Stage
-plt_tbload_stage <- data_full |>
-  ggplot(aes(x = `Cancer Stage`, 
-             y = `Tumor Break Load`, 
-             fill = `Tumor Type`)) +
-  geom_boxplot(position = position_dodge(
-    preserve = "single",
-    width = 0.9),
-  width = 0.9,
-  colour = "black"
-) +
-  theme_minimal() +
-  ggtitle("Tumor Break Load by Tumor Type and Stage") +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1),
-    plot.title = element_text(hjust = 0.5, face = "bold"))
-
-# TMB (nonsynonymous) by Tumor Type and Stage
-plt_tmb_stage <- data_full |>
-  ggplot(aes(x = `Cancer Stage`, 
-             y = `TMB (nonsynonymous)`, 
-             fill = `Tumor Type`)) +
-  geom_boxplot(position = position_dodge(
-    preserve = "single",
-    width = 0.9),
-  width = 0.9,
-  colour = "black"
-) +
-  theme_minimal() +
-  ggtitle("TMB (nonsynonymous) by Tumor Type and Stage") +
-  theme(axis.text.x = element_text(
-    angle = 45, 
-    hjust = 1),
-    plot.title = element_text(hjust = 0.5, face = "bold"))
-
-# Combine plots
-plt_stage_dist 
-plt_mut_stage 
-plt_frac_stage
-plt_tbload_stage 
-plt_tmb_stage
-
+data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
 ```
+
+```{r}
+# 1) Find stages with > 10 samples
+stages_keep <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  count(NDSA_stage, name = "n_samples") |>
+  filter(n_samples > 10)
+
+# 2) Labels
+stage_labels <- stages_keep |>
+  mutate(stage_label = paste0(NDSA_stage, " (n=", n_samples, ")")) |>
+  select(NDSA_stage, stage_label)
+
+# 2) Keep full data only for those stages
+data_gene_code_filtered <- data_gene_code |>
+  rename(NDSA_stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>
+  filter(`Mutation Count` < 5000,
+         `Tumor Break Load` < 200,
+         !is.na(NDSA_stage)) |> 
+  semi_join(stages_keep, by = "NDSA_stage") 
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 5
+data_gene_code_filtered |>
+  left_join(stage_labels, by = "NDSA_stage") |>
+  pivot_longer(
+    cols = c(
+      `Fraction Genome Altered`,
+      `Mutation Count`,
+      `Tumor Break Load`
+    ),
+    names_to = "Genomic_Metric",
+    values_to = "Value"
+  ) |>
+  ggplot(aes(x = stage_label, y = Value)) +
+  geom_violin() +
+  geom_boxplot(width = 0.2) +
+  facet_wrap(~ Genomic_Metric, 
+             scales = "free_y", 
+             nrow = 1) +
+  theme(axis.text.x = element_text(angle = 45, 
+                                   hjust = 1)) +
+  labs(
+    x = "AJCC stage (n per stage)",
+    y = "Genomic metric")
+```
+
+-   There’s considerable overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden.
+
+-   One could say that Tumor Break Load tends to increase with tumor stage, as indicated by higher medians and a wider spread of values in the boxplots for advanced stages.
+
+-   **TBL measures:** it is the sum of unbalanced structural-variant breakpoints, a quantitative readout of **Structural Variants driven chromosomal instability**.
+
+-   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease.
+
+### SCORE
 
 ### Distribution of Aneuploidy Scores across different Cancer Stages
 

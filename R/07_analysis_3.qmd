@@ -15,7 +15,6 @@ library("tidyverse")
 library("here")
 library("ggridges")
 library("ggalluvial")
-
 ```
 
 ## Loading data
@@ -178,8 +177,8 @@ This plot shows that for both those who became tumor free and those who died fro
 #| fig-width: 10
 #| fig-height: 6
 bind_cols(data_diag |>
-  select(Months_Disease = `Months of disease-specific survival`,
-    Survival_Status = `Disease-specific Survival status`),
+  select(Months_Disease = `Months of disease-specific survival (days)`,
+    Survival_Status = `Disease-specific Survival status (days)`),
     data_gene |>
   select(TMB = `TMB (nonsynonymous)`)) |>
   filter(TMB < 10) |>

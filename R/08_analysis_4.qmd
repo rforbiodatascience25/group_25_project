@@ -32,6 +32,10 @@ data_all <- data_metrics |>
   left_join(data_diag,  by = "Patient ID")
 ```
 
+explain why we took the difference
+
+check if its months and days
+
 ```{r}
 data_all_num <- data_all |>
   select(where(is.numeric)) |>
@@ -61,6 +65,10 @@ pca_fit <- data_pca |>
   scale() |> 
   prcomp()
 ```
+
+polish, put the variables
+
+less
 
 ```{r}
 pca_fit |> 
@@ -107,8 +115,4 @@ rotation_matrix |>
   geom_col(position = "dodge") +
   geom_vline(xintercept = seq(0.5, length(c(1:4)) + 0.5, by = 1), linetype = "dashed")
   theme_minimal()
-```
-
-```{r}
-length(unique(rotation_matrix$PC))
 ```

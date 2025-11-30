@@ -215,24 +215,6 @@ code_summary
 
 Magnus - I left here a tidy version of the one above
 
-```{r}
-data_code |>
-  select(all_of(cols)) |>
-  pivot_longer(everything(),
-                      names_to = "Column",
-                      values_to = "value") |>
-  filter(!is.na(value)) |>
-  group_by(Column) |>
-  summarise(
-    Distinct = n_distinct(value),
-    Types = {
-      tab <- sort(table(value), decreasing = TRUE)
-      str_c(names(tab), " (", tab, ")", collapse = ", ")
-    }) |> 
-  ungroup() |> 
-  arrange(-Distinct)
-```
-
 ## Diagnoses Summary
 
 Summary of the different cancer diagnoses.

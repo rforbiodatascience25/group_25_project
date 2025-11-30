@@ -41,7 +41,7 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
-- What are we doing
+-   What are we doing
 -   What is the core problem
 
 ## Methods and Materials (Szymon)
@@ -71,11 +71,32 @@ it´s me
 :::
 :::::
 
+::::: columns
+R tidyverse in ggplot
+
+```{r}
+library("tidyverse")
+library("dplyr")
+library("here")
+library("patchwork")
+```
+
+::: {.column width="20%"}
+git colaboration Describe pipeline Show code
+:::
+
+::: {.column width="80%"}
+it´s me
+:::
+:::::
+
+## 
+
 ## Describing the data (1) (Magnus)
 
 -   Explain the division of variables trough the different datasets
-- Includes clinical data for pancreatic adenocarcinoma (PAAD) patients from the TCGA Pan-Cancer Atlas.  
-- Made of 184 patient samples and 63 clinical variables (demographics, diagnosis, staging, molecular metrics, outcomes).
+-   Includes clinical data for pancreatic adenocarcinoma (PAAD) patients from the TCGA Pan-Cancer Atlas.\
+-   Made of 184 patient samples and 63 clinical variables (demographics, diagnosis, staging, molecular metrics, outcomes).
 
 ------------------------------------------------------------------------
 
@@ -90,6 +111,7 @@ iris
 ```
 
 ## [Genomic Alterations Across AJCC Cancer Stages]{.smalltitle}
+
 Genomic instability is present at all AJCC stages, not just in advanced disease.
 
 ```{r}
@@ -109,7 +131,7 @@ stages_keep <- data_gene_code |>
 
 # 2) Labels
 stage_labels <- stages_keep |>
-  mutate(stage_label = paste0(NDSA_stage, " (n=", n_samples, ")")) |>
+  mutate(stage_label = str_c(NDSA_stage, " (n=", n_samples, ")")) |>
   select(NDSA_stage, stage_label)
 
 # 3) Keep full data only for those stages
@@ -153,9 +175,9 @@ data_gene_code_filtered |>
     x = "AJCC stage (n per stage)",
     y = "Genomic metric")
 ```
-- Later stages tend to include more extreme values;
-- Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden
 
+-   Later stages tend to include more extreme values;
+-   Overlap between neighboring stages, so stage alone doesn’t perfectly separate genomic burden
 :::
 
 ::: {.column width="40%"}

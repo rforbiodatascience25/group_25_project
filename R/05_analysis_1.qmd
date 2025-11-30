@@ -36,9 +36,11 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ------------------------------------------------------------------------
 
-## Analysis
+## PCA
 
-### Genomic Alterations & Instability (data_gene) 
+...
+
+## Genomic Alterations & Instability
 
 ```{r}
 data_gene_code = full_join(data_gene, data_code, by = "Patient ID")
@@ -99,6 +101,8 @@ data_gene_code_filtered |>
 -   **TBL measures:** it is the sum of unbalanced structural-variant breakpoints, a quantitative readout of **Structural Variants driven chromosomal instability**.
 
 -   So, *in theory*, as tumors accumulate Structural Variants and copy‑number chaos over time, **TBL should rise**, and high TBL is often seen in more aggressive, later‑stage or poorer‑prognosis disease.
+
+Score data
 
 Heatmap of hypoxia and MSI scores across patients or groups: Highlights patterns and clusters associated with tumor microenvironment, useful for exploratory group identification.
 
