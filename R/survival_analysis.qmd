@@ -32,8 +32,8 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 #### Relationship between genomic instability measures and status with tumor/ tumor free
 
 ```{r}
-#| fig.width=30
-#| fig.height=6
+#| fig-width: 10
+#| fig-height: 6
 
 
 # Preparing the data
@@ -370,8 +370,8 @@ ggplot(Kaplan_meier_data, aes(x = time,
 -   **Overall Survival (days) based on different Hypoxia Scores/ Radiotherapy combinations**
 
 ```{r}
-#| fig.width=20
-#| fig.height=8
+#| fig-width: 14
+#| fig-height: 6
 
 # Data preparing
 # Using the Hypoxia Data from before (already with the distinction high/low hypoxia score) 
@@ -551,8 +551,8 @@ The comparison in the first plot is not very pronounced, although there is a sli
 #### Kaplan-Meier survival analysis based on **Diagnosis Age and Tumor Type**
 
 ```{r}
-#| fig.width=10
-#| fig.height=10
+#| fig-width: 10
+#| fig-height: 10
 
 # Define Data
 data_age_tumor <- data_diag |>

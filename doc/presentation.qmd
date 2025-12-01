@@ -327,7 +327,9 @@ data_gene_code_filtered |>
 :::
 :::::
 
-## [Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)]{.smalltitle}
+## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
+
+Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
 
 ```{r}
 #| echo: false
@@ -335,19 +337,28 @@ data_gene_code_filtered |>
 #| output: false
 #| message: false
 
-
 # Prepare data
-data_heatmap <- data_gene |>
+data_gene_diag_score <- data_gene |>
   full_join(data_diag, by = "Patient ID") |>
   full_join(data_score, by = "Patient ID") |>
-  drop_na() |>
-  # Pivot hypoxia scores long
+  drop_na() 
+```
+
+::::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| eval: false
+#| output: false
+#| message: false
+
+data_heatmap <- data_gene_diag_score |>
   pivot_longer(
-    cols = c(`Winter Hypoxia Score`, 
-             `Buffa Hypoxia Score`),
-    names_to = "Hypoxia_Score_Type",
-    values_to = "Hypoxia_Value"
-  ) |>
+      cols = c(`Winter Hypoxia Score`, 
+               `Buffa Hypoxia Score`),
+      names_to = "Hypoxia_Score_Type",
+      values_to = "Hypoxia_Value"
+    ) |>
   mutate(
     Mut_Count_Bin = case_when(
       `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
@@ -359,17 +370,9 @@ data_heatmap <- data_gene |>
       Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
   ungroup()|>
   group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
-  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
-```
-
-::::: columns
-::: {.column width="50%"}
-```{r}
-#| echo: true
-#| eval: false
-#| output: false
-#| message: false
-
+  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop') 
+  
+# Plotting
 ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
                          y = Hypoxia_Bin, 
                          fill = Median_Survival)) +
@@ -389,7 +392,8 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       plot.subtitle = element_text(hjust = 0.5),
       axis.text = element_text(color = "black"),
       panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
     ) +
     labs(
       title = "Median Overall Survival (Days)",
@@ -398,9 +402,13 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       y = "Winter Hypoxia Score"
     )
 ```
+
+- Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
+- Mixed groups ('high/low' or 'low/high') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
+
 :::
 
-::: {.column width="50%"}
+::: {.column width="40%"}
 ```{r}
 #| echo: false
 #| eval: true
@@ -411,6 +419,27 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
 #| fig-align: "center"
 #| out-width: 90%
 
+data_heatmap <- data_gene_diag_score |>
+  pivot_longer(
+      cols = c(`Winter Hypoxia Score`, 
+               `Buffa Hypoxia Score`),
+      names_to = "Hypoxia_Score_Type",
+      values_to = "Hypoxia_Value"
+    ) |>
+  mutate(
+    Mut_Count_Bin = case_when(
+      `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
+      `Tumor Break Load` <= median(`Tumor Break Load`, na.rm = TRUE) ~ "Low Tumor Break Load")) |>
+  group_by(Hypoxia_Score_Type) |>
+  mutate(
+    Hypoxia_Bin = case_when(
+      Hypoxia_Value > median(Hypoxia_Value, na.rm = TRUE) ~ "High Hypoxia",
+      Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
+  ungroup()|>
+  group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
+  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop') 
+  
+# Plotting
 ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
                          y = Hypoxia_Bin, 
                          fill = Median_Survival)) +
@@ -430,7 +459,8 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       plot.subtitle = element_text(hjust = 0.5),
       axis.text = element_text(color = "black"),
       panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
     ) +
     labs(
       title = "Median Overall Survival (Days)",
@@ -438,12 +468,198 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       x = "Tumor Break Load", 
       y = "Winter Hypoxia Score"
     )
-
 ```
 :::
 :::::
 
-## Discussion (2) (Catarina)
+## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
+
+Low oxygen levels in tumors (hypoxia) are usually associated with resistance to radiation therapy.
+
+```{r}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+
+
+# Hypoxia Data  
+data_hypoxia <- data_diag |>
+  full_join(data_score, by = "Patient ID") |>
+  select(PatientID = `Patient ID`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`,
+         `Radiation Therapy`,
+         `Overall Survival (days)`,
+         `Disease-specific Survival status (bin)`) |>
+  drop_na("Buffa Hypoxia Score", 
+          "Ragnum Hypoxia Score",
+          "Winter Hypoxia Score",
+          "Radiation Therapy") |>
+  rename(Status_Tumor = `Disease-specific Survival status (bin)`) 
+  
+```
+
+::::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| eval: false
+#| output: false
+#| message: false
+
+# Calculation of Kaplan-Meier with hypoxia data
+Kaplan_meier_data <- data_hypoxia |>
+  pivot_longer(
+    cols = c(
+      `Buffa Hypoxia Score`,
+      `Ragnum Hypoxia Score`,
+      `Winter Hypoxia Score`
+    ),
+    names_to = "Hypoxia_Type",
+    values_to = "Hypoxia_Score"
+  ) |>
+  group_by(Hypoxia_Type) |>
+  mutate(
+    hyp_med = median(Hypoxia_Score, na.rm = TRUE), 
+    Hypoxia_Group = case_when(
+    Hypoxia_Score > hyp_med ~ "High Hypoxia Score",
+    Hypoxia_Score <= hyp_med ~ "Low Hypoxia Score"
+    )) |>
+  ungroup() |>
+  filter(`Radiation Therapy` == "Yes") |>
+  select(
+    Hypoxia_Type,
+    time = `Overall Survival (days)`,
+    status = `Status_Tumor`,
+    group = Hypoxia_Group
+  ) |>
+  arrange(Hypoxia_Type, group, time) |>
+  group_by(Hypoxia_Type, group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |>
+  group_by(Hypoxia_Type, group) |>
+  mutate(
+    n_risk = rev(cumsum(rev(events + censored))),
+    surv_step = 1 - events / n_risk,
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM curve
+ggplot(Kaplan_meier_data, aes(x = time, 
+                              y = surv, 
+                              color = group)) +
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    values = c("High Hypoxia Score" = "red",
+               "Low Hypoxia Score"  = "blue")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_wrap(~ Hypoxia_Type, ncol=1) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)",
+    x = "Time (days)",
+    y = "Survival Probability",
+    color = "Hypoxia Group"
+  )
+```
+
+Large variability across Hypoxia Scoring Methods:
+- Buffa Score: Higher hypoxia → unexpectedly better survival
+- Ragnum Score: Lower hypoxia → clear survival advantage
+- Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum
+:::
+
+::: {.column width="40%"}
+```{r}
+#| echo: false
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 6
+#| fig-height: 10
+#| fig-align: "center"
+#| out-width: 90%
+
+# Calculation of Kaplan-Meier with hypoxia data
+Kaplan_meier_data <- data_hypoxia |>
+  pivot_longer(
+    cols = c(
+      `Buffa Hypoxia Score`,
+      `Ragnum Hypoxia Score`,
+      `Winter Hypoxia Score`
+    ),
+    names_to = "Hypoxia_Type",
+    values_to = "Hypoxia_Score"
+  ) |>
+  group_by(Hypoxia_Type) |>
+  mutate(
+    hyp_med = median(Hypoxia_Score, na.rm = TRUE), 
+    Hypoxia_Group = case_when(
+    Hypoxia_Score > hyp_med ~ "High Hypoxia Score",
+    Hypoxia_Score <= hyp_med ~ "Low Hypoxia Score"
+    )) |>
+  ungroup() |>
+  filter(`Radiation Therapy` == "Yes") |>
+  select(
+    Hypoxia_Type,
+    time = `Overall Survival (days)`,
+    status = `Status_Tumor`,
+    group = Hypoxia_Group
+  ) |>
+  arrange(Hypoxia_Type, group, time) |>
+  group_by(Hypoxia_Type, group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |>
+  group_by(Hypoxia_Type, group) |>
+  mutate(
+    n_risk = rev(cumsum(rev(events + censored))),
+    surv_step = 1 - events / n_risk,
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM curve
+ggplot(Kaplan_meier_data, aes(x = time, 
+                              y = surv, 
+                              color = group)) +
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    values = c("High Hypoxia Score" = "red",
+               "Low Hypoxia Score"  = "blue")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_wrap(~ Hypoxia_Type, ncol=1) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    legend.position = "bottom"
+  ) +
+  labs(
+    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)",
+    x = "Time (days)",
+    y = "Survival Probability",
+    color = "Hypoxia Group"
+  )
+
+```
+:::
+:::::
 
 ## Discussion (3) (Lily)
 - TMB and Mutation Count seem mostly independent of AJCC stage.
