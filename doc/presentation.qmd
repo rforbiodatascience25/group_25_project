@@ -474,7 +474,7 @@ data_gene_diag_score <- data_gene |>
 
 ::: {.column width="35%"}
  - Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
- - Mixed groups ('high/low' or 'low/high') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
+ - Mixed groups ('high/low') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
 
 :::
 
