@@ -377,26 +377,23 @@ combined_norm <- combined_norm |>
   mutate(
     Category = factor(
       Category,
-      levels = combined_norm |> arrange(Group, Category) |> pull(Category) |> unique()
+      levels = combined_norm |>
+      arrange(Group, Category) |>
+      pull(Category) |>
+      unique()
     )
   )
   
 #facet wrap density plot for all of the categories
 ggplot(combined_norm, aes(x = NormValue)) +
-  
-  #density plots for shape
   geom_density(
     aes(fill = Group),
     alpha = 1.0,
     color = NA,
     adjust = 1.0
   ) +
-  
-  #add tick/rug marks for individual data points
   geom_rug(alpha = 0.1, sides = "b") +
-  
   facet_wrap(~ Category, scales = "fixed") +
-  
   theme_minimal(base_size = 14) +
   labs(
     title = "Distributions of Individual Tumor Genetics & Scores",
@@ -404,13 +401,12 @@ ggplot(combined_norm, aes(x = NormValue)) +
     y = "Densities",
     fill = "Group"
   ) +
-  
-  #accessible color scheme
-  scale_fill_manual(values = c(
-    "#000000", "#E69F00", "#56B4E9", "#009E73",
-    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )) +
-  
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 16),
