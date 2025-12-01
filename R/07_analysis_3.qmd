@@ -1,31 +1,25 @@
 ---
-title: "07_analysis_3"
+title: "Survival Analysis"
 format:
   html:
     embed-resources: true
 editor: visual
 ---
 
-## Loading Libraries
-
-Load in the necessary libraries.
+## **Loading libraries**
 
 ```{r}
+library("patchwork")
 library("tidyverse")
 library("here")
-library("ggridges")
-library("ggalluvial")
 ```
 
-## Loading data
+## **Loading data**
 
-Load in the data from the augmentation step *03_augment*.
+Loading the data from the previous augmentation step *03_augment*.
 
 ```{r}
-#| echo: true
-#| eval: true
 #| message: false
-
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
@@ -33,163 +27,677 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
-## Load in Visual Guidelines
+## **Plotting data**
 
-## Plots
-
-### Average Standardized biological scores (Aneuploidy, hypoxia, MSI) Across Age Groups Divided by Sex
-
-From the total plot we can see that males in general had higher MSI Mantis Scores, both sexes had their highest MSI Mantis Scores at 30-40, and that women had the lowest of all scores at 80-90. It is interesting to note that females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, while men had higher Buffa Hypoxia Scores at both 30-40 and 80-90. Men also had the lowest scores for all MSI Sensor Scores at 30-40 and 80-90.
-
-From the two plots based on disease specific survival status, we can see that in general, across all sexes and sexes, those who died with tumor had lower scores, often in the negatives. While those who were alive or died without tumor followed the trend of females had very low Ragnum and Buffa Hypoxia Scores in the age group of 30-40, those who died with tumor did not. Those who were alive or dead tumor free also followed the trend of males having high MSI Mantis Scores and Buffia Hypoxia Scores at 30-40.
+#### Relationship between genomic instability measures and status with tumor/ tumor free
 
 ```{r}
 #| fig-width: 10
 #| fig-height: 6
 
-data_score |>
-  left_join(data_metrics |>
-  select(`Patient ID`,
-    Age_Group,
-    Sex),
-    by = "Patient ID") |>
-  mutate(across(c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    ~ scale(.)[, 1])) |>
-  pivot_longer(cols = c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    names_to = "Metric",
-    values_to = "Score") |>
-  drop_na(Score,
-    Age_Group,
-    Sex) |> 
-  group_by(Age_Group,
-    Sex,
-    Metric) |>
-  summarise(Mean_Z = mean(Score,
-    na.rm = TRUE),
-    .groups = "drop") |>
-  ggplot(aes(x = Age_Group,
-    y = Metric,
-    fill = Mean_Z)) +
-  geom_tile(color = "gray90") +
-  geom_text(aes(label = round(Mean_Z, 2)),
-    color = "black",
-    fontface = "bold",
-    size = 4) +
-  scale_fill_uniform_continuous +
-  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
-  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  facet_wrap(~ Sex) +
-  labs(title = "Standardized Scores by Age Group (Total)",
-    x = "Age Group",
-    y = "Metric",
-    fill = "Mean Z-Score") +
-  theme_uniform() +
-  theme(axis.text.x = element_text(angle = 45))
 
-data_score |>
-  left_join(data_metrics |> 
-  select(`Patient ID`,
-    Age_Group,
-    Sex),
-    by = "Patient ID") |>
-  left_join(data_diag |> 
-  select(`Patient ID`,
-    `Disease-specific Survival status (des)`),
-    by = "Patient ID") |>
-  filter(`Disease-specific Survival status (des)` == "1:DEAD WITH TUMOR") |>
-  mutate(across(c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    ~ scale(.)[, 1])) |>
-  pivot_longer(cols = c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    names_to = "Metric",
-    values_to = "Score") |>
-  drop_na(Score,
-    Age_Group,
-    Sex) |>
-  group_by(Age_Group,
-    Sex,
-    Metric) |>
-  summarise(Mean_Z = mean(Score,
-    na.rm = TRUE),
-    .groups = "drop") |>
-  ggplot(aes(x = Age_Group,
-    y = Metric,
-    fill = Mean_Z)) +
-  geom_tile(color = "gray90") +
-  geom_text(aes(label = round(Mean_Z, 2)),
-    color = "black",
-    fontface = "bold",
-    size = 4) +
-  scale_fill_uniform_continuous +
-  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
-  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  facet_wrap(~Sex) +
-  labs(title = "Standardized Scores by Age Group (Dead With Tumor)",
-    x = "Age Group",
-    y = "Metric",
-    fill = "Mean Z-Score") +
-  theme_uniform() +
-  theme(axis.text.x = element_text(angle = 45))
+# Preparing the data
+data_full <- data_gene |>
+  full_join(data_diag, by = "Patient ID") |>
+  drop_na(`Disease-specific Survival status (des)`) |>
+  mutate(Status = `Disease-specific Survival status (des)`)
+
+#  Colors to separate cancer status
+status_colors <- c(
+  "DEAD WITH TUMOR" = "red",
+  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
+)
+
+## Plotting
+# Plot - Mutation Count
+plt_mut_count <- data_full |>
+  arrange(desc(`Mutation Count`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Mutation Count`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Mutation Count vs Survival",
+       x = "Patients", 
+       y = "Mutation Count")
 
 
-data_score |>
-  left_join(data_metrics |> 
-  select(`Patient ID`,
-    Age_Group, Sex),
-    by = "Patient ID") |>
-  left_join(data_diag |> 
-  select(`Patient ID`,
-    `Disease-specific Survival status (days)`),
-    by = "Patient ID") |>
-  filter(`Disease-specific Survival status (days)` == "0:ALIVE OR DEAD TUMOR FREE") |>
-  mutate(across(c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    ~ scale(.)[, 1])) |>
-  pivot_longer(cols = c(`Buffa Hypoxia Score`,
-    `Ragnum Hypoxia Score`,
-    `MSI MANTIS Score`,
-    `MSIsensor Score`),
-    names_to = "Metric",
-    values_to = "Score") |>
-  drop_na(Score,
-    Age_Group,
-    Sex) |>
-  group_by(Age_Group,
-    Sex,
-    Metric) |>
-  summarise(Mean_Z = mean(Score,
-    na.rm = TRUE),
-    .groups = "drop") |>
-  ggplot(aes(x = Age_Group,
-    y = Metric,
-    fill = Mean_Z)) +
-  geom_tile(color = "gray90") +
-  geom_text(aes(label = round(Mean_Z, 2)),
-    color = "black",
-    fontface = "bold",
-    size = 4) +
-  scale_fill_uniform_continuous +
-  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
-  scale_y_discrete(expand = expansion(mult = c(0.05, 0.05))) +
-  facet_wrap(~ Sex) +
-  labs(title = "Standardized Scores by Age Group (Alive or Dead Tumor Free)",
-    x = "Age Group",
-    y = "Metric",
-    fill = "Mean Z-Score") +
-  theme_uniform() +
-  theme(axis.text.x = element_text(angle = 45))
+# Plot - Tumor Break Load
+plt_tbl <- data_full |>
+  arrange(desc(`Tumor Break Load`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Tumor Break Load`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Tumor Break Load vs Survival",
+       x = "Patients", 
+       y = "Tumor Break Load")
+
+
+# Plot - TMB (nonsynonymous)
+plt_tmb <- data_full |>
+  arrange(desc(`TMB (nonsynonymous)`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`)) |>
+  ggplot(aes(x = Patient_Order, 
+             y = `TMB (nonsynonymous)`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "TMB (nonsynonymous) vs Survival",
+       x = "Patients", 
+       y = "TMB (nonsynonymous)")
+
+
+# Fraction Genome Altered (FGA) - Plot
+plt_fga <- data_full |>
+  arrange(desc(`Fraction Genome Altered`)) |>
+  mutate(Patient_Order = factor(`Patient ID`, 
+                                levels = `Patient ID`))|>
+  ggplot(aes(x = Patient_Order, 
+             y = `Fraction Genome Altered`, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Fraction Genome Altered vs Survival",
+       x = "Patients", 
+       y = "Fraction Genome Altered")
+
+
+# Combine plots
+(plt_mut_count / plt_tmb)
+(plt_tbl / plt_fga)
+
+# Note: Cannot use facet_wrap because the order of the patients changes
+```
+
+No significant correlation was observed between high values of genomic instability (Mutation Count, TMB-nonsynonymous, Tumor Break Load) and the patient status (dead with tumor or alive/death tumor-free).
+
+Surprisingly, a higher fraction of the genome altered was associated with the alive/death tumor-free status. One possible explanation is that this extensive genomic alteration may be a consequence of high-intensity therapy that effectively eradicated the tumor, leading to the tumor-free outcome. However, this specific plot does not allow for direct conclusions regarding this hypothesis.
+
+#### TMB Comparison With Months of Survival Across Survival Status
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+bind_cols(data_diag |>
+  select(Months_Disease = `Months of disease-specific survival`,
+    Survival_Status = `Disease-specific Survival status (des)`),
+    data_gene |>
+  select(TMB = `TMB (nonsynonymous)`)) |>
+  filter(TMB < 10) |>
+  drop_na(Survival_Status) |>
+  ggplot(aes(x = Months_Disease,
+    y = TMB)) +
+  geom_point(alpha = 0.7,
+    color = palette[1]) +
+  geom_smooth(method = "loess",
+    se = FALSE,
+    color = palette[2],
+    linewidth = 1) +
+  facet_wrap(~ Survival_Status) +
+  scale_x_continuous_uniform +
+  scale_y_continuous_uniform +
+  labs(title = "TMB vs Disease-Specific Survival by Survival Status",
+    x = "Disease-Specific Survival (Months)",
+    y = "TMB (nonsynonymous)") +
+  theme_uniform()
 
 ```
+
+This plot shows that for both those who became tumor free and those who died from the tumor, a similar trend was followed where, in general, a higher TMB meant fewer months of survival. The trend was mainly differentiated in that there were more months survived for those who became tumor free. This follows the general trend that we would expect to see. However, it is interesting to note that in those who died with a tumor, there was a hump in the slope before 12.5 months, showing that there was diversity in the TMB. After those initial months, there was a negative slope, showing that those that survived longer tended to have lower TMB. For those who did not have a tumor, there was a slight positive slope before 30 months and then a negative slope afterwards.
+
+#### Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)
+
+```{r}
+#| fig-width: 14
+#| fig-height: 6
+
+# Prepare data
+data_heatmap <- data_gene |>
+  full_join(data_diag, by = "Patient ID") |>
+  full_join(data_score, by = "Patient ID") |>
+  drop_na() |>
+  # Pivot hypoxia scores long
+  pivot_longer(
+    cols = c(`Winter Hypoxia Score`, 
+             `Buffa Hypoxia Score`, 
+             `Ragnum Hypoxia Score`),
+    names_to = "Hypoxia_Score_Type",
+    values_to = "Hypoxia_Value"
+  ) |>
+  mutate(
+    Mut_Count_Bin = case_when(
+      `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
+      `Tumor Break Load` <= median(`Tumor Break Load`, na.rm = TRUE) ~ "Low Tumor Break Load")) |>
+  group_by(Hypoxia_Score_Type) |>
+  mutate(
+    Hypoxia_Bin = case_when(
+      Hypoxia_Value > median(Hypoxia_Value, na.rm = TRUE) ~ "High Hypoxia",
+      Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
+  ungroup()|>
+  group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
+  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
+
+# Plot Heatmap
+ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
+                         y = Hypoxia_Bin, 
+                         fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Median_Survival, 0)), 
+            color = "white", 
+            size = 6) +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+  facet_wrap(~ Hypoxia_Score_Type) +
+  theme_minimal() + 
+  theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+      plot.subtitle = element_text(hjust = 0.5),
+      axis.text = element_text(color = "black"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    ) +
+    labs(
+      title = "Median Overall Survival (Days)",
+      subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
+      x = "Tumor Break Load", 
+      y = "Winter Hypoxia Score"
+    )
+```
+
+From the previous analysis, a somewhat relevant correlation beteen Tumor Break Load and hypoxia was rased. And to futher that analysis, these plots cheking the Interaction between All scores of Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days). The data clearly shows that the High Tumor Break Load/ High Hypoxia is the dominant and most favorable predictor for worst survival across all three hypoxia scoring methods, as expected.
+
+Across all three hypoxia scoring methods, the results consistently show that tumors with both high Tumor Break Load and high hypoxia have the worst survival, which fits well with known biology. This group likely represents tumors that are both structurally unstable and poorly oxygenated—two features linked to aggressive disease.
+
+The more interesting pattern appears in the mixed groups. Tumors with low hypoxia but high Tumor Break Load, or high hypoxia but low Tumor Break Load, both show better survival than the high/high group and, in several cases, even do better than the low/low group. This suggests that when only one harmful factor is present, the lack of the other may help offset its negative effects.
+
+In other words, hypoxia and Tumor Break Load do not simply add their effects together. The presence of either one alone seems less damaging than having both, indicating a kind of biological “buffering.” This interaction pattern may also point to different therapeutic opportunities depending on which factor is elevated.
+
+#### Interaction between Hypoxia/ Radiotherapy/ Overall survival using different analysis
+
+-   **Distribution of Hypoxia Scores in Patients Receiving Radiation Therapy**
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Hypoxia Data  
+data_hypoxia <- data_diag |>
+  full_join(data_score, by = "Patient ID") |>
+  select(PatientID = `Patient ID`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`,
+         `Radiation Therapy`,
+         `Overall Survival (days)`,
+         `Disease-specific Survival status (bin)`) |>
+  drop_na("Buffa Hypoxia Score", 
+          "Ragnum Hypoxia Score",
+          "Winter Hypoxia Score",
+          "Radiation Therapy") |>
+  rename(Status_Tumor = `Disease-specific Survival status (bin)`) |>
+  pivot_longer(
+    cols = c(
+      `Buffa Hypoxia Score`,
+      `Ragnum Hypoxia Score`,
+      `Winter Hypoxia Score`
+    ),
+    names_to = "Hypoxia_Type",
+    values_to = "Hypoxia_Score"
+  ) |>
+  group_by(Hypoxia_Type) |>
+  mutate(
+    hyp_med = median(Hypoxia_Score, na.rm = TRUE), 
+    Hypoxia_Group = case_when(
+    Hypoxia_Score > hyp_med ~ "High Hypoxia Score",
+    Hypoxia_Score <= hyp_med ~ "Low Hypoxia Score"
+    )) |>
+  ungroup()
+
+
+# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
+ggplot(data_hypoxia, aes(
+  x = `Radiation Therapy`,
+  y = Hypoxia_Score,
+  fill = `Radiation Therapy`
+)) +
+  geom_boxplot(alpha = 0.6) +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  facet_wrap(~ Hypoxia_Type, scales = "free_y") +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  ) +
+  labs(
+    title = "Hypoxia Scores vs Radiation Therapy",
+    y = "Hypoxia Score"
+  )
+```
+
+-   **Comparison of overall survival (days) of patients treated with radiotherapy depending on levels of hypoxia**
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+# Hypoxia Data  
+data_hypoxia <- data_diag |>
+  full_join(data_score, by = "Patient ID") |>
+  select(PatientID = `Patient ID`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`,
+         `Radiation Therapy`,
+         `Overall Survival (days)`,
+         `Disease-specific Survival status (bin)`) |>
+  drop_na("Buffa Hypoxia Score", 
+          "Ragnum Hypoxia Score",
+          "Winter Hypoxia Score",
+          "Radiation Therapy") |>
+  rename(Status_Tumor = `Disease-specific Survival status (bin)`) |>
+  pivot_longer(
+    cols = c(
+      `Buffa Hypoxia Score`,
+      `Ragnum Hypoxia Score`,
+      `Winter Hypoxia Score`
+    ),
+    names_to = "Hypoxia_Type",
+    values_to = "Hypoxia_Score"
+  ) |>
+  group_by(Hypoxia_Type) |>
+  mutate(
+    hyp_med = median(Hypoxia_Score, na.rm = TRUE), 
+    Hypoxia_Group = case_when(
+    Hypoxia_Score > hyp_med ~ "High Hypoxia Score",
+    Hypoxia_Score <= hyp_med ~ "Low Hypoxia Score"
+    )) |>
+  ungroup()
+
+
+# Survival Plot: High vs Low Hypoxia in Radiation therapy
+# Filter only patients who received radiation therapy
+data_rad_long <- data_hypoxia |>
+  filter(`Radiation Therapy` == "Yes")
+
+# Calculation of Kaplan-Meier
+Kaplan_meier_data <- data_rad_long |>
+  select(
+    Hypoxia_Type,
+    time = `Overall Survival (days)`,
+    status = `Status_Tumor`,
+    group = Hypoxia_Group
+  ) |>
+  arrange(Hypoxia_Type, group, time) |>
+  group_by(Hypoxia_Type, group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |>
+  group_by(Hypoxia_Type, group) |>
+  mutate(
+    n_risk = rev(cumsum(rev(events + censored))),
+    surv_step = 1 - events / n_risk,
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+
+# Plot tidyverse KM curve
+ggplot(Kaplan_meier_data, aes(x = time, 
+                              y = surv, 
+                              color = group)) +
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    values = c("High Hypoxia Score" = "red",
+               "Low Hypoxia Score"  = "blue")) +
+  scale_y_continuous(limits = c(0, 1)) +
+  facet_wrap(~ Hypoxia_Type) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  ) +
+  labs(
+    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)",
+    x = "Time (days)",
+    y = "Survival Probability",
+    color = "Hypoxia Group"
+  )
+
+
+```
+
+-   **Overall Survival (days) based on different Hypoxia Scores/ Radiotherapy combinations**
+
+```{r}
+#| fig-width: 14
+#| fig-height: 6
+
+# Data preparing
+# Using the Hypoxia Data from before (already with the distinction high/low hypoxia score) 
+data_hypoxia <- data_hypoxia |>
+  mutate(Radiation_Group = `Radiation Therapy`)
+
+# Aggregate Data for Heatmap 
+# Group by the two variables and calculate the Median Overall Survival
+data_heatmap_RT <- data_hypoxia |>
+  group_by(Hypoxia_Type, Radiation_Group, Hypoxia_Group) |>
+  summarise(
+    Median_Survival = median(`Overall Survival (days)`),
+    .groups = 'drop'
+  )
+
+# Plot Heatmap
+ggplot(data_heatmap_RT, aes(x = Radiation_Group,
+                            y = Hypoxia_Group, 
+                            fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = str_c(round(Median_Survival, 0))), 
+            color = "white", 
+            size = 5,
+            fontface = "bold") +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+  facet_wrap(~ Hypoxia_Type) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.text = element_text(color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  ) +
+  labs(
+    title = "Overall Survival (Days) by Hypoxia and Radiotherapy",
+    x = "Radiation Therapy Received",
+    y = "Hypoxia Group"
+  )
+
+```
+
+Hypoxia Scores are used to estimate how oxygen-deprived a tumor is based on gene expression. Higher scores indicate more severe hypoxia. Since hypoxic tumors tend to be more resistant to radiotherapy, these scores can be useful for understanding treatment response and patient outcomes. For this analysis, all three hypoxia scores wered used based on the diversity is score values.
+
+From the plots analysis, across all three scoring methods (Buffa, Ragnum, and Winter), patients who received radiation therapy tended to have slightly lower hypoxia levels on average. This could suggest that clinicians may be considering hypoxia when choosing therapy, although the differences are not as significant as expected.
+
+Survival analysis for radiotherapy-treated patients showed more distinct patterns depending on the specific hypoxia score:
+
+-   **Buffa Score:** Surprisingly, patients with higher hypoxia levels showed slightly better overall survival.
+
+-   **Ragnum Score:** Patients with lower hypoxia had a clear survival benefit, showing a strong difference between the low- and high-hypoxia groups.
+
+-   **Winter Score:** Lower hypoxia was also associated with better survival, though the difference was not as strong as with the Ragnum score.
+
+The following analysis indicates that radiotherapy is most effective in tumors with low hypoxia, which aligns with the known link between hypoxia and radioresistance. Importantly, the data also show that patients with high-hypoxia tumors still gain a survival benefit from radiotherapy, performing better than untreated low-hypoxia cases. These results support the continued use of radiotherapy regardless of tumor hypoxia levels, due to its overall survival advantage.
+
+Overall, these findings suggest that the relationship between tumor hypoxia, treatment decisions, and radiotherapy outcomes is more complicated than it might seem. The impact of hypoxia varies depending on which scoring method is used, highlighting the need for careful interpretation when linking hypoxia levels to clinical outcomes.
+
+#### Kaplan-Meier survival analysis based on **Diagnosis Age**
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+
+## Preparing data - Select and clean necessary columns
+data_age_surv <- data_metrics |>
+  full_join(data_diag, by = "Patient ID") |>
+  select(
+    PatientID = `Patient ID`,
+    Diagnosis_Age = `Diagnosis Age`, 
+    `Overall Survival (days)`,
+    Status_Tumor = `Disease-specific Survival status (bin)`, 
+    Status = `Disease-specific Survival status (des)`
+  ) |>
+  drop_na(
+    Diagnosis_Age,
+    `Overall Survival (days)`,
+    Status_Tumor,
+    Status
+  )
+
+## PLOTTING WATERFALL 
+#  Colors to separate cancer status
+status_colors <- c(
+  "DEAD WITH TUMOR" = "red",
+  "ALIVE OR DEAD TUMOR FREE" = "#2ECC71"
+)
+
+## Plotting 
+plt_age_surv <- data_age_surv |>
+  arrange(desc(Diagnosis_Age)) |>
+  mutate(Patient_Order = factor(PatientID, 
+                                levels = PatientID))|>
+  ggplot(aes(x = Patient_Order, 
+             y = Diagnosis_Age, 
+             fill = Status)) +
+  geom_col(width = 1) +
+  scale_fill_manual(values = status_colors) +
+  theme_minimal() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        panel.grid.major.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(title = "Diagnosis Age vs Survival",
+       x = "Patients", 
+       y = "Diagnosis Age")
+
+
+## PLOTTING THE Kaplan-Meier
+## Define Age Groups (Low vs High) using the median
+age_med <- median(data_age_surv[["Diagnosis_Age"]], na.rm = TRUE)
+
+data_age <- data_age_surv |>
+  mutate(
+    Age_Group = case_when(
+      Diagnosis_Age > age_med ~ "High Age",
+      Diagnosis_Age <= age_med ~ "Low Age"
+    )
+  )
+
+
+# Survival Calculation (Kaplan-Meier) 
+## Calculation of Kaplan-Meier
+Kaplan_meier_calc_age <- data_age |>
+  select(
+    time = `Overall Survival (days)`,
+    status = Status_Tumor,
+    group = Age_Group
+  ) |>
+  arrange(group, time) |>
+  group_by(group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |> 
+  group_by(group) |>
+  mutate(
+    # n_risk-> Calculate number at risk by summing all future events + censored
+    n_risk = rev(cumsum(rev(events + censored))),
+    # surv_step-> Calculate probability of survival at this time point
+    surv_step = 1 - events / n_risk,
+    # surv > Cumulative of surv_step gives the KM estimate
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM Curve 
+plt_km <- ggplot(Kaplan_meier_calc_age, aes(x = time,
+                                  y = surv,
+                                  color = group)) +
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    values = c("High Age" = "#E74C3C", 
+               "Low Age" = "#3498DB") ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(
+    title = "Survival of Patients\nHigh vs Low Diagnosis Age",
+    x = "Overall Survival Time (days)",
+    y = "Survival Probability",
+    color = "Diagnosis Age Group"
+  )
+
+plt_age_surv / plt_km
+```
+
+The comparison in the first plot is not very pronounced, although there is a slight tendency for higher diagnosis age to be associated with the 'dead with tumor' status, as expected. In contrast, comparing overall survival between high and low diagnosis age groups suggests that age at diagnosis may serve as a prognostic factor. While the difference is modest, the separation of the survival curves indicates that younger age at diagnosis is linked to a greater probability of long-term survival. This finding highlights age as an important variable to consider when evaluating patient prognosis.
+
+#### Kaplan-Meier survival analysis based on **Diagnosis Age and Tumor Type**
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+
+# Define Data
+data_age_tumor <- data_diag |>
+  full_join(data_metrics, by = "Patient ID") |>
+  select(
+    PatientID = `Patient ID`,
+    Diagnosis_Age = `Diagnosis Age`, 
+    `Overall Survival (days)`,
+    Status_Tumor = `Disease-specific Survival status (bin)`,
+    Tumor_Type = `Tumor Type` 
+  ) |>
+  drop_na(
+    Diagnosis_Age,
+    `Overall Survival (days)`,
+    Status_Tumor,
+    Tumor_Type 
+  ) |>
+  filter(
+    Tumor_Type == "Pancreas Adenocarcinoma, Ductal Type" |
+    Tumor_Type == "Pancreas Adenocarcinoma, Other Subtype"
+  )
+
+## Define Age Groups (Low vs High) using the median
+age_med <- median(data_age_tumor[["Diagnosis_Age"]], na.rm = TRUE)
+
+data_age_tumor <- data_age_tumor |>
+  mutate(
+    Age_Group = case_when(
+      Diagnosis_Age > age_med ~ "High Age",
+      Diagnosis_Age <= age_med ~ "Low Age"
+    ),
+    Combined_Group = str_c(Age_Group, Tumor_Type, sep = " / ")
+  )
+group_counts <- data_age_tumor |>
+  count(Combined_Group, name = "n")
+
+
+# Survival Calculation (Kaplan-Meier) 
+## Calculation of Kaplan-Meier
+Kaplan_meier_calc_tumor <- data_age_tumor |>
+  select(
+    time = `Overall Survival (days)`,
+    status = Status_Tumor,
+    group = Combined_Group 
+  ) |>
+  arrange(group, time) |>
+  group_by(group, time, status) |>
+  tally() |>
+  pivot_wider(
+    names_from = status,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(events = `1`, censored = `0`) |> 
+  group_by(group) |>
+  mutate(
+    # n_risk-> Calculate number at risk by summing all future events + censored
+    n_risk = rev(cumsum(rev(events + censored))),
+    # surv_step-> Calculate probability of survival at this time point
+    surv_step = 1 - events / n_risk,
+    # surv > Cumulative of surv_step gives the KM estimate
+    surv = cumprod(surv_step)
+  ) |>
+  ungroup()
+
+# Plot KM Curve 
+plt_km <- ggplot(Kaplan_meier_calc_tumor, aes(x = time, y = surv, color = group)) + 
+  geom_step(linewidth = 1.1) +
+  scale_color_manual(
+    # Define colors for all four groups
+    values = c(
+      "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E74C3C", 
+      "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#3498DB", 
+      "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#2ECC71", 
+      "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F1C40F"  
+    )
+  ) +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold")) +
+  labs(
+    title = "Survival of Patients\nStratified by Diagnosis Age and Tumor Type",
+    x = "Overall Survival Time (days)",
+    y = "Survival Probability",
+    color = "Age and Tumor Type Group"
+  )
+
+# Plot the group count
+plt_count <- ggplot(group_counts, aes(x = Combined_Group, y = n, fill = Combined_Group)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c(
+                "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E74C3C", 
+                "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#3498DB", 
+                "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#2ECC71", 
+                "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F1C40F"  
+              )) +
+  geom_text(aes(label = n), vjust = -0.5, size = 4) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) + # Give space for labels
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12)
+  ) +
+  labs(
+    title = "Group Sample Sizes (n)",
+    x = "", 
+    y = "Number of Patients (n)"
+  )
+
+plt_km/ plt_count 
+```
+
+This stratified analysis, examining survival across Diagnosis Age and Tumor Type (Ductal vs. Other Subtype of Pancreas Adenocarcinoma), suggests that Tumor Type dominates the survival outcome. The Ductal Type pathology is associated with the poorest survival, especially for patients with a high diagnosis age. However, the survival curves for the "Other Subtype" groups are based on extremely low sample sizes (9 and 15 patients, as shown in the bar plot), imposing a big limitation in the analysis. Therefore, while the superior survival seen in the "Other Subtype" groups is a strong suggestion, these results lack statistical importance.
