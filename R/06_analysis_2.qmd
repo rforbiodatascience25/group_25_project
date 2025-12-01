@@ -41,23 +41,11 @@ Summary of the data:
 
 ## Genomic Alterations & Instability Analysis (**data_gene)**
 
-## **Comparison of overall survival across high and low levels of genomic instability,** and visualization of the relationship between continuous genomic instability measures and survival duration
-
--   **Context**: The analysis compares overall survival across high and low levels of genomic instability, and visualizes the relationship between continuous genomic instability measures and survival duration, to determine if genomic instability has an impact on patient survival. Genomic instability measures used are TMB (nonsynonymous), Mutation Count, Fraction Genome Altered, and Tumor Break Load.
-
--   **Analysis from plot**:
-
-    -   For most genomic metrics (Mutation Count, Fraction Genome Altered, and Tumor Break Load), the survival distribution for the Higher Genomic Instability group appears to be slightly shorter compared to the Lower Genomic Instability group.
-
-    -   The **Scatter/LOESS Plots** show that for **TMB (nonsynonymous)**, the very highest values of the metrics tend to be associated with **longer survival**.
-
-    -   For **Fraction Genome Altered**, **Tumor Break Load and Mutation Count**, the LOESS curve generally shows a trend where **higher values are associated with shorter overall survival**, less significant for the tumor break load.
+### Relationship between continuous genomic instability measures and overall survival (days)
 
 ```{r}
 #| fig-width: 15
 #| fig-height: 7
-
-# which one would you want
 
 # Joining tables and filter out outliers
 data_gene_diag <- full_join(data_gene, data_diag, by = "Patient ID")
@@ -95,12 +83,9 @@ data_long <- data_long |>
         "Mutation Count",
         "Fraction Genome Altered",
         "Tumor Break Load"
-      )
-    )
-  )
+      )))
 
-## PLOTS
-
+## PLOTTING
 # Scatter/LOESS Plot
 plt_scatter <- ggplot(
   data_long,
@@ -120,6 +105,8 @@ plt_scatter <- ggplot(
 # Present Plots
 plt_scatter
 ```
+
+Survival distributions indicate that higher genomic instability, particularly for Mutation Count, Fraction Genome Altered, and Tumor Break Load, is generally associated with slightly shorter survival, although the limited sample size in the longer-survival range may affect this The same analysis suggests that for TMB, the very highest values may correspond to longer survival, although the same sample size limitation is present.
 
 As shown by both the scatter plot and descriptive statistics, Mutation Count and TMB (nonsynonymous) are highly correlated, with very similar distributions. Therefore, from this point forward only Mutation Count was visualized, since plotting both variables would not provide any additional insight.
 
@@ -261,10 +248,6 @@ This plot was used to assess relationships between genomic instability metrics a
 
 ### Distribution of Aneuploidy Scores across different Cancer Stages
 
--   **Context**: Aneuploidy Score quantifies the level of chromosomal instability in tumors, which is often associated with tumor aggressiveness and poor prognosis. This plot explores, therefore, whether higher stages of cancer correlate with increased chromosomal abnormalities (aneuploidy score).
-
--   **Analysis from plot**: No clear increase in Aneuploidy score with advancing cancer stage was observed, which may be due to the limited diversity of stages in the dataset, specifically the small number of Stage I cases, but other biological or technical factors could also con
-
 ```{r}
 #| fig-width: 10
 #| fig-height: 6
@@ -288,6 +271,8 @@ plt_aneuploidy_stage <- data_code |>
 
 plt_aneuploidy_stage
 ```
+
+The Aneuploidy Score, which quantifies chromosomal instability and is often linked to tumor aggressiveness and poor prognosis, was analyzed to assess whether higher cancer stages correspond to increased chromosomal abnormalities. The plot shows no clear increase in Aneuploidy Score with advancing stage, which may reflect the limited stage diversity in the dataset, particularly the small number of Stage I cases.
 
 ```{r}
 metric_for_order <- "Winter Hypoxia Score"
@@ -337,286 +322,7 @@ ggplot(df_long,
 
 ## SURVIVAL 3
 
-#### Distribution of Hypoxia Scores in Patients Receiving Radiation Therapy, and Comparison of overall survival (days) of patients treated with radiotherapy depending on levels of hypoxia.
-
--   **Context**: Hypoxia Scores quantify tumor hypoxia (low oxygen levels) based on gene expression, with higher scores indicating more hypoxic tumors. Hypoxic tumors are known to be more resistant to radiotherapy, which can influence treatment response and patient outcomes. The first plots analyze the distribution of Hypoxia Scores in Patients Receiving Radiation Therapy, to estimate wheter the hypoxia is be a factor to take into account while choosing therapy. These plots explores the relationship between hypoxia and radiation therapy, using three different gene-expression-based scores: Buffa, Ragnum, and Winter.
-
--   **Analysis from plot**: Across all three hypoxia scores, Buffa, Ragnum, and Winter, patients who received radiation therapy generally had slightly lower hypoxia levels on average, suggesting that treatment decisions may take tumor hypoxia into account, even though the differences are modest. On the other hand, survival analysis for patients receiving radiotherapy showed distinct patterns depending on the hypoxia score used:
-
-    -   **Buffa Score:** Patients with higher hypoxia levels surprisingly exhibited slightly better overall survival.
-
-    -   **Ragnum Score:** Patients with lower hypoxia had a clear survival advantage, with a substantial difference between high and low hypoxia groups.
-
-    -   **Winter Score:** Lower hypoxia also conferred better survival, though the difference was less pronounced than with Ragnum.
-
-    These observations indicate that the relationship between tumor hypoxia, treatment selection, and radiotherapy outcomes is complex and may depend on the specific hypoxia scoring method used.
-
--   **Buffa Hypoxia Score**:
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
-# Hypoxia Data  
-data_hypoxia <- data_diag |>
-  full_join(data_score, by = "Patient ID")
-
-data_hypoxia <- data_hypoxia |>
-  select(PatientID = `Patient ID`,
-         `Buffa Hypoxia Score`,
-         `Ragnum Hypoxia Score`,
-         `Winter Hypoxia Score`,
-         `Radiation Therapy`,
-         `Overall Survival (days)`,
-         `Disease-specific Survival status (bin)`,
-          `Tumor Type`) |>
-  drop_na("Buffa Hypoxia Score", 
-          "Ragnum Hypoxia Score",
-          "Winter Hypoxia Score",
-          "Radiation Therapy") |>
-  rename(Status_Tumor = `Disease-specific Survival status (bin)`)
-
-
-# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
-ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
-                         y = `Buffa Hypoxia Score`,
-                         fill = `Radiation Therapy`)) +
-  geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2,
-              alpha = 0.5) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(title = "Buffa Hypoxia Score vs Radiation Therapy")
-
-# Hypoxia Groups (low vs high) 
-hyp_med <- median(data_hypoxia[["Buffa Hypoxia Score"]], na.rm = TRUE)
-
-data_hypoxia <- data_hypoxia |>
-  mutate(Hypoxia_Group = case_when(
-      `Buffa Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
-      `Buffa Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
-    ))
-
-
-# Survival Plot: High vs Low Hypoxia in Radiation therapy
-
-# Filter only patients who received radiation therapy
-data_Rad <- data_hypoxia |>
-  filter(`Radiation Therapy` == "Yes")
-
-# Calculation of Kaplan-Meier
-Kaplan_meier_calc <- data_Rad |>
-  select(
-    time = `Overall Survival (days)`,
-    status = `Status_Tumor`,
-    group = Hypoxia_Group
-  ) |>
-  arrange(group, time) |>
-  group_by(group, time, status) |>
-  tally() |>
-  pivot_wider(
-    names_from = status,
-    values_from = n,
-    values_fill = 0
-  ) |>
-  rename(events = `1`, censored = `0`) |>
-  group_by(group) |>
-  mutate(
-    n_risk = rev(cumsum(rev(events + censored))),
-    surv_step = 1 - events / n_risk,
-    surv = cumprod(surv_step)
-  ) |>
-  ungroup()
-
-
-# Plot tidyverse KM curve
-ggplot(Kaplan_meier_calc, aes(x = time, 
-                              y = surv, 
-                              color = group)) +
-  geom_step(linewidth = 1.1) +
-  scale_color_manual(
-    values = c("High Hypoxia Score" = "red",
-               "Low Hypoxia Score"  = "blue")) +
-  scale_y_continuous(limits = c(0, 1)) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(
-    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Buffa Score)",
-    x = "Time (days)",
-    y = "Survival Probability",
-    color = "Hypoxia Group"
-  )
-
-
-```
-
--   **Winter hypoxia score:**
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
-# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
-ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
-                         y = `Winter Hypoxia Score`,
-                         fill = `Radiation Therapy`)) +
-  geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2,
-              alpha = 0.5) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(title = "Winter Hypoxia Score vs Radiation Therapy")
-
-# Hypoxia Groups (low vs high) 
-hyp_med <- median(data_hypoxia[["Winter Hypoxia Score"]], na.rm = TRUE)
-
-data_hypoxia <- data_hypoxia |>
-  mutate(Hypoxia_Group = case_when(
-      `Winter Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
-      `Winter Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
-    ))
-
-# Survival Plot: High vs Low Hypoxia in Radiation therapy
-# Filter only patients who received radiation therapy
-data_Rad <- data_hypoxia |>
-  filter(`Radiation Therapy` == "Yes")
-
-# Calculation of Kaplan-Meier
-Kaplan_meier_calc <- data_Rad |>
-  select(
-    time = `Overall Survival (days)`,
-    status = `Status_Tumor`,
-    group = Hypoxia_Group
-  ) |>
-  arrange(group, time) |>
-  group_by(group, time, status) |>
-  tally() |>
-  pivot_wider(
-    names_from = status,
-    values_from = n,
-    values_fill = 0
-  ) |>
-  rename(events = `1`, censored = `0`) |>
-  group_by(group) |>
-  mutate(
-    n_risk = rev(cumsum(rev(events + censored))),
-    surv_step = 1 - events / n_risk,
-    surv = cumprod(surv_step)
-  ) |>
-  ungroup()
-
-
-# Plot tidyverse KM curve
-ggplot(Kaplan_meier_calc, aes(x = time, 
-                              y = surv, 
-                              color = group)) +
-  geom_step(linewidth = 1.1) +
-  scale_color_manual(
-    values = c("High Hypoxia Score" = "red",
-               "Low Hypoxia Score"  = "blue")) +
-  scale_y_continuous(limits = c(0, 1)) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(
-    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Winter Score)",
-    x = "Time (days)",
-    y = "Survival Probability",
-    color = "Hypoxia Group"
-  )
-
-
-
-```
-
--   **Ragnum Hypoxia Score:**
-
-```{r}
-#| fig-width: 10
-#| fig-height: 6
-
-# Plotting Distribution of Hypoxia Scores in Patients Receiving (or not) Radiation Therapy
-ggplot(data_hypoxia, aes(x = `Radiation Therapy`,
-                         y = `Ragnum Hypoxia Score`,
-                         fill = `Radiation Therapy`)) +
-  geom_boxplot(alpha = 0.6) +
-  geom_jitter(width = 0.2,
-              alpha = 0.5) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    plot.title = element_text(hjust = 0.5, face = "bold")) +
-  labs(title = "Ragnum Hypoxia Score vs Radiation Therapy")
-
-# Hypoxia Groups (low vs high) 
-hyp_med <- median(data_hypoxia[["Ragnum Hypoxia Score"]], na.rm = TRUE)
-
-data_hypoxia <- data_hypoxia |>
-  mutate(Hypoxia_Group = case_when(
-      `Ragnum Hypoxia Score` > hyp_med ~ "High Hypoxia Score",
-      `Ragnum Hypoxia Score` <= hyp_med ~ "Low Hypoxia Score"
-    ))
-
-
-# Survival Plot: High vs Low Hypoxia in Radiation therapy
-# Filter only patients who received radiation therapy
-data_Rad <- data_hypoxia |>
-  filter(`Radiation Therapy` == "Yes")
-
-# Calculation of Kaplan-Meier
-Kaplan_meier_calc <- data_Rad |>
-  select(
-    time = `Overall Survival (days)`,
-    status = `Status_Tumor`,
-    group = Hypoxia_Group
-  ) |>
-  arrange(group, time) |>
-  group_by(group, time, status) |>
-  tally() |>
-  pivot_wider(
-    names_from = status,
-    values_from = n,
-    values_fill = 0
-  ) |>
-  rename(events = `1`, censored = `0`) |>
-  group_by(group) |>
-  mutate(
-    n_risk = rev(cumsum(rev(events + censored))),
-    surv_step = 1 - events / n_risk,
-    surv = cumprod(surv_step)
-  ) |>
-  ungroup()
-
-
-# Plot tidyverse KM curve
-ggplot(Kaplan_meier_calc, aes(x = time, 
-                              y = surv, 
-                              color = group)) +
-  geom_step(linewidth = 1.1) +
-  scale_color_manual(
-    values = c("High Hypoxia Score" = "red",
-               "Low Hypoxia Score"  = "blue")) +
-  scale_y_continuous(limits = c(0, 1)) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
-  labs(
-    title = "Survival of Radiation Therapy Patients\nHigh vs Low Hypoxia (Ragnum Score)",
-    x = "Time (days)",
-    y = "Survival Probability",
-    color = "Hypoxia Group"
-  )
-```
+#### Distribution of Hypoxia Scores in Patients Receiving Radiation Therapy, and Comparison of overall survival (days) of patients treated with radiotherapy depending on levels of hypoxia. ----\> on survival_analysis
 
 #### **Overall correlation between tumor metrics (genomic instability vs biological scores)**
 
