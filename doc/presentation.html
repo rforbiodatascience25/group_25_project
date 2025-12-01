@@ -508,42 +508,42 @@ Catarina Anastácio s253709
 <span id="cb1-12"><a href=""></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Race Category</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">recode</span>(<span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>,</span>
 <span id="cb1-13"><a href=""></a>                                  <span class="st">"Black or African American"</span> <span class="ot">=</span> <span class="st">"Black"</span>))</span>
 <span id="cb1-14"><a href=""></a></span>
-<span id="cb1-15"><a href=""></a><span class="co"># ----- create bubble plot and save PNG</span></span>
-<span id="cb1-16"><a href=""></a><span class="co"># png("bubble_plot.png", width = 1080, height = 756, res = 96)</span></span>
-<span id="cb1-17"><a href=""></a></span>
-<span id="cb1-18"><a href=""></a>bubble_plot <span class="ot">&lt;-</span> data_metrics <span class="sc">%&gt;%</span></span>
-<span id="cb1-19"><a href=""></a>  <span class="fu">count</span>(Sex, <span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>, <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>, <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb1-20"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>,</span>
-<span id="cb1-21"><a href=""></a>             <span class="at">y =</span> <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>,</span>
-<span id="cb1-22"><a href=""></a>             <span class="at">size =</span> n)) <span class="sc">+</span></span>
-<span id="cb1-23"><a href=""></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">interaction</span>(<span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>,</span>
-<span id="cb1-24"><a href=""></a>                                    <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>,</span>
-<span id="cb1-25"><a href=""></a>                                    <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>)),</span>
-<span id="cb1-26"><a href=""></a>             <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">shape =</span> <span class="dv">21</span>,</span>
-<span id="cb1-27"><a href=""></a>             <span class="at">stroke =</span> <span class="fl">0.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb1-28"><a href=""></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> n), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">size =</span> <span class="dv">6</span>) <span class="sc">+</span></span>
-<span id="cb1-29"><a href=""></a>  <span class="fu">facet_wrap</span>(Sex <span class="sc">~</span> <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>) <span class="sc">+</span></span>
-<span id="cb1-30"><a href=""></a>  <span class="fu">scale_size</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">40</span>)) <span class="sc">+</span></span>
-<span id="cb1-31"><a href=""></a>  <span class="fu">labs</span>(</span>
-<span id="cb1-32"><a href=""></a>    <span class="at">title =</span> <span class="st">"82% of cancer patients are White European (Non-Hispanic/Latino or Other)"</span>,</span>
-<span id="cb1-33"><a href=""></a>    <span class="at">size =</span> <span class="st">"Count"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span></span>
-<span id="cb1-34"><a href=""></a>  ) <span class="sc">+</span></span>
-<span id="cb1-35"><a href=""></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">16</span>) <span class="sc">+</span></span>
-<span id="cb1-36"><a href=""></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb1-37"><a href=""></a>    <span class="st">"#000000"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>,</span>
-<span id="cb1-38"><a href=""></a>    <span class="st">"#F0E442"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>, <span class="st">"#CC79A7"</span></span>
-<span id="cb1-39"><a href=""></a>  )) <span class="sc">+</span></span>
-<span id="cb1-40"><a href=""></a>  <span class="fu">theme</span>(</span>
-<span id="cb1-41"><a href=""></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
-<span id="cb1-42"><a href=""></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
-<span id="cb1-43"><a href=""></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">5</span>)</span>
-<span id="cb1-44"><a href=""></a>  )</span>
-<span id="cb1-45"><a href=""></a></span>
-<span id="cb1-46"><a href=""></a><span class="fu">print</span>(bubble_plot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a><span class="co"># dev.off()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-15"><a href=""></a><span class="co">#&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span></span>
+<span id="cb1-16"><a href=""></a><span class="co"># ----- create bubble plot and save PNG</span></span>
+<span id="cb1-17"><a href=""></a><span class="co"># png("bubble_plot.png", width = 1080, height = 756, res = 96)      -&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&lt; use ggsave</span></span>
+<span id="cb1-18"><a href=""></a></span>
+<span id="cb1-19"><a href=""></a><span class="co">#=======</span></span>
+<span id="cb1-20"><a href=""></a><span class="co"># ----- create bubble plot</span></span>
+<span id="cb1-21"><a href=""></a><span class="co">#&gt;&gt;&gt;&gt;&gt;&gt;&gt; 4a99f71725e4554a84ca1dd1b59a2b691aef7939</span></span>
+<span id="cb1-22"><a href=""></a>bubble_plot <span class="ot">&lt;-</span> data_metrics <span class="sc">%&gt;%</span></span>
+<span id="cb1-23"><a href=""></a>  <span class="fu">count</span>(Sex, <span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>, <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>, <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-24"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>,</span>
+<span id="cb1-25"><a href=""></a>             <span class="at">y =</span> <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>,</span>
+<span id="cb1-26"><a href=""></a>             <span class="at">size =</span> n)) <span class="sc">+</span></span>
+<span id="cb1-27"><a href=""></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">fill =</span> <span class="fu">interaction</span>(<span class="st">`</span><span class="at">Genetic Ancestry Label</span><span class="st">`</span>,</span>
+<span id="cb1-28"><a href=""></a>                                    <span class="st">`</span><span class="at">Race Category</span><span class="st">`</span>,</span>
+<span id="cb1-29"><a href=""></a>                                    <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>)),</span>
+<span id="cb1-30"><a href=""></a>             <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">shape =</span> <span class="dv">21</span>,</span>
+<span id="cb1-31"><a href=""></a>             <span class="at">stroke =</span> <span class="fl">0.5</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb1-32"><a href=""></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> n), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">vjust =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">size =</span> <span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb1-33"><a href=""></a>  <span class="fu">facet_wrap</span>(Sex <span class="sc">~</span> <span class="st">`</span><span class="at">Ethnicity Category</span><span class="st">`</span>) <span class="sc">+</span></span>
+<span id="cb1-34"><a href=""></a>  <span class="fu">scale_size</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">40</span>)) <span class="sc">+</span></span>
+<span id="cb1-35"><a href=""></a>  <span class="fu">labs</span>(</span>
+<span id="cb1-36"><a href=""></a>    <span class="at">title =</span> <span class="st">"82% of cancer patients are White European (Non-Hispanic/Latino or Other)"</span>,</span>
+<span id="cb1-37"><a href=""></a>    <span class="at">size =</span> <span class="st">"Count"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span></span>
+<span id="cb1-38"><a href=""></a>  ) <span class="sc">+</span></span>
+<span id="cb1-39"><a href=""></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">16</span>) <span class="sc">+</span></span>
+<span id="cb1-40"><a href=""></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb1-41"><a href=""></a>    <span class="st">"#000000"</span>, <span class="st">"#E69F00"</span>, <span class="st">"#56B4E9"</span>, <span class="st">"#009E73"</span>,</span>
+<span id="cb1-42"><a href=""></a>    <span class="st">"#F0E442"</span>, <span class="st">"#0072B2"</span>, <span class="st">"#D55E00"</span>, <span class="st">"#CC79A7"</span></span>
+<span id="cb1-43"><a href=""></a>  )) <span class="sc">+</span></span>
+<span id="cb1-44"><a href=""></a>  <span class="fu">theme</span>(</span>
+<span id="cb1-45"><a href=""></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb1-46"><a href=""></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb1-47"><a href=""></a>    <span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="at">t =</span> <span class="dv">10</span>, <span class="at">r =</span> <span class="dv">5</span>, <span class="at">b =</span> <span class="dv">10</span>, <span class="at">l =</span> <span class="dv">5</span>)</span>
+<span id="cb1-48"><a href=""></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<img data-src="presentation_files/figure-revealjs/unnamed-chunk-5-1.svg" width="960" class="r-stretch"></section>
+</section>
 <section id="pca-on-numeric-data" class="slide level2">
 <h2>PCA on numeric data</h2>
 <p>PCA reduced the data to a few components while retaining most of the variance.</p>
@@ -580,31 +580,31 @@ Catarina Anastácio s253709
 <div class="columns">
 <div class="column" style="width:60%;">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
-<span id="cb3-2"><a href=""></a>  <span class="fu">left_join</span>(stage_labels, <span class="at">by =</span> <span class="st">"NDSA_stage"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-3"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb3-4"><a href=""></a>    <span class="at">cols =</span> <span class="fu">c</span>(</span>
-<span id="cb3-5"><a href=""></a>      <span class="st">`</span><span class="at">Fraction Genome Altered</span><span class="st">`</span>,</span>
-<span id="cb3-6"><a href=""></a>      <span class="st">`</span><span class="at">Mutation Count</span><span class="st">`</span>,</span>
-<span id="cb3-7"><a href=""></a>      <span class="st">`</span><span class="at">Tumor Break Load</span><span class="st">`</span></span>
-<span id="cb3-8"><a href=""></a>    ),</span>
-<span id="cb3-9"><a href=""></a>    <span class="at">names_to =</span> <span class="st">"Genomic_Metric"</span>,</span>
-<span id="cb3-10"><a href=""></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
-<span id="cb3-11"><a href=""></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb3-12"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> stage_label, <span class="at">y =</span> Value)) <span class="sc">+</span></span>
-<span id="cb3-13"><a href=""></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span></span>
-<span id="cb3-14"><a href=""></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
-<span id="cb3-15"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Genomic_Metric, </span>
-<span id="cb3-16"><a href=""></a>             <span class="at">scales =</span> <span class="st">"free_y"</span>, </span>
-<span id="cb3-17"><a href=""></a>             <span class="at">ncol =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb3-18"><a href=""></a>  <span class="fu">theme_uniform</span>() <span class="sc">+</span></span>
-<span id="cb3-19"><a href=""></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, </span>
-<span id="cb3-20"><a href=""></a>                                   <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb3-21"><a href=""></a>  <span class="fu">labs</span>(</span>
-<span id="cb3-22"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
-<span id="cb3-23"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>,</span>
-<span id="cb3-24"><a href=""></a>    <span class="at">title =</span> <span class="st">"Genomic instability metrics across </span></span>
-<span id="cb3-25"><a href=""></a><span class="st">    AJCC stages"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a>data_gene_code_filtered <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href=""></a>  <span class="fu">left_join</span>(stage_labels, <span class="at">by =</span> <span class="st">"NDSA_stage"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href=""></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb2-4"><a href=""></a>    <span class="at">cols =</span> <span class="fu">c</span>(</span>
+<span id="cb2-5"><a href=""></a>      <span class="st">`</span><span class="at">Fraction Genome Altered</span><span class="st">`</span>,</span>
+<span id="cb2-6"><a href=""></a>      <span class="st">`</span><span class="at">Mutation Count</span><span class="st">`</span>,</span>
+<span id="cb2-7"><a href=""></a>      <span class="st">`</span><span class="at">Tumor Break Load</span><span class="st">`</span></span>
+<span id="cb2-8"><a href=""></a>    ),</span>
+<span id="cb2-9"><a href=""></a>    <span class="at">names_to =</span> <span class="st">"Genomic_Metric"</span>,</span>
+<span id="cb2-10"><a href=""></a>    <span class="at">values_to =</span> <span class="st">"Value"</span></span>
+<span id="cb2-11"><a href=""></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb2-12"><a href=""></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> stage_label, <span class="at">y =</span> Value)) <span class="sc">+</span></span>
+<span id="cb2-13"><a href=""></a>  <span class="fu">geom_violin</span>() <span class="sc">+</span></span>
+<span id="cb2-14"><a href=""></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb2-15"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Genomic_Metric, </span>
+<span id="cb2-16"><a href=""></a>             <span class="at">scales =</span> <span class="st">"free_y"</span>, </span>
+<span id="cb2-17"><a href=""></a>             <span class="at">ncol =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb2-18"><a href=""></a>  <span class="fu">theme_uniform</span>() <span class="sc">+</span></span>
+<span id="cb2-19"><a href=""></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, </span>
+<span id="cb2-20"><a href=""></a>                                   <span class="at">hjust =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb2-21"><a href=""></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-22"><a href=""></a>    <span class="at">x =</span> <span class="st">"AJCC stage (n per stage)"</span>,</span>
+<span id="cb2-23"><a href=""></a>    <span class="at">y =</span> <span class="st">"Genomic metric"</span>,</span>
+<span id="cb2-24"><a href=""></a>    <span class="at">title =</span> <span class="st">"Genomic instability metrics across </span></span>
+<span id="cb2-25"><a href=""></a><span class="st">    AJCC stages"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li>Later stages tend to include more extreme values.</li>
@@ -626,12 +626,12 @@ Catarina Anastácio s253709
 <h2>Patient Survival based on Hypoxia and Tumor Break Load interaction</h2>
 <p>Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.</p>
 <div class="columns">
-<div class="column" style="width:40%;">
+<div class="column" style="width:35%;">
 <ul>
 <li>Patients with high hypoxia and high Tumor Break Load show the worst survival overall.</li>
 <li>Mixed groups (‘high/low’ or ‘low/high’) exhibit better survival than the ‘low/low’ group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.</li>
 </ul>
-</div><div class="column" style="width:60%;">
+</div><div class="column" style="width:65%;">
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -646,8 +646,16 @@ Catarina Anastácio s253709
 <section id="survival-of-radiation-therapy-patients-based-on-levels-of-hypoxia" class="slide level2 smalltitle">
 <h2>Survival of Radiation Therapy Patients based on levels of Hypoxia</h2>
 <p>Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.</p>
-<div class="rows">
-<div class="row" height="60%">
+<div class="columns">
+<div class="column" style="width:50%;">
+<p>Large variability across Hypoxia Scoring methods:</p>
+<ul>
+<li><p>Buffa Score: Higher hypoxia → unexpectedly better survival</p></li>
+<li><p>Ragnum Score: Lower hypoxia → clear survival advantage</p></li>
+<li><p>Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum</p></li>
+</ul>
+<p>Evident variations in Hypoxia Score algorithms limit our ability to fully assess the impact of tumor hypoxia on radiotherapy survival outcomes.</p>
+</div><div class="column" style="width:50%;">
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
@@ -657,12 +665,7 @@ Catarina Anastácio s253709
 </div>
 </div>
 </div>
-</div>
-<div class="row" height="40%">
-<p>Large variability across Hypoxia Scoring Methods: - Buffa Score: Higher hypoxia → unexpectedly better survival - Ragnum Score: Lower hypoxia → clear survival advantage - Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum</p>
-<p>Evident variations in Hypoxia Score algorithms limit our ability to fully assess the impact of tumor hypoxia on radiotherapy survival outcomes.</p>
-</div>
-</div>
+</div></div>
 </section>
 <section id="discussion-3-lily" class="slide level2">
 <h2>Discussion (3) (Lily)</h2>
