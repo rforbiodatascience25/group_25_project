@@ -585,14 +585,23 @@ Summary of the different cancer diagnoses.
 
 ```{r}
 long <- diagnosis_list_numeric |>
-  pivot_longer(everything(), names_to = "Variable", values_to = "Value")
+  pivot_longer(
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Value")
 
 medians <- long |>
   group_by(Variable) |>
-  summarize(med = median(Value, na.rm = TRUE))
+  summarize(
+    med = median(Value, na.rm = TRUE)
+  )
 
 ggplot(long, aes(x = Value)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_histogram(
+    bins = 30,
+    fill = "steelblue",
+    color = "white"
+  ) +
   geom_vline(
     data = medians,
     aes(xintercept = med),
@@ -600,31 +609,37 @@ ggplot(long, aes(x = Value)) +
   ) +
   facet_wrap(~ Variable, scales = "free") +
   labs(
-    title = "Survival, Progress by Days/Months") +
+    title = "Survival, Progress by Days/Months"
+  ) +
   theme_minimal()
-
 
 #function to make facet wrap plots
 make_facet_plot <- function(data, var_names) {
   data |>
     select(all_of(var_names)) |>
-    pivot_longer(everything(), names_to = "Category", values_to = "Value") |>
-    
-    #filter out various forms of NAs for clean facet wrap plots
-    filter(!Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")) |>
-    
-    ggplot(aes(x = Value, fill = Value)) +
-      geom_bar(na.rm = TRUE) +
-      facet_wrap(~ Category, scales = "free") +
-    
-      scale_fill_viridis_d(option = "C") +   #for continuous variables
-    
-      theme(
-        axis.title = element_blank(),        # remove axis titles
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
-        strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none"             # no legend since categories differ
+    pivot_longer(
+      cols = everything(),
+      names_to = "Category",
+      values_to = "Value"
+    ) |>
+    filter(
+      !Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")
+    ) |>
+    ggplot(
+      aes(
+        x = Value,
+        fill = Value
       )
+    ) +
+  geom_bar(na.rm = TRUE) +
+  facet_wrap(~ Category, scales = "free") +
+  scale_fill_viridis_d(option = "C") +   #for continuous variables
+  theme(
+    axis.title = element_blank(),        # remove axis titles
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+    strip.text = element_text(size = 10, face = "bold"),
+    legend.position = "none"             # no legend since categories differ
+  )
 }
 
 plot_top <- make_facet_plot(data_diag, top_vars)
@@ -667,7 +682,8 @@ data_code |>
     axis2 = ICD_O3_Histology,
     axis3 = AJCC_Stage,
     y = n
-  )) +
+  )
+) +
   
   geom_alluvium(aes(fill = ICD_O3_Histology), alpha = 0.8) +
   geom_stratum(fill = "white", color = "gray40", linewidth = 0.6) +
