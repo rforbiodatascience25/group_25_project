@@ -327,7 +327,120 @@ data_gene_code_filtered |>
 :::
 :::::
 
-## Results (3) (Catarina)
+## Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)
+```{r}
+#| echo: false
+#| eval: true
+#| output: false
+#| message: false
+
+
+# Prepare data
+data_heatmap <- data_gene |>
+  full_join(data_diag, by = "Patient ID") |>
+  full_join(data_score, by = "Patient ID") |>
+  drop_na() |>
+  # Pivot hypoxia scores long
+  pivot_longer(
+    cols = c(`Winter Hypoxia Score`, 
+             `Buffa Hypoxia Score`),
+    names_to = "Hypoxia_Score_Type",
+    values_to = "Hypoxia_Value"
+  ) |>
+  mutate(
+    Mut_Count_Bin = case_when(
+      `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
+      `Tumor Break Load` <= median(`Tumor Break Load`, na.rm = TRUE) ~ "Low Tumor Break Load")) |>
+  group_by(Hypoxia_Score_Type) |>
+  mutate(
+    Hypoxia_Bin = case_when(
+      Hypoxia_Value > median(Hypoxia_Value, na.rm = TRUE) ~ "High Hypoxia",
+      Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
+  ungroup()|>
+  group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
+  summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
+```
+
+::::: columns
+::: {.column width="50%"}
+```{r}
+#| echo: true
+#| eval: false
+#| output: false
+#| message: false
+
+ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
+                         y = Hypoxia_Bin, 
+                         fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Median_Survival, 0)), 
+            color = "white", 
+            size = 6) +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+  facet_wrap(~ Hypoxia_Score_Type, ncol=1) +
+  theme_minimal() + 
+  theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+      plot.subtitle = element_text(hjust = 0.5),
+      axis.text = element_text(color = "black"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    ) +
+    labs(
+      title = "Median Overall Survival (Days)",
+      subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
+      x = "Tumor Break Load", 
+      y = "Winter Hypoxia Score"
+    )
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 7
+#| fig-height: 6
+#| fig-align: "center"
+#| out-width: 90%
+
+ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
+                         y = Hypoxia_Bin, 
+                         fill = Median_Survival)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Median_Survival, 0)), 
+            color = "white", 
+            size = 6) +
+  scale_fill_gradient(
+    low = "red",
+    high = "#2ECC71",
+    name = "Median Survival (Days)"
+  ) + 
+  facet_wrap(~ Hypoxia_Score_Type, ncol=1) +
+  theme_minimal() + 
+  theme(
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+      plot.subtitle = element_text(hjust = 0.5),
+      axis.text = element_text(color = "black"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    ) +
+    labs(
+      title = "Median Overall Survival (Days)",
+      subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
+      x = "Tumor Break Load", 
+      y = "Winter Hypoxia Score"
+    )
+
+```
+:::
+:::::
 
 ## Discussion (2) (Catarina)
 
