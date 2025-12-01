@@ -815,13 +815,13 @@ data_score |>
 
 ## Conclusion
 
-Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
+- Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
 
-Predominantly White patient representation highlights the need for greater ethnic diversity.
+- Predominantly White patient representation highlights the need for greater ethnic diversity.
 
-Limited variability in several categories may constrain findings.
+- Limited variability in several categories may constrain findings.
 
-Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
+- Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
 
 ## References
 
