@@ -123,12 +123,14 @@ Plot the metrics, the number of metrics, the types within the metrics, and the v
 ```{r}
 #recode "Black or African American" = "Black"
 data_metrics <- data_metrics |>
-  mutate(`Race Category` = recode(`Race Category`,
-                                  "Black or African American" = "Black"))
+  mutate(
+    `Race Category` = recode(
+      `Race Category`,
+      "Black or African American" = "Black"))
 
 
 #----- bubble plot for cross-category frequencies
-bubble_plot <- data_metrics |>
+data_metrics |>
 
   #count entries in each category
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
