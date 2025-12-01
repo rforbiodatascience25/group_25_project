@@ -455,27 +455,38 @@ ylab("Proportion")
 
 
 #chessboard heatmap for cross-category codes
-df <- data_code |> select(all_of(code_vars))
+df <- data_code |>
+  select(all_of(code_vars))
 
 #extract all unique values across all variables
 #use this as a key to look up codes in the heatmap
 value_index <- df |>
-  pivot_longer(everything(), names_to="Category", values_to="Value") |>
-  distinct(Value) |>
-  arrange(Value) |>
-  mutate(ID = row_number())
+  pivot_longer(
+    cols = everything(),
+    names_to="Category",
+    values_to="Value"
+) |>
+distinct(Value) |>
+arrange(Value) |>
+mutate(ID = row_number())
 
-# onvert the entire dataframe to ID form (df_id)
+#convert the entire dataframe to df_id form
 df_id <- df |>                              
-  mutate(across(
-    everything(),
-    ~ value_index$ID[ match(.x, value_index$Value) ]
-  ))
+  mutate(
+    across(
+      everything(),
+      ~ value_index$ID[ match(.x, value_index$Value) ]
+    )
+  )
 
 #long format for co-occurrence
 long <- df_id |>
   mutate(RowID = row_number()) |>
-  pivot_longer(-RowID, names_to="Category", values_to="ID")
+  pivot_longer(
+    cols = -RowID,
+    names_to="Category",
+    values_to="ID"
+  )
 
 #compute co-occurrences
 pairs <- long |>
@@ -494,18 +505,29 @@ co_matrix <- pairs |>
 
 #plot chessboard heatmap
 co_matrix |>
-  pivot_longer(-ID.x, names_to="ID.y", values_to="n") |>
-  ggplot(aes(as.integer(ID.x), as.integer(ID.y), fill = n)) +
+  pivot_longer(
+    cols = -ID.x,
+    names_to="ID.y",
+    values_to="n"
+  ) |>
+  ggplot(
+    aes(
+      x = as.integer(ID.x),
+      y = as.integer(ID.y),
+      fill = n
+    )
+  ) +
   geom_tile() +
-  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +
-  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +
+  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
+  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
   coord_fixed() +
   labs(
-    title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up") +
-  
-  #accessible color scheme
-  scale_fill_viridis_c(trans = "log10", guide = "none") +
-  
+    title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up"
+  ) +
+  scale_fill_viridis_c(
+    trans = "log10",
+    guide = "none"
+  ) +
   theme_void() +
   theme(
     axis.text.x = element_text(angle = 90, vjust = 0.5, size = 5),
@@ -514,9 +536,7 @@ co_matrix |>
     plot.margin = margin(0,0,0,0)
   )
 
-#call value index trans = "log10", guide = "none"
 value_index
-
 
 #calculate entropy of top-level codes
 entropy_cat <- function(x) {
@@ -525,32 +545,38 @@ entropy_cat <- function(x) {
 }
 
 data_code |>
-  
-  pivot_longer(all_of(unname(code_vars)), names_to = "var_name", values_to = "value") |>
+  pivot_longer(
+    cols = all_of(unname(code_vars)),
+    names_to = "var_name",
+    values_to = "value"
+  ) |>
   group_by(var_name) |>
   summarise(
     entropy = entropy_cat(value[!is.na(value)]),
     n_levels = n_distinct(value, na.rm = TRUE)
   ) |>
   arrange(desc(entropy)) |>
-  
-  ggplot(aes(x = reorder(var_name, entropy), y = entropy, fill = entropy)) +
-    geom_col() +
-    scale_fill_viridis_c(option = "C") +
-  
-    labs(
-      title = "Entropy of Categorical Variables",
-      x = NULL,
-      y = "Entropy"
-    ) +
-  
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title.y = element_blank(),
-      axis.text.y = element_text(size = 10),
-      legend.position = "none",
-      plot.title = element_text(size = 14, face = "bold")
-    ) 
+  ggplot(
+    aes(
+      x = reorder(var_name, entropy),
+      y = entropy,
+      fill = entropy
+    )
+  ) +
+  geom_col() +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Entropy of Categorical Variables",
+    x = NULL,
+    y = "Entropy"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    plot.title = element_text(size = 14, face = "bold")
+  ) 
 ```
 
 ##  Diagnoses Summary
