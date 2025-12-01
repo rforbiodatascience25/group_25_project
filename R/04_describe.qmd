@@ -452,7 +452,7 @@ data_code |>
   theme(
     axis.text.x = element_text(angle=45, hjust=1),
     axis.title.x = element_blank(),
-    legend.position = "none"   #remove large legend
+    legend.position = "none"
   ) +
   ylab("Proportion")
 
@@ -466,7 +466,7 @@ value_index <- df |>
   pivot_longer(everything(), names_to="Category", values_to="Value") |>
   distinct(Value) |>
   arrange(Value) |>
-  mutate(ID = row_number())                  # <-- IDs 1..33
+  mutate(ID = row_number())
 
 # onvert the entire dataframe to ID form (df_id)
 df_id <- df |>                              
