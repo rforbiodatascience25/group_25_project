@@ -447,7 +447,6 @@ data_gene_code_filtered |>
 :::::
 
 ## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
-
 Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
 
 ```{r}
@@ -536,7 +535,6 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
 :::::
 
 ## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
-
 Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.
 
 ```{r}
@@ -642,7 +640,6 @@ ggplot(Kaplan_meier_data, aes(x = time,
   )
 
 ```
-
 
 :::
 
