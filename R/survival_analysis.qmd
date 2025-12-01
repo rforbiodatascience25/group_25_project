@@ -140,7 +140,7 @@ No significant correlation was observed between high values of genomic instabili
 
 Surprisingly, a higher fraction of the genome altered was associated with the alive/death tumor-free status. One possible explanation is that this extensive genomic alteration may be a consequence of high-intensity therapy that effectively eradicated the tumor, leading to the tumor-free outcome. However, this specific plot does not allow for direct conclusions regarding this hypothesis.
 
-#### Interaction between Hypoxia and TMB, and its effects in Overall Survival (Days)
+#### Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)
 
 ```{r}
 #| fig-width: 14
@@ -160,20 +160,20 @@ data_heatmap <- data_gene |>
     values_to = "Hypoxia_Value"
   ) |>
   mutate(
-    TMB_Bin = case_when(
-      `TMB (nonsynonymous)` > median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "High TMB",
-      `TMB (nonsynonymous)` <= median(`Mutation Count`, na.rm = TRUE) ~ "Low TMB")) |>
+    Mut_Count_Bin = case_when(
+      `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
+      `Tumor Break Load` <= median(`Tumor Break Load`, na.rm = TRUE) ~ "Low Tumor Break Load")) |>
   group_by(Hypoxia_Score_Type) |>
   mutate(
     Hypoxia_Bin = case_when(
       Hypoxia_Value > median(Hypoxia_Value, na.rm = TRUE) ~ "High Hypoxia",
       Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
   ungroup()|>
-  group_by(Hypoxia_Score_Type, TMB_Bin, Hypoxia_Bin) |>
+  group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
   summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
 
 # Plot Heatmap
-ggplot(data_heatmap, aes(x = TMB_Bin, 
+ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
                          y = Hypoxia_Bin, 
                          fill = Median_Survival)) +
   geom_tile(color = "white") +
@@ -196,17 +196,19 @@ ggplot(data_heatmap, aes(x = TMB_Bin,
     ) +
     labs(
       title = "Median Overall Survival (Days)",
-      subtitle = "Interaction between TMB and Hypoxia Score",
-      x = "TMB (nonsynonymous)", 
+      subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
+      x = "Tumor Break Load", 
       y = "Winter Hypoxia Score"
     )
 ```
 
-From the previous analysis, a somewhat relevant correlation beteen TMB and hypoxia was rased. And to futher that analysis, these plots cheking the Interaction between All scores of Hypoxia and TMB, and its effects in Overall Survival (Days). The data clearly shows that Low TMB is the dominant and most favorable predictor for survival across all three hypoxia scoring methods.
+From the previous analysis, a somewhat relevant correlation beteen Tumor Break Load and hypoxia was rased. And to futher that analysis, these plots cheking the Interaction between All scores of Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days). The data clearly shows that the High Tumor Break Load/ High Hypoxia is the dominant and most favorable predictor for worst survival across all three hypoxia scoring methods, as expected.
 
-The crucial finding is the sensitivity difference between the different scores. The Ragnum model identifies the most extreme outcomes, highlighting the best combination (Low TMB and Low Hypoxia, 826 days) and at the same time the worst survival scenario (High TMB, 330 days), making it the most predictive.
+Across all three hypoxia scoring methods, the results consistently show that tumors with both high Tumor Break Load and high hypoxia have the worst survival, which fits well with known biology. This group likely represents tumors that are both structurally unstable and poorly oxygenated—two features linked to aggressive disease.
 
-In contrast, the Buffa signature shows minimal difference between groups, and the Winter signature simply reinforces TMB's importance without hypoxia adding much predictive power. Therefore, while Low TMB is consistently beneficial, the overall conclusion about how much hypoxia contributes to survival hinges entirely on the specific calculation method (Ragnum, Winter, or Buffa) being used.
+The more interesting pattern appears in the mixed groups. Tumors with low hypoxia but high Tumor Break Load, or high hypoxia but low Tumor Break Load, both show better survival than the high/high group and, in several cases, even do better than the low/low group. This suggests that when only one harmful factor is present, the lack of the other may help offset its negative effects.
+
+In other words, hypoxia and Tumor Break Load do not simply add their effects together. The presence of either one alone seems less damaging than having both, indicating a kind of biological “buffering.” This interaction pattern may also point to different therapeutic opportunities depending on which factor is elevated.
 
 #### Interaction between Hypoxia/ Radiotherapy/ Overall survival using different analysis
 
@@ -415,7 +417,7 @@ ggplot(data_heatmap_RT, aes(x = Radiation_Group,
 
 ```
 
-Hypoxia Scores are used to estimate how oxygen-deprived a tumor is based on gene expression. Higher scores indicate more severe hypoxia. Since hypoxic tumors tend to be more resistant to radiotherapy, these scores can be useful for understanding treatment response and patient outcomes. For this analysis, all three hypoxia scores wered used based on the diversity achieved in the previous analysis.
+Hypoxia Scores are used to estimate how oxygen-deprived a tumor is based on gene expression. Higher scores indicate more severe hypoxia. Since hypoxic tumors tend to be more resistant to radiotherapy, these scores can be useful for understanding treatment response and patient outcomes. For this analysis, all three hypoxia scores wered used based on the diversity is score values.
 
 From the plots analysis, across all three scoring methods (Buffa, Ragnum, and Winter), patients who received radiation therapy tended to have slightly lower hypoxia levels on average. This could suggest that clinicians may be considering hypoxia when choosing therapy, although the differences are not as significant as expected.
 
