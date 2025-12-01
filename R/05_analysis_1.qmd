@@ -14,7 +14,63 @@ library("tidyverse")
 library("here")
 ```
 
-------------------------------------------------------------------------
+## Visual Guidelines
+
+```{r}
+theme_uniform <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      plot.title    = element_text(face = "bold", size = base_size + 2, hjust = 0),
+      axis.title    = element_text(face = "bold"),
+      axis.text     = element_text(color = "gray20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray90", size = 0.3),
+      strip.text    = element_text(face = "bold"),
+      strip.background = element_rect(fill = "gray95", color = NA),
+      legend.position = "right",
+      legend.title = element_text(face = "bold"),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+#colorblind-safe color PALETTE
+#pick values for color and fill
+palette <- c(
+  "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+)
+
+#colorblind-safe color GRADIENTS
+scale_fill_uniform_continuous  <- scale_fill_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+scale_color_uniform_continuous <- scale_color_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+
+#geometry defaults
+update_geom_defaults("line",   list(linewidth = 1))
+update_geom_defaults("point",  list(size = 2, stroke = 0.5))
+update_geom_defaults("boxplot", list(linewidth = 0.6))
+update_geom_defaults("violin",  list(linewidth = 0.6))
+
+#presentation settings
+presentation_fig_width  <- 7
+presentation_fig_height <- 4.5
+presentation_dpi        <- 200
+
+#aspect ratios
+aspect_wide    <- c(width = 7,  height = 4)   #wide (16:9) for time series / line plots:
+aspect_square  <- c(width = 5,  height = 5)   #square (1:1) for correlations & scatter:
+aspect_tall    <- c(width = 5,  height = 7)   #tall (3:4) for barplots with long labels:
+
+#annotation settings high contrast
+annotation_text <- list(color = "black", size = 5, fontface = "bold")
+
+#remove excess padding
+scale_y_continuous_uniform <- scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+scale_x_continuous_uniform <- scale_x_continuous(expand = expansion(mult = c(0.02, 0.02)))
+```
 
 ## **Loading data**
 
@@ -96,6 +152,8 @@ pca_fit <- data_pca |>
 We ran a principal component analysis on the selected standardized diagnostic variables (excluding the overall survival status indicator) to summarize variation in a low-dimensional space. The first two principal components were then plotted, and the points were colored by Overall Survival Status (bin) to visually assess whether the main axes of variation separated patients with different survival outcomes.
 
 ```{r}
+#| fig-height: 6
+#| fig-width: 9
 pca_fit |>
   augment(data_pca) |>
   ggplot(aes(x = .fittedPC1,
@@ -111,13 +169,17 @@ pca_fit |>
     x = "Principal Component 1",
     y = "Principal Component 2"
   ) +
-  theme_half_open(12) +
-  background_grid()
+  theme_uniform() +
+  theme(
+    legend.position = "bottom",
+    legend.direction = "horizontal"
+  )
 ```
 
 In the PCA plot of the first two components, patients who were dead with tumor and those who were alive or dead tumor‑free occupy partially distinct regions of the PC1–PC2 space, suggesting some degree of separation between the two groups. However, there is substantial overlap between clusters, indicating that the main axes of variation in the selected diagnostic variables only moderately discriminate disease specific survival status.
 
 ```{r}
+#| fig-height: 7
 pca_fit |> 
   tidy(matrix = "eigenvalues") |> 
   ggplot(aes(PC, cumulative)) +
@@ -132,7 +194,7 @@ pca_fit |>
   labels = scales::percent_format(),
   expand = expansion(mult = c(0, 0.01))
 ) +
-  theme_minimal_hgrid(12) +
+  theme_uniform() +
   labs(
   x = "Principal component",
   y = "Cumulative variance across PCs",
@@ -143,34 +205,13 @@ pca_fit |>
 The cumulative variance plot shows that the first few principal components already explain most of the variability in the diagnostic variables. In our data, the first PC accounts for about one third of the variance, and the first 7-8 PCs together exceed the commonly used 80–90% threshold, indicating that a relatively low-dimensional representation captures the majority of information in the original feature set.
 
 ```{r}
-pca_fit |> 
-  tidy(matrix = "eigenvalues") |> 
-  ggplot(aes(PC, cumulative)) +
-  geom_col(fill = "#56B4E9", alpha = 0.8) +
-  geom_hline(yintercept = 0.8,
-             linetype = "dashed",
-             color = "grey30",
-             linewidth = 0.6) +
-  scale_x_continuous(breaks = 1:14) +
-  scale_y_continuous(
-  breaks = c(0, 0.25, 0.5, 0.75, 0.8, 1),
-  labels = scales::percent_format(),
-  expand = expansion(mult = c(0, 0.01))
-) +
-  theme_minimal_hgrid(12) +
-  labs(
-  x = "Principal component",
-  y = "Cumulative variance across PCs",
-  title = "Cumulative explained variance by principal component"
-)
-```
-
-```{r}
 rotation_matrix <- pca_fit |> 
   tidy(matrix = "rotation")
 ```
 
 ```{r}
+#| fig-height: 7
+
 number_of_PC = 4
 minimum_value_for_coef = 0.2
 
@@ -193,7 +234,7 @@ rotation_matrix |>
     y = "Loading coefficient",
     fill = "Variable"
   ) +
-  theme_minimal()
+  theme_uniform()
 ```
 
 The loading plot for the first four principal components shows which diagnostic and biological variables contribute most strongly to each PC. PC1 is mainly driven by hypoxia scores and genomic instability metrics, whereas PC2 and PC3 capture additional variation related to survival endpoints and mutation/TMB measures, with opposite signs indicating variables that vary in contrasting directions. Overall, the pattern of loadings suggests that the main PCs summarize combined effects of hypoxia, genomic instability, and survival outcomes rather than being dominated by a single variable.

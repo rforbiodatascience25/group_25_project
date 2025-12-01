@@ -29,6 +29,64 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
+## Visual Guidelines
+
+```{r}
+theme_uniform <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      plot.title    = element_text(face = "bold", size = base_size + 2, hjust = 0),
+      axis.title    = element_text(face = "bold"),
+      axis.text     = element_text(color = "gray20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray90", size = 0.3),
+      strip.text    = element_text(face = "bold"),
+      strip.background = element_rect(fill = "gray95", color = NA),
+      legend.position = "right",
+      legend.title = element_text(face = "bold"),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+#colorblind-safe color PALETTE
+#pick values for color and fill
+palette <- c(
+  "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+)
+
+#colorblind-safe color GRADIENTS
+scale_fill_uniform_continuous  <- scale_fill_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+scale_color_uniform_continuous <- scale_color_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+
+#geometry defaults
+update_geom_defaults("line",   list(linewidth = 1))
+update_geom_defaults("point",  list(size = 2, stroke = 0.5))
+update_geom_defaults("boxplot", list(linewidth = 0.6))
+update_geom_defaults("violin",  list(linewidth = 0.6))
+
+#presentation settings
+presentation_fig_width  <- 7
+presentation_fig_height <- 4.5
+presentation_dpi        <- 200
+
+#aspect ratios
+aspect_wide    <- c(width = 7,  height = 4)   #wide (16:9) for time series / line plots:
+aspect_square  <- c(width = 5,  height = 5)   #square (1:1) for correlations & scatter:
+aspect_tall    <- c(width = 5,  height = 7)   #tall (3:4) for barplots with long labels:
+
+#annotation settings high contrast
+annotation_text <- list(color = "black", size = 5, fontface = "bold")
+
+#remove excess padding
+scale_y_continuous_uniform <- scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+scale_x_continuous_uniform <- scale_x_continuous(expand = expansion(mult = c(0.02, 0.02)))
+```
+
 ## Data Description/ Notes for Analysis
 
 Summary of the data:
@@ -96,10 +154,7 @@ plt_scatter <- ggplot(
   geom_point(alpha = 0.6) +
   geom_smooth(method = "loess", color = "blue") +
   facet_wrap(~ Metric, scales = "free_y") +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  ) +
+  theme_uniform() +
   labs(title = "Overall Survival vs Genomic Metrics")
 
 # Present Plots
@@ -117,7 +172,7 @@ As shown by both the scatter plot and descriptive statistics, Mutation Count and
 -   **Analysis from Plots**: The 'Ductal Adenocarcinoma' appears to have lower fraction of the genome altered and a slight higher tumor break load compared to others subtypes, altough the differences are very discrete. The other tumor types were discarded due to lack of data.
 
 ```{r}
-#| fig-width: 10
+#| fig-width: 12
 #| fig-height: 5
 
 data_gene_diag |>
@@ -139,7 +194,7 @@ data_gene_diag |>
   ggplot(aes(x = `Tumor Type`, y = Value, fill = `Tumor Type`)) +
   geom_boxplot() +
   facet_wrap(~ Metric, nrow = 1, scales = "free_y") +
-  theme_minimal() +
+  theme_uniform() +
   theme(
     axis.title.x = element_blank(),
     axis.text.x  = element_blank(),
@@ -196,6 +251,7 @@ data_gene_code_filtered |>
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
              nrow = 1) +
+  theme_uniform() +
   theme(axis.text.x = element_text(angle = 45, 
                                    hjust = 1)) +
   labs(
@@ -244,7 +300,7 @@ corrplot(correl_matrix, method = "color",tl.col = "black")
 
 This plot was used to assess relationships between genomic instability metrics and hypoxia scores. Focusing on the first four columns (genomic instability measures) and the last six rows (hypoxia scores), no strong blue stand out, indicating that hypoxia scores are not strongly correlated with the genomic instability variables in this dataset.
 
-## Biological scores Analysis (score_data)
+## Biological scores Analysis (data_score)
 
 ### Distribution of Aneuploidy Scores across different Cancer Stages
 
@@ -267,6 +323,7 @@ plt_aneuploidy_stage <- data_code |>
     plot.title = element_text(hjust = 0.5, face = "bold")
   ) +
   ggtitle("Aneuploidy Score by Cancer Stage") +
+  theme_uniform() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 plt_aneuploidy_stage
@@ -274,9 +331,15 @@ plt_aneuploidy_stage
 
 The Aneuploidy Score, which quantifies chromosomal instability and is often linked to tumor aggressiveness and poor prognosis, was analyzed to assess whether higher cancer stages correspond to increased chromosomal abnormalities. The plot shows no clear increase in Aneuploidy Score with advancing stage, which may reflect the limited stage diversity in the dataset, particularly the small number of Stage I cases.
 
-```{r}
-metric_for_order <- "Winter Hypoxia Score"
+### MSI and Hypoxia congruency
 
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+metric_for_order_msi     <- "MSIsensor Score"
+metric_for_order_hypoxia <- "Winter Hypoxia Score"
+
+# Long + scaled (as before)
 df_long <- data_score |>
   select(`Patient ID`,
          `MSI MANTIS Score`,
@@ -295,45 +358,177 @@ df_long <- data_score |>
     Score_scaled = (Score - mean(Score, na.rm = TRUE)) /
                    sd(Score, na.rm = TRUE)
   ) |>
-  ungroup() |>
+  ungroup()
+
+# MSI: order by MSI metric
+df_msi <- df_long |>
+  filter(Metric %in% c("MSI MANTIS Score", "MSIsensor Score")) |>
   group_by(`Patient ID`) |>
   mutate(
-    order_value = Score_scaled[Metric == metric_for_order][1]
+    order_value = Score_scaled[Metric == metric_for_order_msi][1]
   ) |>
   ungroup() |>
   mutate(
     `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
   )
 
-ggplot(df_long,
+# Hypoxia: order by Winter hypoxia
+df_hypoxia <- df_long |>
+  filter(Metric %in% c("Buffa Hypoxia Score",
+                       "Ragnum Hypoxia Score",
+                       "Winter Hypoxia Score")) |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score_scaled[Metric == metric_for_order_hypoxia][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+MSI_heatmap <- ggplot(df_msi,
        aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
   geom_tile() +
   scale_fill_viridis_c() +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) +
+  theme_uniform() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
   labs(
     title = "MSI scores across patients (z-scaled)",
-    x = "Patient", y = "Metric", fill = "z-score"
+    x = "Patient", y = "MSI metric", fill = "z-score"
   )
+
+hypoxia_heatmap <- ggplot(df_hypoxia,
+       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  theme_uniform() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  labs(
+    title = "Hypoxia scores across patients (z-scaled)",
+    x = "Patient", y = "Hypoxia metric", fill = "z-score"
+  )
+
+MSI_heatmap / hypoxia_heatmap
 ```
 
-## SURVIVAL 3
+These heatmaps show how MSI and hypoxia scores vary across patients after z‑scaling. In the MSI panel, most patients cluster around low MSI values with only a minority showing high MSI z‑scores, consistent with MSI‑high tumors being relatively rare. In contrast, the hypoxia panel displays a broader spread and more gradual gradients across patients, suggesting greater heterogeneity in hypoxia signatures than in MSI status.
 
-#### Distribution of Hypoxia Scores in Patients Receiving Radiation Therapy, and Comparison of overall survival (days) of patients treated with radiotherapy depending on levels of hypoxia. ----\> on survival_analysis
+These heatmaps indicate poor agreement between the different hypoxia and MSI scoring methods at the individual-patient level. Apart from Buffa and Winter, which show relatively similar patterns, the remaining signatures often assign very different relative scores to the same patients, suggesting that the choice of scoring method can substantially change which tumors are labeled as hypoxic or MSI-high and that these methods are not interchangeable.
 
-#### **Overall correlation between tumor metrics (genomic instability vs biological scores)**
+### Score Distribution Along Neoplasm Histological Grades Divided by Cancer Status
 
--   **Context**: This section calculates and visualizes the pairwise correlation matrix between the four genomic instability metrics (TMB, Mutation Count, FGA, TBL) and the six biological scores (Aneuploidy Score, Buffa Hypoxia Score, MSI MANTIS Score, MSIsensor Score, Ragnum Hypoxia Score, Winter Hypoxia Score).
+For the Buffia Hypoxia Scores, both statuses had increasing trends as Grades went up, with those who had tumors having generally larger scores. For the MSI Mantis Scores, there didn't seem to be a particular trend for those who did not have tumors. But for those who had a tumor, there was a decreasing trend as Grades went up. For the MSI Sensor Scores, those who did not have tumors had a slight increasing trend as Grades went up, while those who had tumors did not seem to follow a trend. Lastly, for Ragnum Hypoxia Scores, both those who had tumors and who did not have tumors had an increasing trend as Grades went up. Other than G1, those who had tumors had higher scores than those who did not.
 
--   **Analysis from Plot:**
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+data_score |>
+  left_join(data_diag |>
+  select(`Patient ID`,
+    `Neoplasm Histologic Grade`,
+    `Person Neoplasm Cancer Status`),
+    by = "Patient ID") |>
+  filter(!is.na(`Neoplasm Histologic Grade`),
+    !`Neoplasm Histologic Grade` %in% c("GX", "G4")) |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to  = "Metric",
+    values_to = "Score") |>
+  filter(!is.na(Score),
+    !is.na(`Neoplasm Histologic Grade`),
+    !is.na(`Person Neoplasm Cancer Status`)) |>
+  ggplot(aes(x = `Neoplasm Histologic Grade`,
+    y = Score,
+    fill = `Person Neoplasm Cancer Status`)) +
+  geom_boxplot(alpha = 0.7,
+    outlier.shape = NA) +
+  facet_wrap(~ Metric,
+    scales = "free_y") +
+  scale_fill_manual(values = palette) +
+  scale_y_continuous_uniform +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  labs(title = "Distribution of Scores Across Histologic Grades by Cancer Status",
+    x = "Neoplasm Histologic Grade",
+    y = "Score",
+    fill  = "Cancer Status") +
+  theme_uniform()
+```
 
-    -   **Genomic Instability Correlation:** TMB and Mutation Count are highly positively correlated, as both measure the overall burden of small-scale point mutations. Fraction Genome Altered and Tumor Break Load, which measure large-scale chromosomal instability, show a slightly more negative correlation with TMB/Mutation Count. This suggests these two forms of genomic instability may be somewhat distinct in this tumor cohort.
+## Diagnostic, Survival (data_diag)
 
-    -   **Hypoxia Score Correlation:** The three Hypoxia Scores (Buffa, Ragnum, Winter) show a positive correlation, confirming they all effectively measure the same underlying stressor: tumor hypoxia (low oxygen). Hypoxia Scores also show a positive correlation with Tumor Break Load (TBL), suggesting that the low-oxygen environment may contribute to large-scale structural DNA damage.
+### Patient Survival Comparison with Radiation Therapy and Prior Diagnosis
 
-    -   The two MSI metrics (**MSI MANTIS** and **MSIsensor**) show almost no correlation, which is unexpected given they track the same defective DNA mismatch repair mechanism. The MSI MANTIS Score shows a slight positive correlation with Mutation Count and TMB. This is biologically plausible, as defective mismatch repair (causing MSI) simultaneously increases the rate of overall point mutations (TMB/Mutation Count).
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+data_diag |> 
+  drop_na(`Prior Diagnosis`,
+    `Disease-specific Survival status (des)`,
+    `Radiation Therapy`) |> 
+  count(Prior_Diagnosis = `Prior Diagnosis`,
+    Radiation_Therapy = `Radiation Therapy`,
+    Survival = `Disease-specific Survival status (des)`) |> 
+  group_by(Survival) |> 
+  mutate(percentage = n / sum(n) * 100) |> 
+  ggplot(aes(x = Prior_Diagnosis,
+    y = Radiation_Therapy,
+    fill = n)) +
+  geom_tile() +
+  geom_text(aes(label = paste0(n,
+    "\n(",
+    round(percentage,
+    1), "%)")),
+    color = "black",                     
+    size  = 4,
+    fontface = "bold") +
+  facet_wrap(~ Survival) +
+  scale_fill_uniform_continuous +       
+  labs(title = "Patient Survival by Prior Diagnosis and Radiation Therapy",
+    x  = "Prior Diagnosis",
+    y = "Radiation Therapy",
+    fill = "Count") +
+  theme_uniform()
 
-    -   **Aneuploidy:** Aneuploidy Score and Fraction of Genome Altered (FGA) show a moderate positive correlation. This is expected, as both are direct measures of chromosomal instability.
+```
+
+It can be seen that for those who had neither a prior diagnosis or radiation therapy and for those who did not have radiation therapy but did have a prior diagnosis, there was a nearly 50-50 split on their survival status. However, for those that did have radiation therapy but did not have a prior diagnosis, there was a near 70-30 split on survival status. Due to the small number of patients who did not fit into the category of no radiation therapy and no prior diagnosis, these numbers may not necessarily be trustworthy. However, in general, this does follow the trend we would expect to see, where those who were not previously sick and who did go through with the therapy would be more likely to survive. It is interesting to see that prior diagnosis status did not seem to show much of an impact on survival status.
+
+### Age Density Between Sexes Across Neoplasm Histologic Grades
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+bind_cols(data_metrics |> 
+  select(Age = `Diagnosis Age`,
+    Sex),
+    data_diag |> 
+  select(Neo_Grade = `Neoplasm Histologic Grade`)) |> 
+  filter(!Neo_Grade %in% c("GX",
+    "G4")) |> 
+  ggplot(aes(x = Age,
+    y = Neo_Grade,
+    fill = Neo_Grade,
+    color = Neo_Grade)) +
+  geom_density_ridges(alpha = 0.6,
+    linewidth = 0.6) +
+  facet_wrap(~ Sex) +
+  scale_fill_manual(values = palette) +
+  scale_color_manual(values = palette) +
+  scale_x_continuous_uniform + 
+  scale_y_discrete(expand = expansion(mult = c(0.05,
+    0.05))) +
+  labs(title = "Age Distribution Across Neoplasm Histologic Grades",
+    x = "Diagnosis Age",
+    y = "Histologic Grade",
+    fill = "Grade") +
+  theme_uniform() +
+  theme(legend.position = "none")
+```
+
+GX was removed due to there being only 3 instances of it and also that it represents an inability to properly assign a grade. G4 was removed due to there being only 2 instances and therefore not being able to show statistically significant data.
+
+This plot shows that in both men and women, in all 3 grades, a majority of samples were between the 40 to 80 age range. However, it is interesting to note, that in general, density was highest for females in all grades slightly before males. In G1 females seem to peak in their mid-60s, in G2 the peak is near early-70s, and in G3 the peak is near early-60s. For men however, in G1 the peak is near early-70s, in G2 the peak is also near early-70s, and for G3 the peak is near mid-70s. Along with this difference in ages between the sexes, it is also interesting to note that G3 is found more commonly at a younger age than G1 or G2. This could be important to note as it shows that a more advanced cancer being found in younger women.
