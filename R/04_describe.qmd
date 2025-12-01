@@ -10,8 +10,8 @@ editor: visual
 
 ```{r}
 library("tidyverse")
-library("here")
-library("ggalluvial")  #for the very last plot - optional add-on
+library("here")  #non-tidyverse
+library("ggalluvial")  #non-tidyverse; for the very last plot - optional add-on
 ```
 
 ## **Loading data**
@@ -86,7 +86,7 @@ code_vars <- c(
 glimpse(data_diag)
 
 #----- numerical data
-diagnosis_list_numeric <- data_diag %>%
+diagnosis_list_numeric <- data_diag |>
   select(
     "Overall Survival (days)",
     "Overall Survival (Months)",
@@ -122,16 +122,16 @@ Plot the metrics, the number of metrics, the types within the metrics, and the v
 
 ```{r}
 #recode "Black or African American" = "Black"
-data_metrics <- data_metrics %>%
+data_metrics <- data_metrics |>
   mutate(`Race Category` = recode(`Race Category`,
                                   "Black or African American" = "Black"))
 
 
 #----- bubble plot for cross-category frequencies
-bubble_plot <- data_metrics %>%
+bubble_plot <- data_metrics |>
 
   #count entries in each category
-  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
+  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
   
   #bubbles growing with n patients
   ggplot(aes(
@@ -176,21 +176,21 @@ bubble_plot <- data_metrics %>%
 #----- age pyramid plot males vs females
 
 #filter EUR AND White and count, pass to ggplot
-data_metrics %>%
+data_metrics |>
   
   filter(
     `Genetic Ancestry Label` == "EUR",
     `Race Category` == "White"
-  ) %>%
+  ) |>
   
   mutate(
     AgeDecade = floor(`Diagnosis Age` / 10) * 10
-  ) %>%
+  ) |>
   
-  count(Sex, AgeDecade, name = "Count") %>%
+  count(Sex, AgeDecade, name = "Count") |>
   mutate(
     Count = ifelse(Sex == "Male", -Count, Count)
-  ) %>%
+  ) |>
 
 #plot age pyramid
 ggplot(aes(x = Count, y = factor(AgeDecade), fill = Sex)) +
@@ -232,8 +232,8 @@ We excluded one extreme outlier before plotting; the resulting positive correlat
 #----- dataframe treatment for the gene dataset
 
 #pivot to long dataframe for plotting
-gene_long <- data_gene %>%
-  select(all_of(gene_cols)) %>%
+gene_long <- data_gene |>
+  select(all_of(gene_cols)) |>
   pivot_longer(
     cols = everything(),
     names_to = "Category",
@@ -241,7 +241,7 @@ gene_long <- data_gene %>%
   )
 
 #rename TMB to full name for more information on plot
-gene_long <- gene_long %>%
+gene_long <- gene_long |>
   mutate(
     Category = recode(
       Category,
@@ -250,43 +250,43 @@ gene_long <- gene_long %>%
   )
 
 #remove a single extreme outlier and normalize for all four categories
-gene_no_ext_norm <- gene_long %>%
+gene_no_ext_norm <- gene_long |>
   
   #remove outlier
-  group_by(Category) %>%
-  filter(row_number(desc(Value)) > 1) %>% 
+  group_by(Category) |>
+  filter(row_number(desc(Value)) > 1) |> 
   
   #normalize
   mutate(NormValue = (Value - min(Value, na.rm = TRUE)) /
-                     (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))) %>%
+                     (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))) |>
   
   ungroup()
 
 
 #----- dataframe treatment for the score dataset
 
-score_long <- data_score %>%
-  select(all_of(score_cols)) %>%
-  mutate(across(everything(), as.numeric)) %>%
+score_long <- data_score |>
+  select(all_of(score_cols)) |>
+  mutate(across(everything(), as.numeric)) |>
   pivot_longer(
     cols = everything(),
     names_to = "Score",
     values_to = "Value"
   )
 
-score_no_ext_norm <- score_long %>%
+score_no_ext_norm <- score_long |>
   
   # remove the single maximum outlier per Score category
-  group_by(Score) %>%
-  filter(Value != max(Value, na.rm = TRUE)) %>%
+  group_by(Score) |>
+  filter(Value != max(Value, na.rm = TRUE)) |>
   
   # normalize each Score category to [0,1]
   mutate(
     NormValue = (Value - min(Value, na.rm = TRUE)) /
                 (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))
-  ) %>%
+  ) |>
   
-  ungroup() %>%
+  ungroup() |>
   
   # rename Score → Category so it matches gene_no_ext_norm
   rename(Category = Score)
@@ -296,12 +296,12 @@ score_no_ext_norm <- score_long %>%
 
 #combine dataset categories for genes and scores
 combined_norm <- bind_rows(
-  gene_no_ext_norm %>% select(Category, Value, NormValue),
-  score_no_ext_norm %>% select(Category, Value, NormValue)
+  gene_no_ext_norm |> select(Category, Value, NormValue),
+  score_no_ext_norm |> select(Category, Value, NormValue)
 )
 
 #make groups by data structure and category for ggplot density plots below
-combined_norm <- combined_norm %>%
+combined_norm <- combined_norm |>
   mutate(
     Group = case_when(
       Category %in% c(
@@ -369,11 +369,11 @@ ggplot(combined_norm, aes(x = NormValue)) +
 
 
 #reorder categories by similarity for the next density plot
-combined_norm <- combined_norm %>%
+combined_norm <- combined_norm |>
   mutate(
     Category = factor(
       Category,
-      levels = combined_norm %>% arrange(Group, Category) %>% pull(Category) %>% unique()
+      levels = combined_norm |> arrange(Group, Category) |> pull(Category) |> unique()
     )
   )
   
@@ -425,14 +425,14 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 
 ```{r}
 #column plot with normalized code counts
-data_code %>%
+data_code |>
   
   #count code occurence and normalize 
-  select(all_of(code_vars)) %>%
-  pivot_longer(everything(), names_to="Category", values_to="Value") %>%
-  group_by(Category) %>% 
-  count(Value) %>%
-  mutate(p = n / sum(n)) %>%
+  select(all_of(code_vars)) |>
+  pivot_longer(everything(), names_to="Category", values_to="Value") |>
+  group_by(Category) |> 
+  count(Value) |>
+  mutate(p = n / sum(n)) |>
   
   #plot normalized code occurence as column plot in facets
   ggplot(aes(Value, p, fill = Category)) +
@@ -458,46 +458,46 @@ data_code %>%
 
 
 #chessboard heatmap for cross-category codes
-df <- data_code %>% select(all_of(code_vars))
+df <- data_code |> select(all_of(code_vars))
 
 #extract all unique values across all variables
 #use this as a key to look up codes in the heatmap
-value_index <- df %>%
-  pivot_longer(everything(), names_to="Category", values_to="Value") %>%
-  distinct(Value) %>%
-  arrange(Value) %>%
+value_index <- df |>
+  pivot_longer(everything(), names_to="Category", values_to="Value") |>
+  distinct(Value) |>
+  arrange(Value) |>
   mutate(ID = row_number())                  # <-- IDs 1..33
 
 # onvert the entire dataframe to ID form (df_id)
-df_id <- df %>%                              
+df_id <- df |>                              
   mutate(across(
     everything(),
     ~ value_index$ID[ match(.x, value_index$Value) ]
   ))
 
 #long format for co-occurrence
-long <- df_id %>%
-  mutate(RowID = row_number()) %>%
+long <- df_id |>
+  mutate(RowID = row_number()) |>
   pivot_longer(-RowID, names_to="Category", values_to="ID")
 
 #compute co-occurrences
-pairs <- long %>%
-  inner_join(long, by="RowID") %>%
-  filter(ID.x != ID.y) %>%
+pairs <- long |>
+  inner_join(long, by="RowID") |>
+  filter(ID.x != ID.y) |>
   count(ID.x, ID.y, name="n")
 
 #build matrix
-co_matrix <- pairs %>%
+co_matrix <- pairs |>
   pivot_wider(
     names_from = ID.y,
     values_from = n,
     values_fill = 0
-  ) %>%
+  ) |>
   arrange(ID.x)
 
 #plot chessboard heatmap
-co_matrix %>%
-  pivot_longer(-ID.x, names_to="ID.y", values_to="n") %>%
+co_matrix |>
+  pivot_longer(-ID.x, names_to="ID.y", values_to="n") |>
   ggplot(aes(as.integer(ID.x), as.integer(ID.y), fill = n)) +
   geom_tile() +
   scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +
@@ -527,15 +527,15 @@ entropy_cat <- function(x) {
   -sum(p * log(p))
 }
 
-data_code %>%
+data_code |>
   
-  pivot_longer(all_of(code_vars), names_to = "var_name", values_to = "value") %>%
-  group_by(var_name) %>%
+  pivot_longer(all_of(unname(code_vars)), names_to = "var_name", values_to = "value") |>
+  group_by(var_name) |>
   summarise(
     entropy = entropy_cat(value[!is.na(value)]),
     n_levels = n_distinct(value, na.rm = TRUE)
-  ) %>%
-  arrange(desc(entropy)) %>%
+  ) |>
+  arrange(desc(entropy)) |>
   
   ggplot(aes(x = reorder(var_name, entropy), y = entropy, fill = entropy)) +
     geom_col() +
@@ -561,11 +561,11 @@ data_code %>%
 Summary of the different cancer diagnoses.
 
 ```{r}
-long <- diagnosis_list_numeric %>%
+long <- diagnosis_list_numeric |>
   pivot_longer(everything(), names_to = "Variable", values_to = "Value")
 
-medians <- long %>%
-  group_by(Variable) %>%
+medians <- long |>
+  group_by(Variable) |>
   summarize(med = median(Value, na.rm = TRUE))
 
 ggplot(long, aes(x = Value)) +
@@ -583,12 +583,12 @@ ggplot(long, aes(x = Value)) +
 
 #function to make facet wrap plots
 make_facet_plot <- function(data, var_names) {
-  data %>%
-    select(all_of(var_names)) %>%
-    pivot_longer(everything(), names_to = "Category", values_to = "Value") %>%
+  data |>
+    select(all_of(var_names)) |>
+    pivot_longer(everything(), names_to = "Category", values_to = "Value") |>
     
     #filter out various forms of NAs for clean facet wrap plots
-    filter(!Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")) %>%
+    filter(!Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")) |>
     
     ggplot(aes(x = Value, fill = Value)) +
       geom_bar(na.rm = TRUE) +
@@ -631,13 +631,13 @@ cols <- c(
   stage    = "Neoplasm Disease Stage American Joint Committee on Cancer Code"
 )
 
-data_code %>%
-  drop_na(all_of(unname(cols))) %>%
+data_code |>
+  drop_na(all_of(unname(cols))) |>
   count(
     ICD_O3_Site       = .data[[cols["site"]]],
     ICD_O3_Histology  = .data[[cols["hist"]]],
     AJCC_Stage        = .data[[cols["stage"]]]
-  ) %>%
+  ) |>
   
   ggplot(aes(
     axis1 = ICD_O3_Site,
