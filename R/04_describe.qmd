@@ -545,31 +545,38 @@ entropy_cat <- function(x) {
 }
 
 data_code |>
-  pivot_longer(all_of(unname(code_vars)), names_to = "var_name", values_to = "value") |>
+  pivot_longer(
+    cols = all_of(unname(code_vars)),
+    names_to = "var_name",
+    values_to = "value"
+  ) |>
   group_by(var_name) |>
   summarise(
     entropy = entropy_cat(value[!is.na(value)]),
     n_levels = n_distinct(value, na.rm = TRUE)
   ) |>
   arrange(desc(entropy)) |>
-  
-  ggplot(aes(x = reorder(var_name, entropy), y = entropy, fill = entropy)) +
-    geom_col() +
-    scale_fill_viridis_c(option = "C") +
-  
-    labs(
-      title = "Entropy of Categorical Variables",
-      x = NULL,
-      y = "Entropy"
-    ) +
-  
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title.y = element_blank(),
-      axis.text.y = element_text(size = 10),
-      legend.position = "none",
-      plot.title = element_text(size = 14, face = "bold")
-    ) 
+  ggplot(
+    aes(
+      x = reorder(var_name, entropy),
+      y = entropy,
+      fill = entropy
+    )
+  ) +
+  geom_col() +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Entropy of Categorical Variables",
+    x = NULL,
+    y = "Entropy"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    plot.title = element_text(size = 14, face = "bold")
+  ) 
 ```
 
 ##  Diagnoses Summary
