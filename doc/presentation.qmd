@@ -163,9 +163,12 @@ Methodology
 -   For utility, the total dataset is partitioned into five categories.
 -   The categories are not totally conceptually clean but provide a useful framework for analysis of clinical data.
 
-![](04description1.png){width="90%"}
+<div style="text-align:center;">
+  <img src="04description1.png"
+       style="width:36%; max-width:none;">
+</div>
 
-Figure created with BioRender [@BioRender].
+- Figure created with BioRender [@BioRender].
 
 ## Data Description 2: Example Patient Metadata Overview
 
@@ -178,8 +181,8 @@ Figure created with BioRender [@BioRender].
 #| eval: true         
 #| message: false
 #| output: true
-#| fig-width: 13
-#| fig-height: 8
+#| fig-width: 21
+#| fig-height: 7
 #| fig-align: "center"
 #| out-width: 100%
 
@@ -226,8 +229,6 @@ bubble_plot <- data_metrics %>%
   )
 bubble_plot
 ```
-
-------------------------------------------------------------------------
 
 ## PCA on numeric data
 
