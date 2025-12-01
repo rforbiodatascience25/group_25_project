@@ -9,12 +9,9 @@ editor: visual
 ## **Loading libraries**
 
 ```{r}
-install.packages("DiagrammeR") #for boxes
-
-library(DiagrammeR)
 library("tidyverse")
 library("here")
-library("ggalluvial")
+library("ggalluvial")  #for the very last plot - optional add-on
 ```
 
 ## **Loading data**
@@ -117,31 +114,6 @@ bottom_vars <- c(
   "Neoplasm Histologic Grade",
   "ICD-10 Classification"
 )
-```
-
-## Data Partitions Overview
-
-```{r}
-#DiagrammeR
-grViz("
-digraph {
-  graph [layout = dot, rankdir = TB]
-  node [shape = box, style = filled, fillcolor = lightblue, width = 5, fixedsize = false, fontsize = 18, fontname = Arial]
-
-  Patient_Metadata     [label = <<b>Patient Metadata (n = 184)</b><br/><br/>Diagnosis Age, Sex,<br/>Ancestry, Race, Ethnicity>]
-  Tumor_Metrics        [label = <<b>Tumor Metrics</b><br/><br/>Mutation Count, Fraction Genome Altered,<br/>Tumor Break Load, Tumor Mutation Burden>]
-  Tumor_Scores         [label = <<b>Tumor Scores</b><br/><br/>Aneuploidy, Microsatellites, Hypoxia>]
-  Clinical_Coding      [label = <<b>Clinical Coding</b><br/><br/>Disease Stage Codes, Histology Codes, Metastasis<br/>Codes, Lymph Stage Codes, Tumor Stage Codes>]
-  Outcomes             [label = <<b>Outcomes</b><br/><br/>Survival, Disease Free Survival,<br/>Progression Free Survival>]
-
-  # Invisible edges to enforce vertical alignment
-  Patient_Metadata -> Tumor_Metrics   [style = invis]
-  Tumor_Metrics -> Tumor_Scores       [style = invis]
-  Tumor_Scores -> Clinical_Coding     [style = invis]
-  Clinical_Coding -> Outcomes         [style = invis]
-
-}
-", width = 600)
 ```
 
 ## Summary of Patient Metadata Metrics
