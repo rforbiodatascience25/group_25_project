@@ -588,7 +588,7 @@ data_code |>
 
 ##  Diagnoses Summary
 
-Summary of the different cancer diagnoses.
+Summary of the different cancer diagnoses. Pancreatic adenocarcinoma ductal type is by far the most common cancer type. C25.0 is the most common ICD-10 classification by far, representing malignant neoplasms of the head of the pancreas.
 
 ```{r}
 long <- diagnosis_list_numeric |>
