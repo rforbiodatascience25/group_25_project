@@ -14,6 +14,10 @@ Szymon Cholewiński, s253711, Msc Bioinformatics  git: InfiniteLobster
 
 Magnus Strange, s190867, Msc Bioinformatics  git: s190867
 
+## Quarto Presentation
+
+https://raw.githack.com/rforbiodatascience25/group_25_project/main/doc/presentation.html
+
 ##  Original Data: Pancreatic Adenocarcinoma TCGA PanCancer data
 
 https://www.cbioportal.org/study/summary?id=paad_tcga_pan_can_atlas_2018

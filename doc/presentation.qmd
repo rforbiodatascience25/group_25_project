@@ -167,10 +167,14 @@ Methodology
 ## Data Description 2: Example Patient Metadata Overview
 
 ```{r}
-#| echo: true          # show code on the slide
-#| eval: true          # run the code
+#| echo: false      
+#| eval: true         
 #| message: false
-#| warning: false
+#| output: true
+#| fig-width: 13
+#| fig-height: 8
+#| fig-align: "center"
+#| out-width: 100%
 
 # define metric columns
 metric_cols <- c(
@@ -220,6 +224,7 @@ bubble_plot <- data_metrics %>%
     legend.position = "none",
     plot.margin = margin(t = 10, r = 5, b = 10, l = 5)
   )
+bubble_plot
 ```
 ---
 
