@@ -42,7 +42,7 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
-## Introduction (Szymon)
+## Introduction
 
 -   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data [@BioPortal; @TCGA_data]
 
@@ -52,21 +52,25 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 -   After initial analysis it didn't look tidy -\> ideal for the project purposes
 
-::::: columns
-::: {.column width="50%"}
-![](ExampleTissue.png){width="650"}
+::::::: columns
+:::: {.column width="50%"}
+::: {style="text-align: center;"}
+![](ExampleTissue.png){width="500"}
 :::
+::::
 
-::: {.column width="50%"}
-![](ExampleTissue2.png)
+:::: {.column width="50%"}
+::: {style="text-align: center;"}
+![](ExampleTissue2.png){width="500"}
 :::
-:::::
+::::
+:::::::
 
 ::: {style="font-size: 40%;"}
 Parts of image TCGA-2L-AAQI-01Z taken from [@BioPortal; @TCGA_data; @Slide]
 :::
 
-## Methods and Materials (Szymon)
+## Methods and Materials
 
 ```{r}
 #| echo: true
@@ -85,10 +89,10 @@ Materials:
 -   draw.io (just presentation)
 :::
 
-::: {.row height="50%"}
+::: {.row height="50%" style="text-align: center;"}
 Methodology
 
-![](Project%20flow.drawio.png){width="925"}
+![](Projectflow.drawio.png){width="925"}
 :::
 :::::
 
