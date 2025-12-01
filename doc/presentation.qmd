@@ -463,23 +463,24 @@ data_gene_diag_score <- data_gene |>
   drop_na() 
 ```
 
-::::: columns
-::: {layout="[vcenter]"}
-::: {.column width="40%"}
 
-- Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
-- Mixed groups ('high/low' or 'low/high') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
+
+::::: columns
+
+::: {.column width="35%"}
+ - Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
+ - Mixed groups ('high/low' or 'low/high') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
 
 :::
 
-::: {.column width="60%"}
+::: {.column width="65%"}
 ```{r}
 #| echo: false
 #| eval: true
 #| output: true
 #| message: false
 #| fig-width: 8
-#| fig-height: 7
+#| fig-height: 6
 #| fig-align: "center"
 #| out-width: 90%
 
@@ -529,11 +530,12 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       title = "Median Overall Survival (Days)",
       subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
       x = "Tumor Break Load", 
-      y = "Winter Hypoxia Score"
+      y = "Hypoxia Score"
     )
 ```
-:::
+::: 
 :::::
+
 
 ## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
 Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.
@@ -563,15 +565,29 @@ data_hypoxia <- data_diag |>
   
 ```
 
-::::: rows
-::: {.row height="60%"}
+::::: columns
+
+::: {.column width="50%"}
+Large variability across Hypoxia Scoring methods: 
+
+- Buffa Score: Higher hypoxia → unexpectedly better survival 
+
+- Ragnum Score: Lower hypoxia → clear survival advantage 
+
+- Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum 
+
+
+Evident variations in Hypoxia Score algorithms limit our ability to fully assess the impact of tumor hypoxia on radiotherapy survival outcomes.
+:::
+
+::: {.column width="50%"}
 ```{r}
 #| echo: false
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 6
-#| fig-height: 3
+#| fig-width: 5
+#| fig-height: 5
 #| fig-align: "center"
 #| out-width: 90%
 
@@ -627,7 +643,7 @@ ggplot(Kaplan_meier_data, aes(x = time,
     values = c("High Hypoxia Score" = "red",
                "Low Hypoxia Score"  = "blue")) +
   scale_y_continuous(limits = c(0, 1)) +
-  facet_wrap(~ Hypoxia_Type) +
+  facet_wrap(~ Hypoxia_Type, ncol=1) +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold"),
@@ -644,14 +660,6 @@ ggplot(Kaplan_meier_data, aes(x = time,
 
 :::
 
-::: {.row height="40%"}
-Large variability across Hypoxia Scoring Methods:
-- Buffa Score: Higher hypoxia → unexpectedly better survival
-- Ragnum Score: Lower hypoxia → clear survival advantage
-- Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum
-
-Evident variations in Hypoxia Score algorithms limit our ability to fully assess the impact of tumor hypoxia on radiotherapy survival outcomes.
-:::
 :::::
 
 
