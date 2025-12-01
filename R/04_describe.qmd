@@ -1,5 +1,5 @@
 ---
-  title: "04_describe"
+title: "04_describe"
 format: 
   html:
   embed-resources: true
@@ -118,7 +118,8 @@ bottom_vars <- c(
 
 ## Summary of Patient Metadata Metrics
 
-Plot the metrics, the number of metrics, the types within the metrics, and the values within each types. Males exhibit a higher mean age at diagnosis compared to females. Age groups of \[30,40\] and \[80,90\] contain too few individuals to support meaningful statistical analysis.​ Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This high correlation limits diversity across subgroups, rendering analyses stratified by these categories unreliable for drawing meaningful conclusions, except if limited to White European.
+Plot the metrics, the number of metrics, the types within the metrics, and the values within each types. Males exhibit a higher mean age at diagnosis compared to females (not statistically tested here), and there is a good balance of males to females in the patient dataset. Age groups of [30,40] and [80,90] contain too few individuals to support meaningful statistical analysis.​
+Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with the vast majority of individuals being of European ancestry also classified as White and similar by ethnicity. This high correlation limits diversity across subgroups, rendering analyses stratified by these categories unreliable for drawing meaningful conclusions, except if limited to White European.
 
 ```{r}
 #recode "Black or African American" = "Black"
