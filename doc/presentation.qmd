@@ -8,6 +8,7 @@ author:
   - "Catarina Anastácio s253709"
 format:
   revealjs:
+    embed-resources: true
     theme: serif # choose different themes
     logo: DTU_logo.png #choose a logo to put in here
     footer: "R for Bio Data Science 2025 - Group 25 Project"
@@ -181,10 +182,10 @@ Methodology
 #| eval: true         
 #| message: false
 #| output: true
-#| fig-width: 21
-#| fig-height: 7
+#| fig-width: 18
+#| fig-height: 6
 #| fig-align: "center"
-#| out-width: 100%
+#| out-width: 90%
 
 # define metric columns
 metric_cols <- c(
@@ -484,10 +485,10 @@ Tumor structural instability interacts with hypoxia to influence survival, highl
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 8
-#| fig-height: 6
+#| fig-width: 6
+#| fig-height: 8
 #| fig-align: "center"
-#| out-width: 90%
+#| out-width: 70%
 
 data_heatmap <- data_gene_diag_score |>
   pivot_longer(
@@ -548,6 +549,9 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
 #| eval: true
 #| output: false
 #| message: false
+#| fig-height: 8
+#| fig-align: "center"
+#| out-width: 90%
 
 
 # Hypoxia Data  
@@ -585,9 +589,9 @@ Variations in hypoxia scoring limit interpretation of radiotherapy survival.
 #| output: true
 #| message: false
 #| fig-width: 5
-#| fig-height: 5
+#| fig-height: 8
 #| fig-align: "center"
-#| out-width: 90%
+#| out-width: 70%
 
 # Calculation of Kaplan-Meier with hypoxia data
 Kaplan_meier_data <- data_hypoxia |>
@@ -673,8 +677,8 @@ ggplot(Kaplan_meier_data, aes(x = time,
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 10
-#| fig-height: 9
+#| fig-width: 13
+#| fig-height: 7
 #| fig-align: "center"
 #| out-width: 100%
 
@@ -774,8 +778,8 @@ hypoxia_heatmap / MSI_heatmap
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 10
-#| fig-height: 9
+#| fig-width: 13
+#| fig-height: 7
 #| fig-align: "center"
 #| out-width: 100%
 data_score |>
