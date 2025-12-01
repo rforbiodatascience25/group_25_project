@@ -6,13 +6,14 @@ format:
 editor: visual
 ---
 
-# 01_load
+This is document for loading of raw data. Theoretically it is possible to work directly on raw data files, but it is good practice to separate steps of work, i.e. saving files after each step separately rather than overwriting them. In practice this allows to save time if some actions need to be retracted. Furthermore it is much cleaner and allows better overview.
 
 ## Loading of the raw data
 
 To proceed with reading of raw data libraries needed for that are loaded
 
 ```{r}
+#| message: false
 library("tidyverse")
 library("here")
 ```
@@ -26,6 +27,7 @@ name_raw = "paad_tcga_pan_can_atlas_2018_clinical_data.tsv"
 With the name, the main file can be loaded and then saved in proper place (data folder). It ensures that work is never done on the raw data.
 
 ```{r}
+#| message: false
 read_tsv(here("_raw",name_raw)) |>
   write_tsv(x = _,file = here("data","data_load.tsv"))
 ```

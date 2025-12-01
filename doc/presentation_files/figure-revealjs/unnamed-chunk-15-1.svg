@@ -427,6 +427,10 @@
 </clipPath>
 </defs>
 <rect x="-36" y="-36" width="432" height="432" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
+<<<<<<< HEAD
+=======
+<rect x="-36" y="-36" width="432" height="432" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
+>>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
 <g clip-path="url(#clip-0)">
 <path fill="none" stroke-width="0.533489" stroke-linecap="butt" stroke-linejoin="round" stroke="rgb(92.156863%, 92.156863%, 92.156863%)" stroke-opacity="1" stroke-miterlimit="10" d="M 40.691406 107.773438 L 354.519531 107.773438 "/>
 </g>

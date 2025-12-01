@@ -6,6 +6,10 @@ format:
 editor: visual
 ---
 
+## Full project
+
+This is joined quarto document, that runs all project steps.
+
 ```{r child = "01_load.qmd"}
 ```
 
@@ -15,7 +19,8 @@ editor: visual
 ```{r child = "03_augment.qmd"}
 ```
 
-`{#{r child = "04_describe.qmd"}`
+```{r child = "04_describe.qmd"}
+```
 
 ```{r child = "05_analysis_1.qmd"}
 ```
