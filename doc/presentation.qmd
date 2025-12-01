@@ -187,7 +187,7 @@ data_metrics <- data_metrics %>%
                                   "Black or African American" = "Black"))
 
 # ----- create bubble plot and save PNG
-# png("bubble_plot.png", width = 1080, height = 756, res = 96)
+# png("bubble_plot.png", width = 1080, height = 756, res = 96)      ->>>>>>>>>>>>>< use ggsave
 
 bubble_plot <- data_metrics %>%
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
@@ -463,6 +463,7 @@ data_gene_diag_score <- data_gene |>
 ```
 
 ::::: columns
+::: {layout="[vcenter]"}
 ::: {.column width="40%"}
 
 - Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
@@ -522,7 +523,6 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       axis.text = element_text(color = "black"),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      legend.position = "bottom"
     ) +
     labs(
       title = "Median Overall Survival (Days)",
@@ -569,8 +569,8 @@ data_hypoxia <- data_diag |>
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 10
-#| fig-height: 6
+#| fig-width: 6
+#| fig-height: 3
 #| fig-align: "center"
 #| out-width: 90%
 
