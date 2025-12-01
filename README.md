@@ -30,4 +30,4 @@ https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5H
 
 ## AI Use Declaration
 
-Portions of this code and documentation were assisted by AI tools (e.g., ChatGPT). All code is reviewed, tested, and maintained by the project authors.
+Portions of this code and documentation were assisted by AI tools (e.g., ChatGPT, Copilot). All code is reviewed, tested, and maintained by the project authors.
