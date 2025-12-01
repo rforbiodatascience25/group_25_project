@@ -232,8 +232,8 @@ data_gene_code_filtered <- data_gene_code |>
 ```
 
 ```{r}
-#| fig-width: 10
-#| fig-height: 5
+#| fig-width: 5
+#| fig-height: 10
 data_gene_code_filtered |>
   left_join(stage_labels, by = "NDSA_stage") |>
   pivot_longer(
@@ -250,13 +250,14 @@ data_gene_code_filtered |>
   geom_boxplot(width = 0.2) +
   facet_wrap(~ Genomic_Metric, 
              scales = "free_y", 
-             nrow = 1) +
+             ncol = 1) +
   theme_uniform() +
   theme(axis.text.x = element_text(angle = 45, 
                                    hjust = 1)) +
   labs(
     x = "AJCC stage (n per stage)",
-    y = "Genomic metric")
+    y = "Genomic metric",
+    title = "Genomic instability metrics across AJCC stages")
 ```
 
 To begin, we only included tumor classes with at least 10 patients per AJCC stage, as smaller groups would not provide a reliable representation of the underlying distribution.

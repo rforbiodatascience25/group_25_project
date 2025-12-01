@@ -137,8 +137,6 @@ pca_data <- data_all |>
 
 ```{r}
 data_pca <- pca_data |>
-  filter(`Mutation Count` < 5000 | is.na(`Mutation Count`)) |> 
-  filter(`Tumor Break Load` < 200 | is.na(`Tumor Break Load`)) |> 
   drop_na()
 ```
 
