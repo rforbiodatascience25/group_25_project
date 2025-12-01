@@ -518,8 +518,8 @@ co_matrix |>
     )
   ) +
   geom_tile() +
-  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
-  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
+  scale_x_continuous(breaks = 1:max(co_matrix |> pull(ID.x))) +
+  scale_y_continuous(breaks = 1:max(co_matrix |> pull(ID.x))) +
   coord_fixed() +
   labs(
     title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up"
