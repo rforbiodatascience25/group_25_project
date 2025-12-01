@@ -426,12 +426,8 @@
 <path clip-rule="nonzero" d="M 326 225.925781 L 328 225.925781 L 328 288.902344 L 326 288.902344 Z M 326 225.925781 "/>
 </clipPath>
 </defs>
-<<<<<<< HEAD
 <rect x="-36" y="-36" width="432" height="432" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
 <rect x="-36" y="-36" width="432" height="432" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
-=======
-<rect x="-43.2" y="-21.6" width="518.4" height="259.2" fill="rgb(100%, 100%, 100%)" fill-opacity="1"/>
->>>>>>> 321cec7501326d2679ff0f0964054c9a9cf3bb5b
 <g clip-path="url(#clip-0)">
 <path fill="none" stroke-width="0.533489" stroke-linecap="butt" stroke-linejoin="round" stroke="rgb(92.156863%, 92.156863%, 92.156863%)" stroke-opacity="1" stroke-miterlimit="10" d="M 40.691406 107.773438 L 354.519531 107.773438 "/>
 </g>
