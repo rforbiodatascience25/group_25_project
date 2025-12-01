@@ -158,7 +158,9 @@ Methodology
 
 ## Data Description 1: Overview of Data Partitions
 
-184 patient samples; 63 clinical variables.
+- Prior to data filtration, the total dataset contains 184 patients with 63 clinical variables.
+- For utility, the total dataset is partitioned into five categories.
+- The categories are not totally conceptually clean but provide a useful framework for analysis of clinical data.
 
 ![](04_describe_slide_1.png){width=90%}
 
