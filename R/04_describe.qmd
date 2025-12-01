@@ -2,7 +2,7 @@
 title: "04_describe"
 format: 
   html:
-  embed-resources: true
+    embed-resources: true
 editor: visual
 ---
 
