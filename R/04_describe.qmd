@@ -458,7 +458,7 @@ data_code |>
     axis.text.x = element_text(angle=45, hjust=1),
     axis.title.x = element_blank(),
     legend.position = "none"
-  ) +
+  )
 
 #heatmap for cross-category codes
 df <- data_code |>
