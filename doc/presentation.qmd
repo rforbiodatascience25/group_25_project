@@ -186,13 +186,13 @@ data_metrics <- data_metrics %>%
   mutate(`Race Category` = recode(`Race Category`,
                                   "Black or African American" = "Black"))
 
-<<<<<<< HEAD
+#<<<<<<< HEAD
 # ----- create bubble plot and save PNG
 # png("bubble_plot.png", width = 1080, height = 756, res = 96)      ->>>>>>>>>>>>>< use ggsave
 
-=======
+#=======
 # ----- create bubble plot
->>>>>>> 4a99f71725e4554a84ca1dd1b59a2b691aef7939
+#>>>>>>> 4a99f71725e4554a84ca1dd1b59a2b691aef7939
 bubble_plot <- data_metrics %>%
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
   ggplot(aes(x = `Genetic Ancestry Label`,
