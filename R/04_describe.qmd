@@ -216,8 +216,6 @@ ggplot(aes(x = Count, y = factor(AgeDecade), fill = Sex)) +
     plot.title = element_text(size = 14),
     axis.text.y = element_text(size = 12)
   )
-
-#ADD AVERAGE/MEDIAN AGE TO THE PYRAMID PLOT
 ```
 
 ## **Summary of Tumor Genetics (gene) and Scoring (score)**
