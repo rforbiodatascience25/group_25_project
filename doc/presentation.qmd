@@ -446,20 +446,22 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
 ## Discussion (2) (Catarina)
 
 ## Discussion (3) (Lily)
+- TMB and Mutation Count seem mostly independent of AJCC stage.
+
+- However higher mutation burden looks to correlate with shorter survival, with TMB as the strongest predictor.
+
+- Genomic instability behaves differently from mutation burden, showing some links to hypoxia and stage.
+
+- Radiation therapy improves survival overall, with the greatest benefit observed in low-hypoxia tumors.
 
 ## Conclusion (Lily)
+- Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
 
--   Sex distribution was balanced, but age distribution was not.
+- Predominantly White patient representation highlights the need for greater ethnic diversity.
 
--   Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
+- Limited variability in several categories may constrain findings.
 
--   Predominantly White patient representation highlights the need for greater ethnic diversity.
-
--   Limited variability in several categories may constrain findings.
-
--   Incorporating additional data types and clinical variables could strengthen analyses.
-
--   Future work should expand cohort diversity, increase representation of underrepresented groups, and integrate multi-omic data.
+- Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
 
 more data ::::::::::::
 
