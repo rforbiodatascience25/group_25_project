@@ -434,7 +434,13 @@ data_code |>
   group_by(Category) |> 
   count(Value) |>
   mutate(p = n / sum(n)) |>
-  ggplot(aes(Value, p, fill = Category)) +
+  ggplot(
+    aes(
+      x = Value,
+      y = p,
+      fill = Category
+    )
+  ) +
   geom_col() +
   facet_wrap(~ Category, scales = "free_x") +
   labs(
@@ -596,7 +602,11 @@ medians <- long |>
     med = median(Value, na.rm = TRUE)
   )
 
-ggplot(long, aes(x = Value)) +
+ggplot(long,
+  aes(
+    x = Value
+  )
+) +
   geom_histogram(
     bins = 30,
     fill = "steelblue",
