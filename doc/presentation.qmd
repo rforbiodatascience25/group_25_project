@@ -186,9 +186,13 @@ data_metrics <- data_metrics %>%
   mutate(`Race Category` = recode(`Race Category`,
                                   "Black or African American" = "Black"))
 
+#<<<<<<< HEAD
 # ----- create bubble plot and save PNG
-png("bubble_plot.png", width = 1080, height = 756, res = 96)
+# png("bubble_plot.png", width = 1080, height = 756, res = 96)      ->>>>>>>>>>>>>< use ggsave
 
+#=======
+# ----- create bubble plot
+#>>>>>>> 4a99f71725e4554a84ca1dd1b59a2b691aef7939
 bubble_plot <- data_metrics %>%
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
   ggplot(aes(x = `Genetic Ancestry Label`,
@@ -216,9 +220,6 @@ bubble_plot <- data_metrics %>%
     legend.position = "none",
     plot.margin = margin(t = 10, r = 5, b = 10, l = 5)
   )
-
-print(bubble_plot)
-dev.off()
 ```
 ---
 
@@ -447,7 +448,6 @@ data_gene_code_filtered |>
 :::::
 
 ## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
-
 Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
 
 ```{r}
@@ -464,6 +464,7 @@ data_gene_diag_score <- data_gene |>
 ```
 
 ::::: columns
+::: {layout="[vcenter]"}
 ::: {.column width="40%"}
 
 - Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
@@ -523,7 +524,6 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       axis.text = element_text(color = "black"),
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank(),
-      legend.position = "bottom"
     ) +
     labs(
       title = "Median Overall Survival (Days)",
@@ -536,7 +536,6 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
 :::::
 
 ## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
-
 Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.
 
 ```{r}
@@ -571,8 +570,8 @@ data_hypoxia <- data_diag |>
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 10
-#| fig-height: 6
+#| fig-width: 6
+#| fig-height: 3
 #| fig-align: "center"
 #| out-width: 90%
 
@@ -642,7 +641,6 @@ ggplot(Kaplan_meier_data, aes(x = time,
   )
 
 ```
-
 
 :::
 
