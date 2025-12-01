@@ -115,9 +115,9 @@ iris
 
 ## PCA on numeric data
 
--   PCA on variables reduced the data to a few components while retaining most of the variance.
+PCA reduced the data to a few components while retaining most of the variance.
 
--   PCA loadings were plotted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.
+PCA loadings were plotted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.
 
 ```{r}
 #| echo: false
@@ -327,7 +327,8 @@ data_gene_code_filtered |>
 :::
 :::::
 
-## Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)
+## [Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)]{.smalltitle}
+
 ```{r}
 #| echo: false
 #| eval: true

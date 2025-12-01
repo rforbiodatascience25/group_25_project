@@ -654,10 +654,8 @@ Catarina Anastácio s253709
 </section>
 <section id="pca-on-numeric-data" class="slide level2">
 <h2>PCA on numeric data</h2>
-<ul>
-<li><p>PCA on variables reduced the data to a few components while retaining most of the variance.</p></li>
-<li><p>PCA loadings were plotted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.</p></li>
-</ul>
+<p>PCA reduced the data to a few components while retaining most of the variance.</p>
+<p>PCA loadings were plotted and revealed groups of strongly correlated variables, indicating redundancy in the feature set.</p>
 <div class="columns">
 <div class="column" style="width:50%;">
 <div class="cell">
@@ -738,8 +736,50 @@ Catarina Anastácio s253709
 </div>
 </div></div>
 </section>
-<section id="results-3-catarina" class="slide level2">
-<h2>Results (3) (Catarina)</h2>
+<section id="interaction-between-hypoxia-and-tumor-break-load-and-its-effects-in-overall-survival-days" class="slide level2">
+<h2><span class="smalltitle">Interaction between Hypoxia and Tumor Break Load, and its effects in Overall Survival (Days)</span></h2>
+<div class="columns">
+<div class="column" style="width:50%;">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="fu">ggplot</span>(data_heatmap, <span class="fu">aes</span>(<span class="at">x =</span> Mut_Count_Bin, </span>
+<span id="cb5-2"><a href=""></a>                         <span class="at">y =</span> Hypoxia_Bin, </span>
+<span id="cb5-3"><a href=""></a>                         <span class="at">fill =</span> Median_Survival)) <span class="sc">+</span></span>
+<span id="cb5-4"><a href=""></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb5-5"><a href=""></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(Median_Survival, <span class="dv">0</span>)), </span>
+<span id="cb5-6"><a href=""></a>            <span class="at">color =</span> <span class="st">"white"</span>, </span>
+<span id="cb5-7"><a href=""></a>            <span class="at">size =</span> <span class="dv">6</span>) <span class="sc">+</span></span>
+<span id="cb5-8"><a href=""></a>  <span class="fu">scale_fill_gradient</span>(</span>
+<span id="cb5-9"><a href=""></a>    <span class="at">low =</span> <span class="st">"red"</span>,</span>
+<span id="cb5-10"><a href=""></a>    <span class="at">high =</span> <span class="st">"#2ECC71"</span>,</span>
+<span id="cb5-11"><a href=""></a>    <span class="at">name =</span> <span class="st">"Median Survival (Days)"</span></span>
+<span id="cb5-12"><a href=""></a>  ) <span class="sc">+</span> </span>
+<span id="cb5-13"><a href=""></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Hypoxia_Score_Type, <span class="at">ncol=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-14"><a href=""></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb5-15"><a href=""></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-16"><a href=""></a>      <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">16</span>),</span>
+<span id="cb5-17"><a href=""></a>      <span class="at">plot.subtitle =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb5-18"><a href=""></a>      <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"black"</span>),</span>
+<span id="cb5-19"><a href=""></a>      <span class="at">panel.grid.major =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb5-20"><a href=""></a>      <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-21"><a href=""></a>    ) <span class="sc">+</span></span>
+<span id="cb5-22"><a href=""></a>    <span class="fu">labs</span>(</span>
+<span id="cb5-23"><a href=""></a>      <span class="at">title =</span> <span class="st">"Median Overall Survival (Days)"</span>,</span>
+<span id="cb5-24"><a href=""></a>      <span class="at">subtitle =</span> <span class="st">"Interaction between Tumor Break Load and Hypoxia Score"</span>,</span>
+<span id="cb5-25"><a href=""></a>      <span class="at">x =</span> <span class="st">"Tumor Break Load"</span>, </span>
+<span id="cb5-26"><a href=""></a>      <span class="at">y =</span> <span class="st">"Winter Hypoxia Score"</span></span>
+<span id="cb5-27"><a href=""></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div><div class="column" style="width:50%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="presentation_files/figure-revealjs/unnamed-chunk-13-1.svg" class="quarto-figure quarto-figure-center" style="width:90.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div></div>
 </section>
 <section id="discussion-2-catarina" class="slide level2">
 <h2>Discussion (2) (Catarina)</h2>
