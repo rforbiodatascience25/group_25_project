@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+# Data Cleaning
+
 In this document raw data is prepared for further processing. This includes dropping redundant columns, filtering outliers and separating data into smaller parts.
 
 ## Loading libraries

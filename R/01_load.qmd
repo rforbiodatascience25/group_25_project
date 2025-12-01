@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+# Raw data loading
+
 This is document for loading of raw data. Theoretically it is possible to work directly on raw data files, but it is good practice to separate steps of work, i.e. saving files after each step separately rather than overwriting them. In practice this allows to save time if some actions need to be retracted. Furthermore it is much cleaner and allows better overview.
 
 ## Loading of the raw data
