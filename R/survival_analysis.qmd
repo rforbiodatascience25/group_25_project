@@ -11,10 +11,7 @@ editor: visual
 ```{r}
 library("patchwork")
 library("tidyverse")
-library("ggplot2")
-library("corrplot")
 library("here")
-
 ```
 
 ## **Loading data**
@@ -146,8 +143,8 @@ Surprisingly, a higher fraction of the genome altered was associated with the al
 #### Interaction between Hypoxia and TMB, and its effects in Overall Survival (Days)
 
 ```{r}
-#| fig.width=14
-#| fig.height=6
+#| fig-width: 14
+#| fig-height: 6
 
 # Prepare data
 data_heatmap <- data_gene |>
@@ -165,7 +162,7 @@ data_heatmap <- data_gene |>
   mutate(
     TMB_Bin = case_when(
       `TMB (nonsynonymous)` > median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "High TMB",
-      `TMB (nonsynonymous)` <= median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "Low TMB")) |>
+      `TMB (nonsynonymous)` <= median(`Mutation Count`, na.rm = TRUE) ~ "Low TMB")) |>
   group_by(Hypoxia_Score_Type) |>
   mutate(
     Hypoxia_Bin = case_when(
@@ -437,8 +434,8 @@ Overall, these findings suggest that the relationship between tumor hypoxia, tre
 #### Kaplan-Meier survival analysis based on **Diagnosis Age**
 
 ```{r}
-#| fig.width=10
-#| fig.height=10
+#| fig-width: 10
+#| fig-height: 10
 
 ## Preparing data - Select and clean necessary columns
 data_age_surv <- data_metrics |>
@@ -486,7 +483,7 @@ plt_age_surv <- data_age_surv |>
 
 ## PLOTTING THE Kaplan-Meier
 ## Define Age Groups (Low vs High) using the median
-age_med <- median(data_age[["Diagnosis_Age"]], na.rm = TRUE)
+age_med <- median(data_age_surv[["Diagnosis_Age"]], na.rm = TRUE)
 
 data_age <- data_age_surv |>
   mutate(
@@ -495,6 +492,7 @@ data_age <- data_age_surv |>
       Diagnosis_Age <= age_med ~ "Low Age"
     )
   )
+
 
 # Survival Calculation (Kaplan-Meier) 
 ## Calculation of Kaplan-Meier
