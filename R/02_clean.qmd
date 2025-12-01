@@ -6,13 +6,14 @@ format:
 editor: visual
 ---
 
-# 02_clean
+In this document raw data is prepared for further processing. This includes dropping redundant columns, filtering outliers and separating data into smaller parts.
 
 ## Loading libraries
 
 For any work to proceed, first libraries need to be loaded
 
 ```{r}
+#| message: false
 library("tidyverse")
 library("here")
 ```
@@ -22,6 +23,7 @@ library("here")
 To process data it first needs to be loaded into memory.
 
 ```{r}
+#| message: false
 data <- read_tsv(here("data","data_load.tsv"))
 ```
 
@@ -80,6 +82,7 @@ names_red_col <- data|>
 Redundant data is dropped to save space for processing.
 
 ```{r}
+#| message: false
 #redundant data is dropped
 data_red <- data|>
   select(-all_of(names_red_col))|>
