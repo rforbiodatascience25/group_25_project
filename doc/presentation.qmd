@@ -159,24 +159,19 @@ Methodology
 
 ## Data Description 1: Overview of Data Partitions
 
-- Prior to data filtration, the total dataset contains 184 patients with 63 clinical variables.
-- For utility, the total dataset is partitioned into five categories.
-- The categories are not totally conceptually clean but provide a useful framework for analysis of clinical data.
+-   Prior to data filtration, the total dataset contains 184 patients with 63 clinical variables.
+-   For utility, the total dataset is partitioned into five categories.
+-   The categories are not totally conceptually clean but provide a useful framework for analysis of clinical data.
 
 ![](04description1.png){width="90%"}
 
-<<<<<<< HEAD
-------------------------------------------------------------------------
-=======
 Figure created with BioRender [@BioRender].
----
->>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
 
 ## Data Description 2: Example Patient Metadata Overview
 
-- The R pipeline produced a wealth of highly descriptive plots about the data.
-- This plot was chosen as an example because it (1) is early in the pipeline, (2) clarifies patient Sex and Ethnicity stratification, and (3) highlights the power of ggplots.
-- Ideally, further analysis would stratify or clean data by race/ancestry/ethnicity.
+-   The R pipeline produced a wealth of highly descriptive plots about the data.
+-   This plot was chosen as an example because it (1) is early in the pipeline, (2) clarifies patient Sex and Ethnicity stratification, and (3) highlights the power of ggplots.
+-   Ideally, further analysis would stratify or clean data by race/ancestry/ethnicity.
 
 ```{r}
 #| echo: false      
@@ -202,13 +197,6 @@ data_metrics <- data_metrics %>%
   mutate(`Race Category` = recode(`Race Category`,
                                   "Black or African American" = "Black"))
 
-#<<<<<<< HEAD
-# ----- create bubble plot and save PNG
-# png("bubble_plot.png", width = 1080, height = 756, res = 96)      ->>>>>>>>>>>>>< use ggsave
-
-#=======
-# ----- create bubble plot
-#>>>>>>> 4a99f71725e4554a84ca1dd1b59a2b691aef7939
 bubble_plot <- data_metrics %>%
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
   ggplot(aes(x = `Genetic Ancestry Label`,
@@ -347,7 +335,6 @@ pca_fit |>
   y = "Cumulative variance across PCs",
   title = "Cumulative explained variance by principal component"
 )
-
 ```
 :::
 :::::
@@ -465,14 +452,7 @@ data_gene_code_filtered |>
 :::
 :::::
 
-<<<<<<< HEAD
-## Patient Survival based on Hypoxia and Tumor Break Load interaction {.smalltitle}
-
-Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
-=======
-## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
-
->>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
+## [Patient Survival based on Hypoxia and Tumor Break Load interaction]{.smalltitle}
 
 ```{r}
 #| echo: false
@@ -487,21 +467,14 @@ data_gene_diag_score <- data_gene |>
   drop_na() 
 ```
 
-::::: columns
-<<<<<<< HEAD
-::: {.column width="35%"}
--   Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
--   Mixed groups ('high/low') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
-=======
-
+:::::: columns
 ::: {.column width="40%"}
+
 Tumor structural instability interacts with hypoxia to influence survival, highlighting biologically aggressive tumor subtypes.
 
- - High Hypoxia and high Tumor Break Load leads to worst survival.
- 
- - Mixed groups outperform 'low/low', suggesting that one single adverse factor can moderate the negative effect in survival.
+- High Hypoxia and high Tumor Break Load leads to worst survival.
 
->>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
+- Mixed groups outperform 'low/low', suggesting that one single adverse factor can moderate the negative effect in survival.
 :::
 
 ::: {.column width="60%"}
@@ -565,14 +538,9 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
     )
 ```
 :::
-:::::
+::::::
 
-## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
-<<<<<<< HEAD
-
-Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.
-=======
->>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
+## [Survival of Radiation Therapy Patients based on levels of Hypoxia]{.smalltitle}
 
 ```{r}
 #| echo: false
@@ -598,17 +566,8 @@ data_hypoxia <- data_diag |>
   rename(Status_Tumor = `Disease-specific Survival status (bin)`) 
   
 ```
-
-::::: columns
-<<<<<<< HEAD
-::: {.column width="50%"}
-Large variability across Hypoxia Scoring methods:
-=======
-
 ::: {.column width="45%"}
-
-Low oxygen levels in tumors tend to be associated with radiotherapy resistance.
->>>>>>> a6d4d04fb48088af9cc719dfbadad22fb6f34f72
+Low oxygen levels in tumors Hypoxia are usually associated with resistance to radiation therapy.
 
 -   Buffa Score: Higher hypoxia → unexpectedly better survival
 
@@ -618,7 +577,6 @@ Low oxygen levels in tumors tend to be associated with radiotherapy resistance.
 
 Variations in hypoxia scoring limit interpretation of radiotherapy survival.
 :::
-
 ::: {.column width="55%"}
 ```{r}
 #| echo: false
@@ -701,12 +659,11 @@ ggplot(Kaplan_meier_data, aes(x = time,
 
 ## Hypoxia and MSI scores
 
-- Scoring methods poorly agree, labeling patients and tumors inconsistently.
+-   Scoring methods poorly agree, labeling patients and tumors inconsistently.
 
-- Buffa and Winter align, but others disagree on hypoxia, MSI.
+-   Buffa and Winter align, but others disagree on hypoxia, MSI.
 
-- Buffa and Ragnum scores rose with grade, especially in tumors.
-
+-   Buffa and Ragnum scores rose with grade, especially in tumors.
 
 ::::: columns
 ::: {.column width="50%"}
@@ -715,8 +672,8 @@ ggplot(Kaplan_meier_data, aes(x = time,
 #| eval: true
 #| output: true
 #| message: false
-#| fig-width: 4
-#| fig-height: 6
+#| fig-width: 10
+#| fig-height: 9
 #| fig-align: "center"
 #| out-width: 100%
 
@@ -773,10 +730,16 @@ df_hypoxia <- df_long |>
 MSI_heatmap <- ggplot(df_msi,
        aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
   geom_tile() +
-  scale_fill_viridis_c(name = "z-score") +   # name here
+  scale_fill_viridis_c(name = "z-score") +
   theme_uniform() +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
+  theme(
+    legend.position = "bottom",              # move z-score bar below
+    legend.title = element_text(size = 10),
+    legend.key.width = unit(2, "lines"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  guides(fill = guide_colourbar(title.position = "top")) +  # optional
   labs(
     title = "MSI scores across patients (z-scaled)",
     x = "Patient", y = "MSI metric"
@@ -785,10 +748,16 @@ MSI_heatmap <- ggplot(df_msi,
 hypoxia_heatmap <- ggplot(df_hypoxia,
        aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
   geom_tile() +
-  scale_fill_viridis_c(name = "z-score") +   # same here
+  scale_fill_viridis_c(name = "z-score") +
   theme_uniform() +
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
+  theme(
+    legend.position = "bottom",              # move z-score bar below
+    legend.title = element_text(size = 10),
+    legend.key.width = unit(2, "lines"),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  guides(fill = guide_colourbar(title.position = "top")) +  # optional
   labs(
     title = "Hypoxia scores across patients (z-scaled)",
     x = "Patient", y = "Hypoxia metric"
@@ -796,7 +765,6 @@ hypoxia_heatmap <- ggplot(df_hypoxia,
 
 hypoxia_heatmap / MSI_heatmap
 ```
-
 :::
 
 ::: {.column width="50%"}
@@ -856,3 +824,4 @@ Limited variability in several categories may constrain findings.
 Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
 
 ## References
+
