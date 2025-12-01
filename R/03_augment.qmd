@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+# Data Augmentation
+
 This part of project is focused on getting more data from raw data (data earlier processed in cleaning, but cleaning was focus on dropping data, so it is in the same way as in raw form). While doing so data is tidied. Furthermore some units are changed into more suitable for analysis.
 
 ## Loading libraries

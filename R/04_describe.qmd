@@ -260,7 +260,6 @@ gene_long <- data_gene |>
     values_to = "Value"
   )
 
-#rename TMB to full name for more information on plot
 gene_long <- gene_long |>
   mutate(
     Category = recode(
@@ -377,26 +376,23 @@ combined_norm <- combined_norm |>
   mutate(
     Category = factor(
       Category,
-      levels = combined_norm |> arrange(Group, Category) |> pull(Category) |> unique()
+      levels = combined_norm |>
+      arrange(Group, Category) |>
+      pull(Category) |>
+      unique()
     )
   )
   
 #facet wrap density plot for all of the categories
 ggplot(combined_norm, aes(x = NormValue)) +
-  
-  #density plots for shape
   geom_density(
     aes(fill = Group),
     alpha = 1.0,
     color = NA,
     adjust = 1.0
   ) +
-  
-  #add tick/rug marks for individual data points
   geom_rug(alpha = 0.1, sides = "b") +
-  
   facet_wrap(~ Category, scales = "fixed") +
-  
   theme_minimal(base_size = 14) +
   labs(
     title = "Distributions of Individual Tumor Genetics & Scores",
@@ -404,13 +400,12 @@ ggplot(combined_norm, aes(x = NormValue)) +
     y = "Densities",
     fill = "Group"
   ) +
-  
-  #accessible color scheme
-  scale_fill_manual(values = c(
-    "#000000", "#E69F00", "#56B4E9", "#009E73",
-    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )) +
-  
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
   theme(
     legend.position = "none",
     plot.title = element_text(face = "bold", size = 16),
@@ -430,59 +425,68 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 ```{r}
 #column plot with normalized code counts
 data_code |>
-  
-  #count code occurence and normalize 
   select(all_of(code_vars)) |>
-  pivot_longer(everything(), names_to="Category", values_to="Value") |>
+  pivot_longer(
+    cols = everything(),
+    names_to="Category",
+    values_to="Value"
+  )|>
   group_by(Category) |> 
   count(Value) |>
   mutate(p = n / sum(n)) |>
-  
-  #plot normalized code occurence as column plot in facets
   ggplot(aes(Value, p, fill = Category)) +
   geom_col() +
   facet_wrap(~ Category, scales = "free_x") +
   labs(
-    title = "Normalized code counts across categories") +
-  
-  #accessible color scheme
+    title = "Normalized code counts across categories"
+  ) +
   scale_fill_manual(values = c(
     "#000000", "#E69F00", "#56B4E9", "#009E73",
     "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )) +
-  
-  theme_minimal() +
-  
-  theme(
-    axis.text.x = element_text(angle=45, hjust=1),
-    axis.title.x = element_blank(),
-    legend.position = "none"
-  ) +
-  ylab("Proportion")
+  )
+) +
+theme_minimal() +
+theme(
+  axis.text.x = element_text(angle=45, hjust=1),
+  axis.title.x = element_blank(),
+  legend.position = "none"
+) +
+ylab("Proportion")
 
 
 #chessboard heatmap for cross-category codes
-df <- data_code |> select(all_of(code_vars))
+df <- data_code |>
+  select(all_of(code_vars))
 
 #extract all unique values across all variables
 #use this as a key to look up codes in the heatmap
 value_index <- df |>
-  pivot_longer(everything(), names_to="Category", values_to="Value") |>
-  distinct(Value) |>
-  arrange(Value) |>
-  mutate(ID = row_number())
+  pivot_longer(
+    cols = everything(),
+    names_to="Category",
+    values_to="Value"
+) |>
+distinct(Value) |>
+arrange(Value) |>
+mutate(ID = row_number())
 
-# onvert the entire dataframe to ID form (df_id)
+#convert the entire dataframe to df_id form
 df_id <- df |>                              
-  mutate(across(
-    everything(),
-    ~ value_index$ID[ match(.x, value_index$Value) ]
-  ))
+  mutate(
+    across(
+      everything(),
+      ~ value_index$ID[ match(.x, value_index$Value) ]
+    )
+  )
 
 #long format for co-occurrence
 long <- df_id |>
   mutate(RowID = row_number()) |>
-  pivot_longer(-RowID, names_to="Category", values_to="ID")
+  pivot_longer(
+    cols = -RowID,
+    names_to="Category",
+    values_to="ID"
+  )
 
 #compute co-occurrences
 pairs <- long |>
@@ -501,18 +505,29 @@ co_matrix <- pairs |>
 
 #plot chessboard heatmap
 co_matrix |>
-  pivot_longer(-ID.x, names_to="ID.y", values_to="n") |>
-  ggplot(aes(as.integer(ID.x), as.integer(ID.y), fill = n)) +
+  pivot_longer(
+    cols = -ID.x,
+    names_to="ID.y",
+    values_to="n"
+  ) |>
+  ggplot(
+    aes(
+      x = as.integer(ID.x),
+      y = as.integer(ID.y),
+      fill = n
+    )
+  ) +
   geom_tile() +
-  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +
-  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +
+  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
+  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
   coord_fixed() +
   labs(
-    title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up") +
-  
-  #accessible color scheme
-  scale_fill_viridis_c(trans = "log10", guide = "none") +
-  
+    title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up"
+  ) +
+  scale_fill_viridis_c(
+    trans = "log10",
+    guide = "none"
+  ) +
   theme_void() +
   theme(
     axis.text.x = element_text(angle = 90, vjust = 0.5, size = 5),
@@ -521,9 +536,7 @@ co_matrix |>
     plot.margin = margin(0,0,0,0)
   )
 
-#call value index trans = "log10", guide = "none"
 value_index
-
 
 #calculate entropy of top-level codes
 entropy_cat <- function(x) {
@@ -532,32 +545,38 @@ entropy_cat <- function(x) {
 }
 
 data_code |>
-  
-  pivot_longer(all_of(unname(code_vars)), names_to = "var_name", values_to = "value") |>
+  pivot_longer(
+    cols = all_of(unname(code_vars)),
+    names_to = "var_name",
+    values_to = "value"
+  ) |>
   group_by(var_name) |>
   summarise(
     entropy = entropy_cat(value[!is.na(value)]),
     n_levels = n_distinct(value, na.rm = TRUE)
   ) |>
   arrange(desc(entropy)) |>
-  
-  ggplot(aes(x = reorder(var_name, entropy), y = entropy, fill = entropy)) +
-    geom_col() +
-    scale_fill_viridis_c(option = "C") +
-  
-    labs(
-      title = "Entropy of Categorical Variables",
-      x = NULL,
-      y = "Entropy"
-    ) +
-  
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title.y = element_blank(),
-      axis.text.y = element_text(size = 10),
-      legend.position = "none",
-      plot.title = element_text(size = 14, face = "bold")
-    ) 
+  ggplot(
+    aes(
+      x = reorder(var_name, entropy),
+      y = entropy,
+      fill = entropy
+    )
+  ) +
+  geom_col() +
+  scale_fill_viridis_c(option = "C") +
+  labs(
+    title = "Entropy of Categorical Variables",
+    x = NULL,
+    y = "Entropy"
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.title.y = element_blank(),
+    axis.text.y = element_text(size = 10),
+    legend.position = "none",
+    plot.title = element_text(size = 14, face = "bold")
+  ) 
 ```
 
 ##  Diagnoses Summary
@@ -566,14 +585,23 @@ Summary of the different cancer diagnoses.
 
 ```{r}
 long <- diagnosis_list_numeric |>
-  pivot_longer(everything(), names_to = "Variable", values_to = "Value")
+  pivot_longer(
+    cols = everything(),
+    names_to = "Variable",
+    values_to = "Value")
 
 medians <- long |>
   group_by(Variable) |>
-  summarize(med = median(Value, na.rm = TRUE))
+  summarize(
+    med = median(Value, na.rm = TRUE)
+  )
 
 ggplot(long, aes(x = Value)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_histogram(
+    bins = 30,
+    fill = "steelblue",
+    color = "white"
+  ) +
   geom_vline(
     data = medians,
     aes(xintercept = med),
@@ -581,31 +609,37 @@ ggplot(long, aes(x = Value)) +
   ) +
   facet_wrap(~ Variable, scales = "free") +
   labs(
-    title = "Survival, Progress by Days/Months") +
+    title = "Survival, Progress by Days/Months"
+  ) +
   theme_minimal()
-
 
 #function to make facet wrap plots
 make_facet_plot <- function(data, var_names) {
   data |>
     select(all_of(var_names)) |>
-    pivot_longer(everything(), names_to = "Category", values_to = "Value") |>
-    
-    #filter out various forms of NAs for clean facet wrap plots
-    filter(!Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")) |>
-    
-    ggplot(aes(x = Value, fill = Value)) +
-      geom_bar(na.rm = TRUE) +
-      facet_wrap(~ Category, scales = "free") +
-    
-      scale_fill_viridis_d(option = "C") +   #for continuous variables
-    
-      theme(
-        axis.title = element_blank(),        # remove axis titles
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
-        strip.text = element_text(size = 10, face = "bold"),
-        legend.position = "none"             # no legend since categories differ
+    pivot_longer(
+      cols = everything(),
+      names_to = "Category",
+      values_to = "Value"
+    ) |>
+    filter(
+      !Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")
+    ) |>
+    ggplot(
+      aes(
+        x = Value,
+        fill = Value
       )
+    ) +
+  geom_bar(na.rm = TRUE) +
+  facet_wrap(~ Category, scales = "free") +
+  scale_fill_viridis_d(option = "C") +   #for continuous variables
+  theme(
+    axis.title = element_blank(),        # remove axis titles
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+    strip.text = element_text(size = 10, face = "bold"),
+    legend.position = "none"             # no legend since categories differ
+  )
 }
 
 plot_top <- make_facet_plot(data_diag, top_vars)
@@ -648,7 +682,8 @@ data_code |>
     axis2 = ICD_O3_Histology,
     axis3 = AJCC_Stage,
     y = n
-  )) +
+  )
+) +
   
   geom_alluvium(aes(fill = ICD_O3_Histology), alpha = 0.8) +
   geom_stratum(fill = "white", color = "gray40", linewidth = 0.6) +

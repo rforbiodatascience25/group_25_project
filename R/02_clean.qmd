@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+# Data Cleaning
+
 In this document raw data is prepared for further processing. This includes dropping redundant columns, filtering outliers and separating data into smaller parts.
 
 ## Loading libraries
@@ -86,7 +88,7 @@ Redundant data is dropped to save space for processing.
 #redundant data is dropped
 data_red <- data|>
   select(-all_of(names_red_col))|>
-  select(-redundantIDs)
+  select(-all_of(redundantIDs))
 #showing dropped value of redundant columns
 data|>
   select(all_of(names_red_col))|>
