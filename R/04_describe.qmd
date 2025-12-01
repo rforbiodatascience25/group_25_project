@@ -260,7 +260,6 @@ gene_long <- data_gene |>
     values_to = "Value"
   )
 
-#rename TMB to full name for more information on plot
 gene_long <- gene_long |>
   mutate(
     Category = recode(
@@ -426,35 +425,33 @@ Furthermore, some variables may not be meaningful for analysis. For example, nom
 ```{r}
 #column plot with normalized code counts
 data_code |>
-  
-  #count code occurence and normalize 
   select(all_of(code_vars)) |>
-  pivot_longer(everything(), names_to="Category", values_to="Value") |>
+  pivot_longer(
+    cols = everything(),
+    names_to="Category",
+    values_to="Value"
+  )|>
   group_by(Category) |> 
   count(Value) |>
   mutate(p = n / sum(n)) |>
-  
-  #plot normalized code occurence as column plot in facets
   ggplot(aes(Value, p, fill = Category)) +
   geom_col() +
   facet_wrap(~ Category, scales = "free_x") +
   labs(
-    title = "Normalized code counts across categories") +
-  
-  #accessible color scheme
+    title = "Normalized code counts across categories"
+  ) +
   scale_fill_manual(values = c(
     "#000000", "#E69F00", "#56B4E9", "#009E73",
     "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )) +
-  
-  theme_minimal() +
-  
-  theme(
-    axis.text.x = element_text(angle=45, hjust=1),
-    axis.title.x = element_blank(),
-    legend.position = "none"
-  ) +
-  ylab("Proportion")
+  )
+) +
+theme_minimal() +
+theme(
+  axis.text.x = element_text(angle=45, hjust=1),
+  axis.title.x = element_blank(),
+  legend.position = "none"
+) +
+ylab("Proportion")
 
 
 #chessboard heatmap for cross-category codes
