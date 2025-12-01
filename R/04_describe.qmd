@@ -471,13 +471,13 @@ arrange(Value) |>
 mutate(ID = row_number())
 
 #convert the entire dataframe to df_id form
-df_id <- df |>                              
-  mutate(
-    across(
-      everything(),
-      ~ value_index$ID[ match(.x, value_index$Value) ]
-    )
-  )
+df_id <- df |>
+  mutate(across(
+    everything(),
+    ~ tibble(Value = .x) |>
+      left_join(value_index, by = "Value") |>
+      pull(ID)
+  ))
 
 #long format for co-occurrence
 long <- df_id |>
