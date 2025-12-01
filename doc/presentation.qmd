@@ -187,7 +187,7 @@ data_metrics <- data_metrics %>%
                                   "Black or African American" = "Black"))
 
 # ----- create bubble plot and save PNG
-png("bubble_plot.png", width = 1080, height = 756, res = 96)
+# png("bubble_plot.png", width = 1080, height = 756, res = 96)
 
 bubble_plot <- data_metrics %>%
   count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
@@ -218,7 +218,7 @@ bubble_plot <- data_metrics %>%
   )
 
 print(bubble_plot)
-dev.off()
+# dev.off()
 ```
 ---
 
