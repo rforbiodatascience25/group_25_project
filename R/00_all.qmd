@@ -6,7 +6,7 @@ format:
 editor: visual
 ---
 
-## Full project
+# Full project
 
 This is joined quarto document, that runs all project steps.
 
