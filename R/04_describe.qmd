@@ -1,17 +1,20 @@
 ---
-title: "04_describe"
+  title: "04_describe"
 format: 
   html:
-    embed-resources: true
+  embed-resources: true
 editor: visual
 ---
 
 ## **Loading libraries**
 
 ```{r}
-#| message: false
+install.packages("DiagrammeR") #for boxes
+
+library(DiagrammeR)
 library("tidyverse")
 library("here")
+library("ggalluvial")
 ```
 
 ## **Loading data**
@@ -19,7 +22,6 @@ library("here")
 Loading the data from the previous augmentation step *03_augment*.
 
 ```{r}
-#| message: false
 data_metrics <- read_tsv(here("data","data_metrics_aug.tsv"))
 data_gene <- read_tsv(here("data","data_gene_aug.tsv"))
 data_score <- read_tsv(here("data","data_score_aug.tsv"))
@@ -27,494 +29,678 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
-## Metrics summary
-
-List the metrics, the number of metrics, the types within the metrics, and the median values within each types.
+## Inspecting the data and data categories
 
 ```{r}
-str(data_metrics)
+#view the structure of the data metrics
+glimpse(data_metrics)
 
-sort_data <- function(data_category) {
-  sorted__table <- sort(table(data_category), decreasing = TRUE)
-  paste(paste0(names(sorted__table), " (", sorted__table, ")"), collapse = ", ")
-}
-
-metrics_list <- list(
-  "Diagnosis Age"            = data_metrics$`Diagnosis Age`,
-  "Sex"                      = data_metrics$`Sex`,
-  "Genetic Ancestry Label"   = data_metrics$`Genetic Ancestry Label`,
-  "Race Category"            = data_metrics$`Race Category`,
-  "Ethnicity Category"       = data_metrics$`Ethnicity Category`
+#define the data metrics columns
+metric_cols <- c(
+  "Diagnosis Age",
+  "Sex",
+  "Genetic Ancestry Label",
+  "Race Category",
+  "Ethnicity Category"
 )
-
-sorted_list <- lapply(metrics_list, sort_data)
-
-n_distinct_list <- sapply(metrics_list, function(metric) length(unique(na.omit(metric))))
-
-metrics_summary <- data.frame(
-  n_distinct = as.numeric(n_distinct_list),
-  Types    = unlist(sorted_list),
-  stringsAsFactors = FALSE
-)
-
-n_patients     <- length(data_metrics$`Patient ID`)
-n_distinct_patients  <- length(unique(na.omit(data_metrics$`Patient ID`)))
-
-patient_row <- data.frame(
-  Columns  = "Patient ID",
-  n_distinct = n_distinct_patients,
-  Types    = paste0("Total entries: ", n_patients),
-  stringsAsFactors = FALSE
-)
-
-patient_row
-metrics_summary
 ```
 
-## **Gene summary**
-
-Providing core statistics overview of the genetic mutation data with a basic descriptive stats table and histograms and box plots. Outliers are removed to avoid making the graphs unreadable.
-
 ```{r}
-str(data_gene)
+glimpse(data_gene)
 
-genes <- list(
-  "Fraction Genome Altered" = data_gene$`Fraction Genome Altered`,
-  "Mutation Count"          = data_gene$`Mutation Count`,
-  "TMB (nonsynonymous)"     = data_gene$`TMB (nonsynonymous)`,
-  "Tumor Break Load"        = data_gene$`Tumor Break Load`
+#name the dataset columns for the gene dataset
+gene_cols <- c(
+  "Tumor Break Load",
+  "Fraction Genome Altered",
+  "Mutation Count",
+  "TMB (nonsynonymous)"
 )
-
-remove_extreme <- function(gene) gene[gene != max(gene, na.rm = TRUE)]
-
-genes_no_ext <- lapply(genes, remove_extreme)
-
-plot_gene <- function(genes_no_ext, title) {
-  
-  hist(genes_no_ext, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
-  
-  boxplot(genes_no_ext, main = paste("Boxplot of", title), ylab = title)
-}
-
-for (n in names(genes_no_ext)) plot_gene(genes_no_ext[[n]], n)
-
-gene_summary <- data.frame(
-  
-  Categories = names(genes_no_ext),
-  
-  Means   = sapply(genes_no_ext, function(genes_no_ext) format(round(mean(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Medians = sapply(genes_no_ext, function(genes_no_ext) format(round(median(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Standard_Devations = sapply(genes_no_ext, function(genes_no_ext) format(round(sd(genes_no_ext, na.rm = TRUE), 2), trim = TRUE)),
-  
-  stringsAsFactors = FALSE
-)
-
-gene_summary
 ```
 
-## Score Summary
-
-Providing core statistics overview of the cancer scoring data with a basic descriptive stats table and histograms and box plots. Outliers not removed/present.
-
 ```{r}
-str(data_score)
+glimpse(data_score)
 
-scores_list <- list(
-  "Aneuploidy Score"     = data_score$`Aneuploidy Score`,
-  "Buffa Hypoxia Score"  = data_score$`Buffa Hypoxia Score`,
-  "MSI MANTIS Score"     = data_score$`MSI MANTIS Score`,
-  "MSIsensor Score"      = data_score$`MSIsensor Score`,
-  "Ragnum Hypoxia Score" = data_score$`Ragnum Hypoxia Score`,
-  "Winter Hypoxia Score" = data_score$`Winter Hypoxia Score`
+#name the dataset columns for the score dataset
+score_cols <- c(
+  "Aneuploidy Score",
+  "MSI MANTIS Score",
+  "MSIsensor Score",
+  "Buffa Hypoxia Score",
+  "Ragnum Hypoxia Score",
+  "Winter Hypoxia Score"
 )
-
-plot_score <- function(scores_list, title) {
-  
-  hist(scores_list, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
-  
-  boxplot(scores_list, main = paste("Boxplot of", title), ylab = title)
-}
-
-for (n in names(scores_list)) plot_score(scores_list[[n]], n)
-
-score_summary <- data.frame(
-  
-  Means = sapply(scores_list, function(scores_list) format(round(mean(scores_list, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Medians = sapply(scores_list, function(scores_list) format(round(median(scores_list, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Standard_Devations = sapply(scores_list, function(scores_list) format(round(sd(scores_list, na.rm = TRUE), 2), trim = TRUE)),
-  
-  stringsAsFactors = FALSE
-)
-
-score_summary
 ```
 
-## Codes Summary
-
-Summary of the various types of cancer codes.
-
 ```{r}
-str(data_code)
+glimpse(data_code)
 
-make_types <- function(dataset_category) {
-  sorted_table <- sort(table(dataset_category), decreasing = TRUE)
-  paste(paste0(names(sorted_table), " (", sorted_table, ")"), collapse = ", ")
-}
-
-neoplasm_stage_types <- make_types(data_code$`Neoplasm Disease Stage American Joint Committee on Cancer Code`)
-icd_histology_types  <- make_types(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`)
-icd_site_types       <- make_types(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`)
-joint_stage_types    <- make_types(data_code$`American Joint Committee on Cancer Metastasis Stage Code`)
-lymph_stage_types    <- make_types(data_code$`Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`)
-tumor_stage_types    <- make_types(data_code$`American Joint Committee on Cancer Tumor Stage Code`)
-
-neoplasm_stage_distinct <- length(unique(na.omit(data_code$`Neoplasm Disease Stage American Joint Committee on Cancer Code`)))
-icd_histology_distinct  <- length(unique(na.omit(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`)))
-icd_site_distinct       <- length(unique(na.omit(data_code$`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`)))
-joint_stage_distinct    <- length(unique(na.omit(data_code$`American Joint Committee on Cancer Metastasis Stage Code`)))
-lymph_stage_distinct    <- length(unique(na.omit(data_code$`Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code`)))
-tumor_stage_distinct    <- length(unique(na.omit(data_code$`American Joint Committee on Cancer Tumor Stage Code`)))
-
-code_summary <- data.frame(
-  Columns = c(
-    "Neoplasm Disease Stage Code",
-    "ICD-O-3 Histology Code",
-    "ICD-O-3 Site Code",
-    "AJCC Metastasis Stage Code",
-    "AJCC Lymph Node Stage Code",
-    "AJCC Tumor Stage Code"
-  ),
-  
-  Distinct = c(
-    neoplasm_stage_distinct,
-    icd_histology_distinct,
-    icd_site_distinct,
-    joint_stage_distinct,
-    lymph_stage_distinct,
-    tumor_stage_distinct
-  ),
-  
-  Types = c(
-    neoplasm_stage_types,
-    icd_histology_types,
-    icd_site_types,
-    joint_stage_types,
-    lymph_stage_types,
-    tumor_stage_types
-  ),
-  
-  stringsAsFactors = FALSE
+#rename variables to short form for easy display
+code_vars <- c(
+  "Neoplasm AJCC" = "Neoplasm Disease Stage American Joint Committee on Cancer Code",
+  "ICD-O-3 Histology" = "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
+  "ICD-O-3 Site" = "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
+  "AJCC Metastasis" = "American Joint Committee on Cancer Metastasis Stage Code",
+  "Neoplasm Lymph AJCC" = "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
+  "AJCC Tumor" = "American Joint Committee on Cancer Tumor Stage Code"
 )
-
-code_summary
 ```
 
-Magnus - I left here a tidy version of the one above
-
-## Diagnoses Summary
-
-Summary of the different cancer diagnoses.
-
 ```{r}
-str(data_diag)
+glimpse(data_diag)
 
-#--------------
-#numerical data
-#--------------
-diagnosis_list_numeric <- list(
-  "Overall Survival (days)"        = data_diag$`Overall Survival (days)`,
-  "Overall Survival (months)"      = data_diag$`Overall Survival (Months)`,
-
-  "Disease Free (months)"          = data_diag$`Disease Free (Months)`,
-  "Disease Free (days)"            = data_diag$`Disease Free (days)`,
-
-  "Progression Free (months)"      = data_diag$`Progress Free Survival (Months)`,
-  "Progression Free (days)"        = data_diag$`Progress Free Survival (days)`
-)
-
-plot_diagnosis <- function(diagnosis, title) {
-  
-  hist(diagnosis, breaks = 30, main = paste("Distribution of", title), xlab = title, ylab = "Frequency")
-  
-  boxplot(diagnosis, main = paste("Boxplot of", title), ylab = title)
-}
-
-for (n in names(diagnosis_list_numeric)) plot_diagnosis(diagnosis_list_numeric[[n]], n)
-
-diagnosis_numerical_summary <- data.frame(
-  
-  Means   = sapply(diagnosis_list_numeric, function(diagnosis) format(round(mean(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Medians = sapply(diagnosis_list_numeric, function(diagnosis) format(round(median(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
-  
-  Standard_Devations = sapply(diagnosis_list_numeric, function(diagnosis) format(round(sd(diagnosis, na.rm = TRUE), 2), trim = TRUE)),
-  
-  stringsAsFactors = FALSE
-)
-
-diagnosis_numerical_summary
-#---------------
-
-
-
-#----------------
-#categorical data
-#----------------
-sort_data <- function(data_category) {
-  sorted__table <- sort(table(data_category), decreasing = TRUE)
-  paste(paste0(names(sorted__table), " (", sorted__table, ")"), collapse = ", ")
-}
-
-diagnosis_list_categorical <- list(
-  "Tumor Type"                             = data_diag$`Tumor Type`,
-  "Overall Survival Status (bin)"          = data_diag$`Overall Survival Status (bin)`,
-  "Overall Survival Status (des)"          = data_diag$`Overall Survival Status (des)`,
-  "Disease-specific Survival Status (des)" = data_diag$`Disease-specific Survival status (des)`,
-  "Disease Free Status (bin)"              = data_diag$`Disease Free Status (bin)`,
-  "Disease Free Status (des)"              = data_diag$`Disease Free Status (des)`,
-  "Progression Free Status (bin)"          = data_diag$`Progression Free Status (bin)`,
-  "Progression Free Status (des)"          = data_diag$`Progression Free Status (des)`,
-  "Prior Diagnosis"                        = data_diag$`Prior Diagnosis`,
-  "Radiation Therapy"                      = data_diag$`Radiation Therapy`,
-  "Primary Lymph Node Assessment"          = data_diag$`Primary Lymph Node Presentation Assessment`,
-  "Person Neoplasm Status"                 = data_diag$`Person Neoplasm Cancer Status`,
-  "New Neoplasm Event"                     = data_diag$`New Neoplasm Event Post Initial Therapy Indicator`,
-  "Histologic Grade"                       = data_diag$`Neoplasm Histologic Grade`,
-  "ICD-10 Classification"                  = data_diag$`ICD-10 Classification`
-)
-
-sorted_list <- lapply(diagnosis_list_categorical, sort_data)
-
-n_distinct_list <- sapply(diagnosis_list_categorical, function(diagnosis) length(unique(na.omit(diagnosis))))
-
-diagnosis_categorical_summary <- data.frame(
-  n_distinct = as.numeric(n_distinct_list),
-  Types    = unlist(sorted_list),
-  stringsAsFactors = FALSE
-)
-
-diagnosis_categorical_summary
-#---------------
-```
-
-## Comparative Analysis of Variables Within a Common Theme
-
-In our dataset (divided ones), multiple variables often classify similar attributes or quantify related parameters, so it is essential to analyze the correlations between these variables to uncover their relationships and potential interdependencies.
-
-Furthermore, some variables may not be meaningful for analysis. For example, nominal variables that overwhelmingly dominate the dataset, where one category accounts for the vast majority of observations, may offer limited insight and can be excluded from detailed examination.
-
-### Data metrics (data_metrics)
-
-#### Age distribution
-
-Males exhibit a slightly higher mean age at diagnosis compared to females.
-
-```{r}
-counts <- data_metrics |> 
-  group_by(Sex) |> 
-  summarise(n = n())
-
-lab_female <- paste0("Women (n = ", counts$n[counts$Sex == "Female"], ")")
-lab_male   <- paste0("Men (n = ", counts$n[counts$Sex == "Male"], ")")
-
-data_metrics |>
-  ggplot(aes(x = `Diagnosis Age`, fill = Sex)) +
-  geom_density(alpha = 0.5) +
-  scale_fill_discrete(
-    name   = "Sex",
-    labels = c("Female" = lab_female,
-               "Male"   = lab_male)
+#----- numerical data
+diagnosis_list_numeric <- data_diag %>%
+  select(
+    "Overall Survival (days)",
+    "Overall Survival (Months)",
+    "Disease Free (Months)",
+    "Disease Free (days)",
+    "Progress Free Survival (Months)",
+    "Progress Free Survival (days)"
   )
+
+#----- categorical data
+top_vars <- c(
+  "Overall Survival Status (des)",
+  "Disease-specific Survival status (des)",
+  "Disease Free Status (des)",
+  "Progression Free Status (des)",
+  "Prior Diagnosis",
+  "Radiation Therapy"
+)
+
+bottom_vars <- c(
+  "Tumor Type",
+  "Primary Lymph Node Presentation Assessment",
+  "Person Neoplasm Cancer Status",
+  "New Neoplasm Event Post Initial Therapy Indicator",
+  "Neoplasm Histologic Grade",
+  "ICD-10 Classification"
+)
 ```
 
-Age groups of \[30,40\] and \[80,90\] contain too few individuals to support reliable statistical analysis.​
+## Data Partitions Overview
 
 ```{r}
-data_metrics |> 
-  ggplot(mapping = 
-           aes( x = Sex,
-                fill = Age_Group)) +
-  geom_bar(position = "dodge", color = "black", alpha = 0.5) +
-  theme_minimal()
+#DiagrammeR
+grViz("
+digraph {
+  graph [layout = dot, rankdir = TB]
+  node [shape = box, style = filled, fillcolor = lightblue, width = 5, fixedsize = false, fontsize = 18, fontname = Arial]
+
+  Patient_Metadata     [label = <<b>Patient Metadata (n = 184)</b><br/><br/>Diagnosis Age, Sex,<br/>Ancestry, Race, Ethnicity>]
+  Tumor_Metrics        [label = <<b>Tumor Metrics</b><br/><br/>Mutation Count, Fraction Genome Altered,<br/>Tumor Break Load, Tumor Mutation Burden>]
+  Tumor_Scores         [label = <<b>Tumor Scores</b><br/><br/>Aneuploidy, Microsatellites, Hypoxia>]
+  Clinical_Coding      [label = <<b>Clinical Coding</b><br/><br/>Disease Stage Codes, Histology Codes, Metastasis<br/>Codes, Lymph Stage Codes, Tumor Stage Codes>]
+  Outcomes             [label = <<b>Outcomes</b><br/><br/>Survival, Disease Free Survival,<br/>Progression Free Survival>]
+
+  # Invisible edges to enforce vertical alignment
+  Patient_Metadata -> Tumor_Metrics   [style = invis]
+  Tumor_Metrics -> Tumor_Scores       [style = invis]
+  Tumor_Scores -> Clinical_Coding     [style = invis]
+  Clinical_Coding -> Outcomes         [style = invis]
+
+}
+", width = 600)
 ```
 
-#### Race, Genetic Ancestry Label, and Ethnicity Category
+## Summary of Patient Metadata Metrics
 
-Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This high correlation limits diversity across subgroups, rendering analyses stratified by these categories unreliable for drawing meaningful conclusions.
+Plot the metrics, the number of metrics, the types within the metrics, and the values within each types. Males exhibit a higher mean age at diagnosis compared to females. Age groups of \[30,40\] and \[80,90\] contain too few individuals to support meaningful statistical analysis.​ Race, Genetic Ancestry Label, and Ethnicity Category strongly overlap in our data, with most individuals of European ancestry also classified as White and similar by ethnicity. This high correlation limits diversity across subgroups, rendering analyses stratified by these categories unreliable for drawing meaningful conclusions, except if limited to White European.
 
 ```{r}
-data_metrics |> 
-  ggplot(mapping = 
-           aes(x = `Race Category`,
-               fill = `Ethnicity Category`)) + # can change to Genetic Ancestry Label
-  geom_bar(position = position_dodge(preserve = "single"), color = "black", alpha = 0.7) +
-  geom_vline(xintercept = seq(0.5, length(unique(data_metrics$`Race Category`)) + 0.5, by = 1), linetype = "dashed") +
-  theme_minimal()
+#recode "Black or African American" = "Black"
+data_metrics <- data_metrics %>%
+  mutate(`Race Category` = recode(`Race Category`,
+                                  "Black or African American" = "Black"))
+
+
+#----- bubble plot for cross-category frequencies
+bubble_plot <- data_metrics %>%
+
+  #count entries in each category
+  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
+  
+  #bubbles growing with n patients
+  ggplot(aes(
+    x = `Genetic Ancestry Label`,
+    y = `Race Category`,
+    size = n
+  )) +
+  
+  #color bubbles uniquely by descriptor categories
+  geom_point(aes(fill = interaction(`Genetic Ancestry Label`,
+                         `Race Category`,
+                         `Ethnicity Category`)), 
+              color = "black",
+              shape = 21,
+              stroke = 0.5,
+              alpha = 0.7) +
+  
+  geom_text(aes(label = n), color = "black", vjust = -1, size = 6) +
+  facet_wrap(Sex ~ `Ethnicity Category`) +
+  scale_size(range = c(4, 40)) +
+  
+  labs(
+    title = "82% of cancer patients are White European (Non-Hispanic/Latino or Other)",
+    size = "Count",
+    x = NULL,
+    y = NULL
+  ) +
+  
+  theme_minimal(base_size = 16) +
+  
+  #accessible color scheme
+  scale_fill_manual(values = c(
+  "#000000", "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
+  
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.box = "vertical",
+    legend.position = "none",
+    plot.margin = margin(t = 10, r = 5, b = 10, l = 5))
+
+#----- age pyramid plot males vs females
+
+#filter EUR AND White and count, pass to ggplot
+data_metrics %>%
+  
+  filter(
+    `Genetic Ancestry Label` == "EUR",
+    `Race Category` == "White"
+  ) %>%
+  
+  mutate(
+    AgeDecade = floor(`Diagnosis Age` / 10) * 10
+  ) %>%
+  
+  count(Sex, AgeDecade, name = "Count") %>%
+  mutate(
+    Count = ifelse(Sex == "Male", -Count, Count)
+  ) %>%
+
+#plot age pyramid
+ggplot(aes(x = Count, y = factor(AgeDecade), fill = Sex)) +
+
+  geom_col(width = 0.95, alpha = 0.7) +
+
+  scale_fill_manual(values = c("Male" = "#56B4E9", "Female" = "#CC79A7")) +
+
+  scale_x_continuous(
+    breaks = scales::pretty_breaks(6),
+    labels = abs
+  ) +
+
+  labs(
+    title = "White European Cancer Patients: Men are diagnosed slightly later",
+    x = "Number of Patients",
+    y = "Diagnosis Age (by Decade)"
+  ) +
+
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "top",
+    plot.title = element_text(size = 14),
+    axis.text.y = element_text(size = 12)
+  )
+
+#ADD AVERAGE/MEDIAN AGE TO THE PYRAMID PLOT
 ```
 
-This was kinda proven by the tables above, but we build on it to show off correlation.
+## **Summary of Tumor Genetics (gene) and Scoring (score)**
 
-### Genomic Alterations & Instability (data_gene) 
+Fraction Genome Altered: The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells. Mutation Count: The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions. TMB (nonsynonymous): Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load. Tumor Break Load: The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
 
-Fraction Genome Altered - The proportion of the tumor’s genome with copy number gains or losses, reflecting the extent of chromosomal instability present in the cancer cells.
-
-Mutation Count - The total number of mutations identified in the tumor genome, typically including single-nucleotide variants and small insertions/deletions.
-
-TMB (nonsynonymous) - Tumor Mutation Burden (TMB) is the number of nonsynonymous mutations (those that change protein sequences) per megabase of DNA in the tumor, and is used to estimate overall mutational load.
-
-Tumor Break Load - The quantity or extent of structural variants in the tumor genome, representing breaks or major rearrangements, which indicate higher genomic instability in the tumor.
-
-```{r}
-library(corrplot)
-cor_matrix <- cor(data_gene |>
-                    select(`Fraction Genome Altered`, 
-                           `Mutation Count`, 
-                           `TMB (nonsynonymous)`, 
-                           `Tumor Break Load`), 
-                    use = "complete.obs")
-
-corrplot(cor_matrix, method = "color")
-```
+Aneuploidy scores show the extent of large chromosomal alterations (copy number) in the tumors. The MSI/microsatellites scores quantify how many errors have accumulated in these regions (which are error-prone during DNA replication). The hypoxia scores quantify epigenetic-based upregulation of genes in tumors that enable them to adapt to hypoxia/low-oxygen environments - high hypoxia scores are associated with poorer outcomes.
 
 We excluded one extreme outlier before plotting; the resulting positive correlation is consistent with random mutagenesis, where the proportion of nonsynonymous mutations remains relatively stable given a fixed coding sequence fraction.
 
-### Cancer Classification Systems (data_code)
-
 ```{r}
-ClassificationSystems <- c(
-  "Neoplasm Disease Stage American Joint Committee on Cancer Code",
-  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
-  "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
-  "American Joint Committee on Cancer Metastasis Stage Code",
-  "Neoplasm Disease Lymph Node Stage American Joint Committee on Cancer Code",
-  "American Joint Committee on Cancer Tumor Stage Code"
+#----- dataframe treatment for the gene dataset
+
+#pivot to long dataframe for plotting
+gene_long <- data_gene %>%
+  select(all_of(gene_cols)) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Category",
+    values_to = "Value"
+  )
+
+#rename TMB to full name for more information on plot
+gene_long <- gene_long %>%
+  mutate(
+    Category = recode(
+      Category,
+      `TMB (nonsynonymous)` = "Tumor Mutation Burden"
+    )
+  )
+
+#remove a single extreme outlier and normalize for all four categories
+gene_no_ext_norm <- gene_long %>%
+  
+  #remove outlier
+  group_by(Category) %>%
+  filter(row_number(desc(Value)) > 1) %>% 
+  
+  #normalize
+  mutate(NormValue = (Value - min(Value, na.rm = TRUE)) /
+                     (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))) %>%
+  
+  ungroup()
+
+
+#----- dataframe treatment for the score dataset
+
+score_long <- data_score %>%
+  select(all_of(score_cols)) %>%
+  mutate(across(everything(), as.numeric)) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "Score",
+    values_to = "Value"
+  )
+
+score_no_ext_norm <- score_long %>%
+  
+  # remove the single maximum outlier per Score category
+  group_by(Score) %>%
+  filter(Value != max(Value, na.rm = TRUE)) %>%
+  
+  # normalize each Score category to [0,1]
+  mutate(
+    NormValue = (Value - min(Value, na.rm = TRUE)) /
+                (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))
+  ) %>%
+  
+  ungroup() %>%
+  
+  # rename Score → Category so it matches gene_no_ext_norm
+  rename(Category = Score)
+
+
+#----- combined density plot 
+
+#combine dataset categories for genes and scores
+combined_norm <- bind_rows(
+  gene_no_ext_norm %>% select(Category, Value, NormValue),
+  score_no_ext_norm %>% select(Category, Value, NormValue)
 )
+
+#make groups by data structure and category for ggplot density plots below
+combined_norm <- combined_norm %>%
+  mutate(
+    Group = case_when(
+      Category %in% c(
+        "Aneuploidy Score",   #NOTE - ANEUPLOIDY MOVED HERE FROM DATA_SCORE!!!
+        "Tumor Break Load",
+        "Fraction Genome Altered"
+      ) ~ "Chromosomal Instability",
+      
+       Category %in% c(
+        "Mutation Count",
+        "Tumor Mutation Burden"
+      ) ~ "Mutation Counts & Burden",
+      
+      Category %in% c(
+        "MSI MANTIS Score",
+        "MSIsensor Score"
+      ) ~ "Microsatellites",
+
+      Category %in% c(
+        "Buffa Hypoxia Score",
+        "Ragnum Hypoxia Score",
+        "Winter Hypoxia Score"
+      ) ~ "Hypoxia",
+      
+      TRUE ~ "Other"
+    )
+  )
+
+#general overview plot with normalized gene and score categories
+ggplot(combined_norm, aes(x = NormValue)) +
+
+    #ggplot density plot
+  geom_density(aes(
+              y = after_stat(scaled), fill = Group, group = Category),
+              color = NA,
+              alpha = 0.5,
+              adjust = 1.0) +
+  
+  #add tick/rug marks to indicate number of observations
+  geom_rug(alpha = 0.1, sides = "b") +
+  
+  facet_wrap(~ Group) +
+
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Summary: Normalized Distributions of Tumor Genetics & Scores", 
+    x = "Normalized Values",
+    y = "Normalized Densities",
+    fill = "Group",
+    color = "Metric",
+  ) +
+  
+  #accessible color scheme
+  scale_fill_manual(values = c(
+  "#000000", "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
+  
+  theme(
+    legend.position = "none",
+    legend.box = "vertical",
+    plot.title = element_text(face = "bold", size = 16),
+    axis.text.x = element_text(angle = 0, hjust = 0.5),
+    panel.grid.minor = element_blank()
+)
+
+
+#reorder categories by similarity for the next density plot
+combined_norm <- combined_norm %>%
+  mutate(
+    Category = factor(
+      Category,
+      levels = combined_norm %>% arrange(Group, Category) %>% pull(Category) %>% unique()
+    )
+  )
+  
+#facet wrap density plot for all of the categories
+ggplot(combined_norm, aes(x = NormValue)) +
+  
+  #density plots for shape
+  geom_density(
+    aes(fill = Group),
+    alpha = 1.0,
+    color = NA,
+    adjust = 1.0
+  ) +
+  
+  #add tick/rug marks for individual data points
+  geom_rug(alpha = 0.1, sides = "b") +
+  
+  facet_wrap(~ Category, scales = "fixed") +
+  
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Distributions of Individual Tumor Genetics & Scores",
+    x = "Normalized Values",
+    y = "Densities",
+    fill = "Group"
+  ) +
+  
+  #accessible color scheme
+  scale_fill_manual(values = c(
+    "#000000", "#E69F00", "#56B4E9", "#009E73",
+    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+  )) +
+  
+  theme(
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 16),
+    panel.grid.minor = element_blank(),
+    strip.text = element_text(size = 10)
+  )
 ```
 
-```{r}
-class_sym_1 <- ClassificationSystems[1]  
-class_sym_2 <- ClassificationSystems[3]
+## Summary of Cancer Codes
 
-data_code |>
-  count(!!sym(class_sym_1),
-        !!sym(class_sym_2)) |>
-  ggplot(aes(x = !!sym(class_sym_1),
-             y = !!sym(class_sym_2),
-             fill = n)) +
+Includes both international (ICD) and American (AJCC) code standards. Column plot shows what codes dominate within each classification/category. Heatmap shows absolute co-occurence across all codes.
+
+In our datasets, multiple variables often classify similar attributes or quantify related parameters, so it is essential to analyze the correlations between these variables to uncover their relationships and potential interdependencies.
+
+Furthermore, some variables may not be meaningful for analysis. For example, nominal variables that overwhelmingly dominate the dataset, where one category accounts for the vast majority of observations, may offer limited insight and can be excluded from detailed examination.
+
+```{r}
+#column plot with normalized code counts
+data_code %>%
+  
+  #count code occurence and normalize 
+  select(all_of(code_vars)) %>%
+  pivot_longer(everything(), names_to="Category", values_to="Value") %>%
+  group_by(Category) %>% 
+  count(Value) %>%
+  mutate(p = n / sum(n)) %>%
+  
+  #plot normalized code occurence as column plot in facets
+  ggplot(aes(Value, p, fill = Category)) +
+  geom_col() +
+  facet_wrap(~ Category, scales = "free_x") +
+  labs(
+    title = "Normalized code counts across categories") +
+  
+  #accessible color scheme
+  scale_fill_manual(values = c(
+    "#000000", "#E69F00", "#56B4E9", "#009E73",
+    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+  )) +
+  
+  theme_minimal() +
+  
+  theme(
+    axis.text.x = element_text(angle=45, hjust=1),
+    axis.title.x = element_blank(),
+    legend.position = "none"   #remove large legend
+  ) +
+  ylab("Proportion")
+
+
+#chessboard heatmap for cross-category codes
+df <- data_code %>% select(all_of(code_vars))
+
+#extract all unique values across all variables
+#use this as a key to look up codes in the heatmap
+value_index <- df %>%
+  pivot_longer(everything(), names_to="Category", values_to="Value") %>%
+  distinct(Value) %>%
+  arrange(Value) %>%
+  mutate(ID = row_number())                  # <-- IDs 1..33
+
+# onvert the entire dataframe to ID form (df_id)
+df_id <- df %>%                              
+  mutate(across(
+    everything(),
+    ~ value_index$ID[ match(.x, value_index$Value) ]
+  ))
+
+#long format for co-occurrence
+long <- df_id %>%
+  mutate(RowID = row_number()) %>%
+  pivot_longer(-RowID, names_to="Category", values_to="ID")
+
+#compute co-occurrences
+pairs <- long %>%
+  inner_join(long, by="RowID") %>%
+  filter(ID.x != ID.y) %>%
+  count(ID.x, ID.y, name="n")
+
+#build matrix
+co_matrix <- pairs %>%
+  pivot_wider(
+    names_from = ID.y,
+    values_from = n,
+    values_fill = 0
+  ) %>%
+  arrange(ID.x)
+
+#plot chessboard heatmap
+co_matrix %>%
+  pivot_longer(-ID.x, names_to="ID.y", values_to="n") %>%
+  ggplot(aes(as.integer(ID.x), as.integer(ID.y), fill = n)) +
   geom_tile() +
-  geom_text(aes(label = n), color = "white", size = 3) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(fill = "Count")
-```
+  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +
+  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +
+  coord_fixed() +
+  labs(
+    title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up") +
+  
+  #accessible color scheme
+  scale_fill_viridis_c(trans = "log10", guide = "none") +
+  
+  theme_void() +
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, size = 5),
+    axis.text.y = element_text(size = 5),
+    axis.ticks = element_line(size = 0.2),
+    plot.margin = margin(0,0,0,0)
+  )
 
-It is also inherently difficult to evaluate “coherence” between these systems quantitatively, because they use different numbers of categories and different underlying metrics.
+#call value index trans = "log10", guide = "none"
+value_index
 
-American Joint Committee on Cancer Metastasis Stage Code (MX) -\> Metastasis cannot be assessed or information is insufficient to assign an M category
 
-Besides this always one class that has the greatest
-
-```{r}
+#calculate entropy of top-level codes
 entropy_cat <- function(x) {
   p <- prop.table(table(x))
   -sum(p * log(p))
 }
+
+data_code %>%
+  
+  pivot_longer(all_of(code_vars), names_to = "var_name", values_to = "value") %>%
+  group_by(var_name) %>%
+  summarise(
+    entropy = entropy_cat(value[!is.na(value)]),
+    n_levels = n_distinct(value, na.rm = TRUE)
+  ) %>%
+  arrange(desc(entropy)) %>%
+  
+  ggplot(aes(x = reorder(var_name, entropy), y = entropy, fill = entropy)) +
+    geom_col() +
+    scale_fill_viridis_c(option = "C") +
+  
+    labs(
+      title = "Entropy of Categorical Variables",
+      x = NULL,
+      y = "Entropy"
+    ) +
+  
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.title.y = element_blank(),
+      axis.text.y = element_text(size = 10),
+      legend.position = "none",
+      plot.title = element_text(size = 14, face = "bold")
+    ) 
 ```
 
-```{r}
-vars_to_check <- c(
-  ClassificationSystems[1], # Neoplasm disease stage
-  ClassificationSystems[2], 
-  ClassificationSystems[3],
-  ClassificationSystems[4], # AJCC metastasis stage code
-  ClassificationSystems[5], # Lymph node stage
-  ClassificationSystems[6]  # Tumor stage
-)
+##  Diagnoses Summary
 
-dispersion_tbl <-
-  tibble(var_name = vars_to_check) |>
-  mutate(
-    entropy = map_dbl(var_name, ~ {
-      x <- data_code[[.x]]
-      x <- x[!is.na(x)]         # remove NAs for this variable
-      entropy_cat(x)
-    }),
-    n_levels = map_int(var_name, ~ {
-      x <- data_code[[.x]]
-      n_distinct(x, na.rm = TRUE)
-    })
-  ) |>
-  arrange(desc(entropy))
-
-dispersion_tbl
-```
-
-The Neoplasm Disease Stage American Joint Committee on Cancer Code shows the highest entropy among the examined systems.
-
-### Biological scores (aneuploidy, hypoxia, MSI) (**data_score)**
+Summary of the different cancer diagnoses.
 
 ```{r}
-data_score
-```
+long <- diagnosis_list_numeric %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Value")
 
-```{r}
-# Select only score columns
-score_cols <- c(
-  "Aneuploidy Score", 
-  "Buffa Hypoxia Score",
-  "MSI MANTIS Score", 
-  "MSIsensor Score",
-  "Ragnum Hypoxia Score", 
-  "Winter Hypoxia Score"
-)
+medians <- long %>%
+  group_by(Variable) %>%
+  summarize(med = median(Value, na.rm = TRUE))
 
-correl_matrix <- data_score |>
-  select(all_of(score_cols)) |>
-  cor(use = "complete.obs")
-
-corrplot(correl_matrix, 
-         method = "color", 
-         tl.col = "black")
-```
-
--   Aneuploidy Score → chromosome-level copy-number changes.
-
--   MSI MANTIS / MSIsensor → microsatellite instability (DNA repair).
-
--   Buffa / Ragnum / Winter → hypoxia from expression, different gene signatures.
-
-```{r}
-data_score |> 
-  ggplot(mapping = 
-           aes( x = `Tissue Source Site Code`)) +
-  geom_bar() +
+ggplot(long, aes(x = Value)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white") +
+  geom_vline(
+    data = medians,
+    aes(xintercept = med),
+    color = "red", linewidth = 0.7
+  ) +
+  facet_wrap(~ Variable, scales = "free") +
+  labs(
+    title = "Survival, Progress by Days/Months") +
   theme_minimal()
+
+
+#function to make facet wrap plots
+make_facet_plot <- function(data, var_names) {
+  data %>%
+    select(all_of(var_names)) %>%
+    pivot_longer(everything(), names_to = "Category", values_to = "Value") %>%
+    
+    #filter out various forms of NAs for clean facet wrap plots
+    filter(!Value %in% c("NA", "N/A", "Unknown", "UNK", "Missing", "NONE", "")) %>%
+    
+    ggplot(aes(x = Value, fill = Value)) +
+      geom_bar(na.rm = TRUE) +
+      facet_wrap(~ Category, scales = "free") +
+    
+      scale_fill_viridis_d(option = "C") +   #for continuous variables
+    
+      theme(
+        axis.title = element_blank(),        # remove axis titles
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+        strip.text = element_text(size = 10, face = "bold"),
+        legend.position = "none"             # no legend since categories differ
+      )
+}
+
+plot_top <- make_facet_plot(data_diag, top_vars)
+plot_top
+
+plot_bottom <- make_facet_plot(data_diag, bottom_vars)
+plot_bottom
 ```
 
-### Tumor Types distribution (**data_diag)**
-
-```{r}
-#| fig-height: 5
-
-data_diag |>
-  ggplot(aes(x = `Tumor Type`, 
-             fill = `Tumor Type`)) +
-  geom_bar() +
-  theme(
-    axis.title.x = element_blank(),
-    axis.text.x  = element_blank(),
-    axis.ticks.x = element_blank()
-  )
-```
-
-Not enough disersity in tumor types.
-
-### Coding System Comparison From Site Code to Histiology Code to Cancer Code
+## Coding System Comparison From Site Code to Histiology Code to Cancer Code
 
 This plot shows how patients flow across three different categorical systems, revealing how tumor location, pathologic subtype, and disease stage are related. In general, the data is dominated by one histologic type, 8500/3 which is invasive ductal carcinoma. Most of the tumors were taken from C25.0, the pancreatic head region, which can be seen as most patients flow from this section. It can be seen that the main pathway is from C25.0 to 8500/3 to Stage IIB.
 
-```{r} #| fig-width: 10 #| fig-height: 6 data_code |>   drop_na(`International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,     `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,     `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>   count(ICD_O3_Site = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code`,     ICD_O3_Histology = `International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code`,     AJCC_Stage = `Neoplasm Disease Stage American Joint Committee on Cancer Code`) |>   ggplot(aes(axis1 = ICD_O3_Site,     axis2 = ICD_O3_Histology,     axis3 = AJCC_Stage,     y = n)) +   geom_alluvium(aes(fill = ICD_O3_Histology),     alpha = 0.8) +   geom_stratum(fill  = "white",     color = "gray40",     linewidth = 0.6) +   geom_text(stat = "stratum",     aes(label = after_stat(stratum)),     color = "black",     fontface = "bold",     size = 3.5) +   scale_fill_manual(values = palette) +   scale_x_discrete(limits = c("ICD_O3_Site", "ICD_O3_Histology", "AJCC_Stage"),     expand = expansion(mult = 0.02)) +   scale_y_continuous_uniform +   labs(title = "ICD-O-3 Site to Histology Code to AJCC Stage",     x = "Coding System",     y = "Number of Patients",     fill = "ICD-O-3 Histology") +   theme_uniform()}
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+palette <- c(
+  "#000000", "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+)
+
+#store column names once
+cols <- c(
+  site     = "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Site Code",
+  hist     = "International Classification of Diseases for Oncology, Third Edition ICD-O-3 Histology Code",
+  stage    = "Neoplasm Disease Stage American Joint Committee on Cancer Code"
+)
+
+data_code %>%
+  drop_na(all_of(unname(cols))) %>%
+  count(
+    ICD_O3_Site       = .data[[cols["site"]]],
+    ICD_O3_Histology  = .data[[cols["hist"]]],
+    AJCC_Stage        = .data[[cols["stage"]]]
+  ) %>%
+  
+  ggplot(aes(
+    axis1 = ICD_O3_Site,
+    axis2 = ICD_O3_Histology,
+    axis3 = AJCC_Stage,
+    y = n
+  )) +
+  
+  geom_alluvium(aes(fill = ICD_O3_Histology), alpha = 0.8) +
+  geom_stratum(fill = "white", color = "gray40", linewidth = 0.6) +
+  geom_text(
+    stat = "stratum",
+    aes(label = after_stat(stratum)),
+    color = "black", fontface = "bold", size = 3.5
+  ) +
+
+  scale_fill_manual(values = palette) +
+  scale_x_discrete(
+    limits = names(cols),
+    expand = expansion(mult = 0.02)
+  ) +
+  scale_y_continuous(expand = c(0, 0)) +
+
+  labs(
+    title = "ICD-O-3 Site → Histology → AJCC Stage",
+    x = "Coding System",
+    y = "Number of Patients",
+    fill = "ICD-O-3 Histology"
+  ) +
+
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.title.x   = element_text(size = 12),
+    axis.text.x    = element_text(size = 10),
+    legend.position = "right"
+  )
 ```
+
