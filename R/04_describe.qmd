@@ -189,42 +189,50 @@ data_metrics |>
     plot.margin = margin(t = 10, r = 5, b = 10, l = 5))
 
 #----- age pyramid plot males vs females
-
 #filter EUR AND White and count, pass to ggplot
 data_metrics |>
-  
   filter(
     `Genetic Ancestry Label` == "EUR",
     `Race Category` == "White"
-  ) |>
-  
+  )|>
   mutate(
-    AgeDecade = floor(`Diagnosis Age` / 10) * 10
-  ) |>
-  
-  count(Sex, AgeDecade, name = "Count") |>
+    AgeDecade = floor(
+      `Diagnosis Age` / 10) * 10
+  )|>
+  count(
+    Sex,
+    AgeDecade,
+    name = "Count"
+  )|>
   mutate(
     Count = ifelse(Sex == "Male", -Count, Count)
-  ) |>
-
-#plot age pyramid
-ggplot(aes(x = Count, y = factor(AgeDecade), fill = Sex)) +
-
-  geom_col(width = 0.95, alpha = 0.7) +
-
-  scale_fill_manual(values = c("Male" = "#56B4E9", "Female" = "#CC79A7")) +
-
+  )|>
+ggplot(
+  aes(
+    x = Count,
+    y = factor(AgeDecade),
+    fill = Sex
+    )
+  ) +
+  geom_col(
+    width = 0.95,
+    alpha = 0.7
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Male" = "#56B4E9",
+      "Female" = "#CC79A7"
+      )
+    ) +
   scale_x_continuous(
     breaks = scales::pretty_breaks(6),
     labels = abs
   ) +
-
   labs(
     title = "White European Cancer Patients: Men are diagnosed slightly later",
     x = "Number of Patients",
     y = "Diagnosis Age (by Decade)"
   ) +
-
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "top",
