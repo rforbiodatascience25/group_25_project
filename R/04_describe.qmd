@@ -444,23 +444,23 @@ data_code |>
   geom_col() +
   facet_wrap(~ Category, scales = "free_x") +
   labs(
-    title = "Normalized code counts across categories"
+    title = "Normalized code counts across categories",
+    ylab = "Proportion"
   ) +
-  scale_fill_manual(values = c(
-    "#000000", "#E69F00", "#56B4E9", "#009E73",
-    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )
-) +
-theme_minimal() +
-theme(
-  axis.text.x = element_text(angle=45, hjust=1),
-  axis.title.x = element_blank(),
-  legend.position = "none"
-) +
-ylab("Proportion")
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle=45, hjust=1),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
 
-
-#chessboard heatmap for cross-category codes
+#heatmap for cross-category codes
 df <- data_code |>
   select(all_of(code_vars))
 
