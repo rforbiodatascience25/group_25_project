@@ -27,6 +27,7 @@ reference-location: section
 library("tidyverse")
 library("here")
 library("broom")
+library("patchwork")
 ```
 
 ```{r}
@@ -160,9 +161,9 @@ Methodology
 
 184 patient samples; 63 clinical variables.
 
-![](04_describe_slide_1.png){width=90%}
+![](04description1.png){width="90%"}
 
----
+------------------------------------------------------------------------
 
 ## Data Description 2: Example Patient Metadata Overview
 
@@ -226,7 +227,8 @@ bubble_plot <- data_metrics %>%
   )
 bubble_plot
 ```
----
+
+------------------------------------------------------------------------
 
 ## PCA on numeric data
 
@@ -269,7 +271,8 @@ pca_fit <- pca_data |>
 
 ::::: columns
 ::: {.column width="50%"}
-- Some separation is observed!
+-   Some separation is observed!
+
 ```{r}
 #| echo: false
 #| eval: true
@@ -448,11 +451,11 @@ data_gene_code_filtered |>
     y = "Genomic metric",
     title = "Genomic instability metrics across AJCC stages")
 ```
-
 :::
 :::::
 
-## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
+## Patient Survival based on Hypoxia and Tumor Break Load interaction {.smalltitle}
+
 Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
 
 ```{r}
@@ -468,14 +471,10 @@ data_gene_diag_score <- data_gene |>
   drop_na() 
 ```
 
-
-
 ::::: columns
-
 ::: {.column width="35%"}
- - Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
- - Mixed groups ('high/low') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
-
+-   Patients with high hypoxia and high Tumor Break Load show the worst survival overall.
+-   Mixed groups ('high/low') exhibit better survival than the 'low/low' group, suggesting that the presence of only one adverse factor may partially buffer the harmful impact.
 :::
 
 ::: {.column width="65%"}
@@ -538,11 +537,11 @@ ggplot(data_heatmap, aes(x = Mut_Count_Bin,
       y = "Hypoxia Score"
     )
 ```
-::: 
+:::
 :::::
 
-
 ## Survival of Radiation Therapy Patients based on levels of Hypoxia {.smalltitle}
+
 Low oxygen levels in tumors (Hypoxia) are usually associated with resistance to radiation therapy.
 
 ```{r}
@@ -571,16 +570,14 @@ data_hypoxia <- data_diag |>
 ```
 
 ::::: columns
-
 ::: {.column width="50%"}
-Large variability across Hypoxia Scoring methods: 
+Large variability across Hypoxia Scoring methods:
 
-- Buffa Score: Higher hypoxia → unexpectedly better survival 
+-   Buffa Score: Higher hypoxia → unexpectedly better survival
 
-- Ragnum Score: Lower hypoxia → clear survival advantage 
+-   Ragnum Score: Lower hypoxia → clear survival advantage
 
-- Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum 
-
+-   Winter Score: Lower hypoxia → better survival, but less pronounced than Ragnum
 
 Evident variations in Hypoxia Score algorithms limit our ability to fully assess the impact of tumor hypoxia on radiotherapy survival outcomes.
 :::
@@ -662,30 +659,163 @@ ggplot(Kaplan_meier_data, aes(x = time,
   )
 
 ```
+:::
+:::::
+
+## Hypoxia and MSI scores
+
+- Scoring methods poorly agree, labeling patients and tumors inconsistently.
+
+- Buffa and Winter align, but others disagree on hypoxia, MSI.
+
+- Buffa and Ragnum scores rose with grade, especially in tumors.
+
+
+::::: columns
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 8
+#| fig-height: 9
+#| fig-align: "center"
+#| out-width: 100%
+
+metric_for_order_msi     <- "MSIsensor Score"
+metric_for_order_hypoxia <- "Winter Hypoxia Score"
+
+# Long + scaled (as before)
+df_long <- data_score |>
+  select(`Patient ID`,
+         `MSI MANTIS Score`,
+         `MSIsensor Score`,
+         `Buffa Hypoxia Score`,
+         `Ragnum Hypoxia Score`,
+         `Winter Hypoxia Score`) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -`Patient ID`,
+    names_to = "Metric",
+    values_to = "Score"
+  ) |>
+  group_by(Metric) |>
+  mutate(
+    Score_scaled = (Score - mean(Score, na.rm = TRUE)) /
+                   sd(Score, na.rm = TRUE)
+  ) |>
+  ungroup()
+
+# MSI: order by MSI metric
+df_msi <- df_long |>
+  filter(Metric %in% c("MSI MANTIS Score", "MSIsensor Score")) |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score_scaled[Metric == metric_for_order_msi][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+# Hypoxia: order by Winter hypoxia
+df_hypoxia <- df_long |>
+  filter(Metric %in% c("Buffa Hypoxia Score",
+                       "Ragnum Hypoxia Score",
+                       "Winter Hypoxia Score")) |>
+  group_by(`Patient ID`) |>
+  mutate(
+    order_value = Score_scaled[Metric == metric_for_order_hypoxia][1]
+  ) |>
+  ungroup() |>
+  mutate(
+    `Patient ID` = fct_reorder(`Patient ID`, order_value, .desc = TRUE)
+  )
+
+MSI_heatmap <- ggplot(df_msi,
+       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
+  geom_tile() +
+  scale_fill_viridis_c(name = "z-score") +   # name here
+  theme_uniform() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  labs(
+    title = "MSI scores across patients (z-scaled)",
+    x = "Patient", y = "MSI metric"
+  )
+
+hypoxia_heatmap <- ggplot(df_hypoxia,
+       aes(x = `Patient ID`, y = Metric, fill = Score_scaled)) +
+  geom_tile() +
+  scale_fill_viridis_c(name = "z-score") +   # same here
+  theme_uniform() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  labs(
+    title = "Hypoxia scores across patients (z-scaled)",
+    x = "Patient", y = "Hypoxia metric"
+  )
+
+hypoxia_heatmap / MSI_heatmap
+```
 
 :::
 
+::: {.column width="50%"}
+```{r}
+#| echo: false
+#| eval: true
+#| output: true
+#| message: false
+#| fig-width: 10
+#| fig-height: 9
+#| fig-align: "center"
+#| out-width: 100%
+data_score |>
+  left_join(data_diag |>
+  select(`Patient ID`,
+    `Neoplasm Histologic Grade`,
+    `Person Neoplasm Cancer Status`),
+    by = "Patient ID") |>
+  filter(!is.na(`Neoplasm Histologic Grade`),
+    !`Neoplasm Histologic Grade` %in% c("GX", "G4")) |>
+  pivot_longer(cols = c(`Buffa Hypoxia Score`,
+    `Ragnum Hypoxia Score`,
+    `MSI MANTIS Score`,
+    `MSIsensor Score`),
+    names_to  = "Metric",
+    values_to = "Score") |>
+  filter(!is.na(Score),
+    !is.na(`Neoplasm Histologic Grade`),
+    !is.na(`Person Neoplasm Cancer Status`)) |>
+  ggplot(aes(x = `Neoplasm Histologic Grade`,
+    y = Score,
+    fill = `Person Neoplasm Cancer Status`)) +
+  geom_boxplot(alpha = 0.7,
+    outlier.shape = NA) +
+  facet_wrap(~ Metric,
+    scales = "free_y") +
+  scale_fill_manual(values = palette) +
+  scale_y_continuous_uniform +
+  scale_x_discrete(expand = expansion(mult = c(0.02, 0.02))) +
+  labs(title = "Distribution of Scores Across Histologic Grades by Cancer Status",
+    x = "Neoplasm Histologic Grade",
+    y = "Score",
+    fill  = "Cancer Status") +
+  theme_uniform()
+```
+:::
 :::::
 
+## Conclusion
 
-## Discussion (3) (Lily)
-- TMB and Mutation Count seem mostly independent of AJCC stage.
+Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
 
-- However higher mutation burden looks to correlate with shorter survival, with TMB as the strongest predictor.
+Predominantly White patient representation highlights the need for greater ethnic diversity.
 
-- Genomic instability behaves differently from mutation burden, showing some links to hypoxia and stage.
+Limited variability in several categories may constrain findings.
 
-- Radiation therapy improves survival overall, with the greatest benefit observed in low-hypoxia tumors.
-
-## Conclusion (Lily)
-- Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
-
-- Predominantly White patient representation highlights the need for greater ethnic diversity.
-
-- Limited variability in several categories may constrain findings.
-
-- Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
-
-more data ::::::::::::
+Future analyses could be strengthened by adding more clinical and molecular data and increasing sample diversity, including underrepresented groups.
 
 ## References

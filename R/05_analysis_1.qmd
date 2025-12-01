@@ -12,6 +12,7 @@ editor: visual
 #| message: false
 library("tidyverse")
 library("here")
+library("broom")
 ```
 
 ## Visual Guidelines
