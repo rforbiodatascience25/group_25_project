@@ -669,3 +669,35 @@ plt_km/ plt_count
 ```
 
 This stratified analysis, examining survival across Diagnosis Age and Tumor Type (Ductal vs. Other Subtype of Pancreas Adenocarcinoma), suggests that Tumor Type dominates the survival outcome. The Ductal Type pathology is associated with the poorest survival, especially for patients with a high diagnosis age. However, the survival curves for the "Other Subtype" groups are based on extremely low sample sizes (9 and 15 patients, as shown in the bar plot), imposing a big limitation in the analysis. Therefore, while the superior survival seen in the "Other Subtype" groups is a strong suggestion, these results lack statistical importance.
+
+### TMB Comparison With Months of Survival Across Survival Status
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+bind_cols(data_diag |>
+  select(Months_Disease = `Months of disease-specific survival`,
+    Survival_Status = `Disease-specific Survival status (des)`),
+    data_gene |>
+  select(TMB = `TMB (nonsynonymous)`)) |>
+  filter(TMB < 10) |>
+  drop_na(Survival_Status) |>
+  ggplot(aes(x = Months_Disease,
+    y = TMB)) +
+  geom_point(alpha = 0.7,
+    color = palette[1]) +
+  geom_smooth(method = "loess",
+    se = FALSE,
+    color = palette[2],
+    linewidth = 1) +
+  facet_wrap(~ Survival_Status) +
+  scale_x_continuous_uniform +
+  scale_y_continuous_uniform +
+  labs(title = "TMB vs Disease-Specific Survival by Survival Status",
+    x = "Disease-Specific Survival (Months)",
+    y = "TMB (nonsynonymous)") +
+  theme_uniform()
+
+```
+
+This plot shows that for both those who became tumor free and those who died from the tumor, a similar trend was followed where, in general, a higher TMB meant fewer months of survival. The trend was mainly differentiated in that there were more months survived for those who became tumor free. This follows the general trend that we would expect to see. However, it is interesting to note that in those who died with a tumor, there was a hump in the slope before 12.5 months, showing that there was diversity in the TMB. After those initial months, there was a negative slope, showing that those that survived longer tended to have lower TMB. For those who did not have a tumor, there was a slight positive slope before 30 months and then a negative slope afterwards.
