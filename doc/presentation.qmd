@@ -169,6 +169,10 @@ Figure created with BioRender [@BioRender].
 
 ## Data Description 2: Example Patient Metadata Overview
 
+- The R pipeline produced a wealth of highly descriptive plots about the data.
+- This plot was chosen as an example because it (1) is early in the pipeline, (2) clarifies patient Sex and Ethnicity stratification, and (3) highlights the power of ggplots.
+- Ideally, further analysis would stratify or clean data by race/ancestry/ethnicity.
+
 ```{r}
 #| echo: false      
 #| eval: true         
