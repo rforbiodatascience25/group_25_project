@@ -28,3 +28,6 @@ PAAD TCGA Pan-Cancer Atlas (2018) contains pancreatic adenocarcinoma patient dat
 
 https://dtudk-my.sharepoint.com/:f:/g/personal/s253711_dtu_dk/EnUhq8OXAIRLiCfK5HAfa_IBmmXm8v_PSah1HKNBuqAerw?e=00m5vs
 
+## AI Use Declaration
+
+Portions of this code and documentation were assisted by AI tools (e.g., ChatGPT, Copilot). All code is reviewed, tested, and maintained by the project authors.
