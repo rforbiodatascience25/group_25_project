@@ -33,7 +33,7 @@ data_diag <- read_tsv(here("data","data_diag.tsv"))
 
 ## Adding Age Group
 
-The data set is not big enough to treat all ages as separate categories. For this reason and for better clarity (7 groups are easier to analyze than 70) bigger groups are created. In this case they are intervals of 10 years in ages 20-90.
+The data set is not big enough to treat all ages as separate categories. For this reason and for better clarity (7 groups are easier to analyze than 70) bigger groups are created. In this case they are intervals of 10 years in ages 20-90 (some of them might be empty).
 
 ```{r}
 data_metrics <- data_metrics |>
