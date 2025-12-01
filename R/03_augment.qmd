@@ -6,20 +6,21 @@ format:
 editor: visual
 ---
 
-# 03_augment
+This part of project is focused on getting more data from raw data (data earlier processed in cleaning, but cleaning was focus on dropping data, so it is in the same way as in raw form). While doing so data is tidied. Furthermore some units are changed into more suitable for analysis.
 
 ## Loading libraries
 
 For any work to proceed, first libraries need to be loaded
 
 ```{r}
+#| message: false
 library("tidyverse")
 library("here")
 ```
 
 ## Loading the data
 
-To process data it first needs to be loaded into memory. Even if some tables are not processed in this segment they will be loaded to be saved under different name for the sake of naming convention. In this advantages of clearing the ambiguity are higher than that of saving resources.
+To process data it first needs to be loaded into memory. Even if some tables are not processed in this segment they will be loaded to be saved under different name for the sake of naming convention. In this case, advantages of clearing the ambiguity are higher than that of saving resources.
 
 ```{r}
 #| message: false
@@ -32,6 +33,8 @@ data_diag <- read_tsv(here("data","data_diag.tsv"))
 
 ## Adding Age Group
 
+The data set is not big enough to treat all ages as separate categories. For this reason and for better clarity (7 groups are easier to analyze than 70) bigger groups are created. In this case they are intervals of 10 years in ages 20-90.
+
 ```{r}
 data_metrics <- data_metrics |>
   mutate(Age_Group = cut(
@@ -42,7 +45,7 @@ data_metrics <- data_metrics |>
 
 ## Changing units from months to days
 
-Operating in months as unit is strange and not intuitive. For this reason units of some columns are changed from months to days. Unfortunately multiplying by average of days per month (or any nearby integer 28-31) does not results in integer number of days. For this reason results are rounded to represent full day as base unit. All loss resulted in this operation should be negligible in comparison to benefits of change.
+Operating in months as unit is strange and not intuitive for analysis. For this reason units of some columns are changed from months to days. Unfortunately multiplying by average of days per month (or any nearby integer 28-31) does not results in integer number of days. For this reason results are rounded to represent full day as base unit. All loss resulted in this operation should be negligible in comparison to benefits of change.
 
 ```{r}
 months_to_days <- (7*31+28.25+4*30)/12
@@ -58,7 +61,7 @@ data_diag_units <- data_diag|>
 
 ## Splitting the columns
 
-Some columns contain both numeric and descriptive information as strings. For further clear processing this data is separated. Additionally it is ensured that data type is numeric for numeric fragments.
+Some columns contain both numeric and descriptive information as strings. For further clear processing and tiding this data is separated. Additionally it is ensured that data type is numeric for numeric parts.
 
 ```{r}
 #as first step data needs to be split
