@@ -133,42 +133,55 @@ data_metrics <- data_metrics |>
 data_metrics |>
 
   #count entries in each category
-  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
-  
-  #bubbles growing with n patients
-  ggplot(aes(
-    x = `Genetic Ancestry Label`,
-    y = `Race Category`,
-    size = n
-  )) +
-  
-  #color bubbles uniquely by descriptor categories
-  geom_point(aes(fill = interaction(`Genetic Ancestry Label`,
-                         `Race Category`,
-                         `Ethnicity Category`)), 
-              color = "black",
-              shape = 21,
-              stroke = 0.5,
-              alpha = 0.7) +
-  
-  geom_text(aes(label = n), color = "black", vjust = -1, size = 6) +
-  facet_wrap(Sex ~ `Ethnicity Category`) +
+  count(
+    Sex,
+    `Genetic Ancestry Label`,
+    `Race Category`,
+    `Ethnicity Category`
+  )|>
+  ggplot(
+    aes(
+      x = `Genetic Ancestry Label`,
+      y = `Race Category`,
+      size = n
+    )
+  ) +
+  geom_point(
+    aes(
+      fill = interaction(
+        `Genetic Ancestry Label`,
+        `Race Category`,
+        `Ethnicity Category`
+      )
+    ), 
+    color = "black",
+    shape = 21,
+    stroke = 0.5,
+    alpha = 0.7
+  ) +
+  geom_text(
+    aes(label = n),
+    color = "black",
+    vjust = -1,
+    size = 6
+  ) +
+  facet_wrap(
+    Sex ~ `Ethnicity Category`
+  ) +
   scale_size(range = c(4, 40)) +
-  
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
   labs(
     title = "82% of cancer patients are White European (Non-Hispanic/Latino or Other)",
     size = "Count",
     x = NULL,
     y = NULL
-  ) +
-  
+  ) + 
   theme_minimal(base_size = 16) +
-  
-  #accessible color scheme
-  scale_fill_manual(values = c(
-  "#000000", "#E69F00", "#56B4E9", "#009E73",
-  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
-  
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     legend.box = "vertical",
