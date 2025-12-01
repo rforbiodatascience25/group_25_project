@@ -251,7 +251,6 @@ We excluded one extreme outlier before plotting; the resulting positive correlat
 
 ```{r}
 #----- dataframe treatment for the gene dataset
-
 #pivot to long dataframe for plotting
 gene_long <- data_gene |>
   select(all_of(gene_cols)) |>
@@ -272,20 +271,15 @@ gene_long <- gene_long |>
 
 #remove a single extreme outlier and normalize for all four categories
 gene_no_ext_norm <- gene_long |>
-  
-  #remove outlier
   group_by(Category) |>
   filter(row_number(desc(Value)) > 1) |> 
-  
-  #normalize
-  mutate(NormValue = (Value - min(Value, na.rm = TRUE)) /
-                     (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))) |>
-  
+  mutate(
+    NormValue = (Value - min(Value, na.rm = TRUE)) /
+      (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))
+  ) |>
   ungroup()
 
-
 #----- dataframe treatment for the score dataset
-
 score_long <- data_score |>
   select(all_of(score_cols)) |>
   mutate(across(everything(), as.numeric)) |>
@@ -296,25 +290,17 @@ score_long <- data_score |>
   )
 
 score_no_ext_norm <- score_long |>
-  
-  # remove the single maximum outlier per Score category
   group_by(Score) |>
   filter(Value != max(Value, na.rm = TRUE)) |>
-  
-  # normalize each Score category to [0,1]
   mutate(
     NormValue = (Value - min(Value, na.rm = TRUE)) /
-                (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))
+      (max(Value, na.rm = TRUE) - min(Value, na.rm = TRUE))
   ) |>
-  
   ungroup() |>
-  
-  # rename Score → Category so it matches gene_no_ext_norm
   rename(Category = Score)
 
 
-#----- combined density plot 
-
+#----- combined density plot
 #combine dataset categories for genes and scores
 combined_norm <- bind_rows(
   gene_no_ext_norm |> select(Category, Value, NormValue),
@@ -353,19 +339,18 @@ combined_norm <- combined_norm |>
 
 #general overview plot with normalized gene and score categories
 ggplot(combined_norm, aes(x = NormValue)) +
-
-    #ggplot density plot
-  geom_density(aes(
-              y = after_stat(scaled), fill = Group, group = Category),
-              color = NA,
-              alpha = 0.5,
-              adjust = 1.0) +
-  
-  #add tick/rug marks to indicate number of observations
+  geom_density(
+    aes(
+      y = after_stat(scaled),
+      fill = Group,
+      group = Category
+    ),
+    color = NA,
+    alpha = 0.5,
+    adjust = 1.0
+  ) +
   geom_rug(alpha = 0.1, sides = "b") +
-  
   facet_wrap(~ Group) +
-
   theme_minimal(base_size = 14) +
   labs(
     title = "Summary: Normalized Distributions of Tumor Genetics & Scores", 
@@ -374,20 +359,18 @@ ggplot(combined_norm, aes(x = NormValue)) +
     fill = "Group",
     color = "Metric",
   ) +
-  
-  #accessible color scheme
   scale_fill_manual(values = c(
-  "#000000", "#E69F00", "#56B4E9", "#009E73",
-  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
-  
+    "#000000", "#E69F00", "#56B4E9", "#009E73",
+    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
   theme(
     legend.position = "none",
     legend.box = "vertical",
     plot.title = element_text(face = "bold", size = 16),
     axis.text.x = element_text(angle = 0, hjust = 0.5),
     panel.grid.minor = element_blank()
-)
-
+  )
 
 #reorder categories by similarity for the next density plot
 combined_norm <- combined_norm |>
