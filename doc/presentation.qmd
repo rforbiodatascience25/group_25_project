@@ -162,6 +162,7 @@ Methodology
 
 ![](04_describe_slide_1.png){width=90%}
 
+Figure created with BioRender [@BioRender].
 ---
 
 ## Data Description 2: Example Patient Metadata Overview
