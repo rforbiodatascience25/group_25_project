@@ -158,70 +158,9 @@ Methodology
 
 ## Data Description 1: Overview of Data Partitions
 
-184 patient samples; 63 clinical variables.
-
-![](04_describe_slide_1.png){width=90%}
-
----
 
 ## Data Description 2: Example Patient Metadata Overview
 
-```{r}
-#| echo: true          # show code on the slide
-#| eval: true          # run the code
-#| message: false
-#| warning: false
-
-# define metric columns
-metric_cols <- c(
-  "Diagnosis Age",
-  "Sex",
-  "Genetic Ancestry Label",
-  "Race Category",
-  "Ethnicity Category"
-)
-
-# recode Race Category
-data_metrics <- data_metrics %>%
-  mutate(`Race Category` = recode(`Race Category`,
-                                  "Black or African American" = "Black"))
-
-#<<<<<<< HEAD
-# ----- create bubble plot and save PNG
-# png("bubble_plot.png", width = 1080, height = 756, res = 96)      ->>>>>>>>>>>>>< use ggsave
-
-#=======
-# ----- create bubble plot
-#>>>>>>> 4a99f71725e4554a84ca1dd1b59a2b691aef7939
-bubble_plot <- data_metrics %>%
-  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) %>%
-  ggplot(aes(x = `Genetic Ancestry Label`,
-             y = `Race Category`,
-             size = n)) +
-  geom_point(aes(fill = interaction(`Genetic Ancestry Label`,
-                                    `Race Category`,
-                                    `Ethnicity Category`)),
-             color = "black", shape = 21,
-             stroke = 0.5, alpha = 0.7) +
-  geom_text(aes(label = n), color = "black", vjust = -1, size = 6) +
-  facet_wrap(Sex ~ `Ethnicity Category`) +
-  scale_size(range = c(4, 40)) +
-  labs(
-    title = "82% of cancer patients are White European (Non-Hispanic/Latino or Other)",
-    size = "Count", x = NULL, y = NULL
-  ) +
-  theme_minimal(base_size = 16) +
-  scale_fill_manual(values = c(
-    "#000000", "#E69F00", "#56B4E9", "#009E73",
-    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )) +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "none",
-    plot.margin = margin(t = 10, r = 5, b = 10, l = 5)
-  )
-```
----
 
 ## PCA on numeric data
 
@@ -246,11 +185,9 @@ pca_data <- data_all |>
     where(is.numeric),
     -c(`Overall Survival (Months)`,
        `Disease Free (Months)`,
-       `Months of disease-specific survival`,
        `Progress Free Survival (Months)`,
        `Disease Free Status (bin)`,
        `Disease Free (days)`, # loads of NA because some die
-       `Days of disease-specific survival`,
        `Progress Free Survival (days)`
     ) 
   )  |> 
@@ -448,6 +385,7 @@ data_gene_code_filtered |>
 :::::
 
 ## Patient Survival based on Hypoxia and Tumor Break Load interaction{.smalltitle}
+
 Tumor structural instability (Tumor Break Load) interacts with oxygen deprivation (hypoxia) to influence patient survival, highlighting biologically aggressive tumor subtypes.
 
 ```{r}
