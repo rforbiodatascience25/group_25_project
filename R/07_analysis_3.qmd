@@ -27,6 +27,65 @@ data_code <- read_tsv(here("data","data_code_aug.tsv"))
 data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 ```
 
+## Visual Guidelines
+
+```{r}
+theme_uniform <- function(base_size = 14, base_family = "sans") {
+  theme_minimal(base_size = base_size, base_family = base_family) +
+    theme(
+      plot.title    = element_text(face = "bold", size = base_size + 2, hjust = 0),
+      axis.title    = element_text(face = "bold"),
+      axis.text     = element_text(color = "gray20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray90", size = 0.3),
+      strip.text    = element_text(face = "bold"),
+      strip.background = element_rect(fill = "gray95", color = NA),
+      legend.position = "right",
+      legend.title = element_text(face = "bold"),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+#colorblind-safe color PALETTE
+#pick values for color and fill
+palette <- c(
+  "#E69F00", "#56B4E9", "#009E73",
+  "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+)
+
+#colorblind-safe color GRADIENTS
+scale_fill_uniform_continuous  <- scale_fill_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+scale_color_uniform_continuous <- scale_color_gradientn(
+  colors = c("#2166AC", "#F7F7F7", "#B2182B")
+)
+
+#geometry defaults
+update_geom_defaults("line",   list(linewidth = 1))
+update_geom_defaults("point",  list(size = 2, stroke = 0.5))
+update_geom_defaults("boxplot", list(linewidth = 0.6))
+update_geom_defaults("violin",  list(linewidth = 0.6))
+
+#presentation settings
+presentation_fig_width  <- 7
+presentation_fig_height <- 4.5
+presentation_dpi        <- 200
+
+#aspect ratios
+aspect_wide    <- c(width = 7,  height = 4)   #wide (16:9) for time series / line plots:
+aspect_square  <- c(width = 5,  height = 5)   #square (1:1) for correlations & scatter:
+aspect_tall    <- c(width = 5,  height = 7)   #tall (3:4) for barplots with long labels:
+
+#annotation settings high contrast
+annotation_text <- list(color = "black", size = 5, fontface = "bold")
+
+#remove excess padding
+scale_y_continuous_uniform <- scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
+scale_x_continuous_uniform <- scale_x_continuous(expand = expansion(mult = c(0.02, 0.02)))
+```
+
+
 ## **Plotting data**
 
 #### Relationship between genomic instability measures and status with tumor/ tumor free
@@ -152,6 +211,7 @@ bind_cols(data_diag |>
   select(TMB = `TMB (nonsynonymous)`)) |>
   filter(TMB < 10) |>
   drop_na(Survival_Status) |>
+  
   ggplot(aes(x = Months_Disease,
     y = TMB)) +
   geom_point(alpha = 0.7,
@@ -562,8 +622,8 @@ plt_km <- ggplot(Kaplan_meier_calc_age, aes(x = time,
                                   color = group)) +
   geom_step(linewidth = 1.1) +
   scale_color_manual(
-    values = c("High Age" = "#E74C3C", 
-               "Low Age" = "#3498DB") ) +
+    values = c("High Age" = "#E69F00", 
+               "Low Age" = "#56B4E9") ) +
   scale_y_continuous(limits = c(0, 1)) +
   theme_minimal() +
   theme(
@@ -656,10 +716,10 @@ plt_km <- ggplot(Kaplan_meier_calc_tumor, aes(x = time, y = surv, color = group)
   scale_color_manual(
     # Define colors for all four groups
     values = c(
-      "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E74C3C", 
-      "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#3498DB", 
-      "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#2ECC71", 
-      "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F1C40F"  
+      "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E69F00", 
+      "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#56B4E9", 
+      "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#009E73", 
+      "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F0E442"  
     )
   ) +
   scale_y_continuous(limits = c(0, 1)) +
@@ -677,10 +737,10 @@ plt_km <- ggplot(Kaplan_meier_calc_tumor, aes(x = time, y = surv, color = group)
 plt_count <- ggplot(group_counts, aes(x = Combined_Group, y = n, fill = Combined_Group)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = c(
-                "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E74C3C", 
-                "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#3498DB", 
-                "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#2ECC71", 
-                "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F1C40F"  
+                "High Age / Pancreas Adenocarcinoma, Ductal Type" = "#E69F00", 
+                "Low Age / Pancreas Adenocarcinoma, Ductal Type"  = "#56B4E9", 
+                "High Age / Pancreas Adenocarcinoma, Other Subtype" = "#009E73", 
+                "Low Age / Pancreas Adenocarcinoma, Other Subtype"  = "#F0E442"  
               )) +
   geom_text(aes(label = n), vjust = -0.5, size = 4) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.15))) + # Give space for labels

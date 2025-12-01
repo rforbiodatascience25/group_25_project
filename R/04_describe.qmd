@@ -434,27 +434,33 @@ data_code |>
   group_by(Category) |> 
   count(Value) |>
   mutate(p = n / sum(n)) |>
-  ggplot(aes(Value, p, fill = Category)) +
+  ggplot(
+    aes(
+      x = Value,
+      y = p,
+      fill = Category
+    )
+  ) +
   geom_col() +
   facet_wrap(~ Category, scales = "free_x") +
   labs(
-    title = "Normalized code counts across categories"
+    title = "Normalized code counts across categories",
+    ylab = "Proportion"
   ) +
-  scale_fill_manual(values = c(
-    "#000000", "#E69F00", "#56B4E9", "#009E73",
-    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
-  )
-) +
-theme_minimal() +
-theme(
-  axis.text.x = element_text(angle=45, hjust=1),
-  axis.title.x = element_blank(),
-  legend.position = "none"
-) +
-ylab("Proportion")
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle=45, hjust=1),
+    axis.title.x = element_blank(),
+    legend.position = "none"
+  ) +
 
-
-#chessboard heatmap for cross-category codes
+#heatmap for cross-category codes
 df <- data_code |>
   select(all_of(code_vars))
 
@@ -471,13 +477,13 @@ arrange(Value) |>
 mutate(ID = row_number())
 
 #convert the entire dataframe to df_id form
-df_id <- df |>                              
-  mutate(
-    across(
-      everything(),
-      ~ value_index$ID[ match(.x, value_index$Value) ]
-    )
-  )
+df_id <- df |>
+  mutate(across(
+    everything(),
+    ~ tibble(Value = .x) |>
+      left_join(value_index, by = "Value") |>
+      pull(ID)
+  ))
 
 #long format for co-occurrence
 long <- df_id |>
@@ -518,8 +524,8 @@ co_matrix |>
     )
   ) +
   geom_tile() +
-  scale_x_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
-  scale_y_continuous(breaks = 1:max(co_matrix$ID.x)) +   #notice: non-tidyverse
+  scale_x_continuous(breaks = 1:max(co_matrix |> pull(ID.x))) +
+  scale_y_continuous(breaks = 1:max(co_matrix |> pull(ID.x))) +
   coord_fixed() +
   labs(
     title = "Number-Coded Heatmap for all Cancer Codes' Co-occurence\nValue Index for Look-up"
@@ -596,7 +602,11 @@ medians <- long |>
     med = median(Value, na.rm = TRUE)
   )
 
-ggplot(long, aes(x = Value)) +
+ggplot(long,
+  aes(
+    x = Value
+  )
+) +
   geom_histogram(
     bins = 30,
     fill = "steelblue",
