@@ -44,15 +44,9 @@ data_diag <- read_tsv(here("data","data_diag_aug.tsv"))
 
 ## Introduction (Szymon)
 
-<<<<<<< HEAD
--   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data \[ref: https://www.cbioportal.org/study/filesAndLinks?id=paad_tcga_pan_can_atlas_2018\]
-
--   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 \[ref: https://acsjournals.onlinelibrary.wiley.com/doi/10.3322/caac.21871\] -\> relevant data
-=======
 -   Analysis of Pancreatic Adenocarcinoma The Cancer Genome Atlas (TCGA) PanCancer data [@BioPortal; @TCGA_data]
 
 -   Pancreatic cancers estimated deaths rank 3rd across cancers in USA in 2025 [@CancStat] -\> relevant data
->>>>>>> 1c2c62a7affa3262a2a93d0c7da63a32e1d8104a
 
 -   Data contained cancer genomic data, scores and classification -\> enough information to perform analysis
 
@@ -336,17 +330,18 @@ data_gene_code_filtered |>
 ## Discussion (3) (Lily)
 
 ## Conclusion (Lily)
-- Sex distribution was balanced, but age distribution was not.
 
-- Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
+-   Sex distribution was balanced, but age distribution was not.
 
-- Predominantly White patient representation highlights the need for greater ethnic diversity.
+-   Results for patients outside the 50–80 age range should be interpreted cautiously due to low sample counts.
 
-- Limited variability in several categories may constrain findings.
+-   Predominantly White patient representation highlights the need for greater ethnic diversity.
 
-- Incorporating additional data types and clinical variables could strengthen analyses.
+-   Limited variability in several categories may constrain findings.
 
-- Future work should expand cohort diversity, increase representation of underrepresented groups, and integrate multi-omic data.
+-   Incorporating additional data types and clinical variables could strengthen analyses.
+
+-   Future work should expand cohort diversity, increase representation of underrepresented groups, and integrate multi-omic data.
 
 more data ::::::::::::
 
