@@ -123,50 +123,65 @@ Plot the metrics, the number of metrics, the types within the metrics, and the v
 ```{r}
 #recode "Black or African American" = "Black"
 data_metrics <- data_metrics |>
-  mutate(`Race Category` = recode(`Race Category`,
-                                  "Black or African American" = "Black"))
+  mutate(
+    `Race Category` = recode(
+      `Race Category`,
+      "Black or African American" = "Black"))
 
 
 #----- bubble plot for cross-category frequencies
-bubble_plot <- data_metrics |>
+data_metrics |>
 
   #count entries in each category
-  count(Sex, `Genetic Ancestry Label`, `Race Category`, `Ethnicity Category`) |>
-  
-  #bubbles growing with n patients
-  ggplot(aes(
-    x = `Genetic Ancestry Label`,
-    y = `Race Category`,
-    size = n
-  )) +
-  
-  #color bubbles uniquely by descriptor categories
-  geom_point(aes(fill = interaction(`Genetic Ancestry Label`,
-                         `Race Category`,
-                         `Ethnicity Category`)), 
-              color = "black",
-              shape = 21,
-              stroke = 0.5,
-              alpha = 0.7) +
-  
-  geom_text(aes(label = n), color = "black", vjust = -1, size = 6) +
-  facet_wrap(Sex ~ `Ethnicity Category`) +
+  count(
+    Sex,
+    `Genetic Ancestry Label`,
+    `Race Category`,
+    `Ethnicity Category`
+  )|>
+  ggplot(
+    aes(
+      x = `Genetic Ancestry Label`,
+      y = `Race Category`,
+      size = n
+    )
+  ) +
+  geom_point(
+    aes(
+      fill = interaction(
+        `Genetic Ancestry Label`,
+        `Race Category`,
+        `Ethnicity Category`
+      )
+    ), 
+    color = "black",
+    shape = 21,
+    stroke = 0.5,
+    alpha = 0.7
+  ) +
+  geom_text(
+    aes(label = n),
+    color = "black",
+    vjust = -1,
+    size = 6
+  ) +
+  facet_wrap(
+    Sex ~ `Ethnicity Category`
+  ) +
   scale_size(range = c(4, 40)) +
-  
+  scale_fill_manual(
+    values = c(
+      "#000000", "#E69F00", "#56B4E9", "#009E73",
+      "#F0E442", "#0072B2", "#D55E00", "#CC79A7"
+    )
+  ) +
   labs(
     title = "82% of cancer patients are White European (Non-Hispanic/Latino or Other)",
     size = "Count",
     x = NULL,
     y = NULL
-  ) +
-  
+  ) + 
   theme_minimal(base_size = 16) +
-  
-  #accessible color scheme
-  scale_fill_manual(values = c(
-  "#000000", "#E69F00", "#56B4E9", "#009E73",
-  "#F0E442", "#0072B2", "#D55E00", "#CC79A7")) +
-  
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     legend.box = "vertical",
@@ -174,50 +189,56 @@ bubble_plot <- data_metrics |>
     plot.margin = margin(t = 10, r = 5, b = 10, l = 5))
 
 #----- age pyramid plot males vs females
-
 #filter EUR AND White and count, pass to ggplot
 data_metrics |>
-  
   filter(
     `Genetic Ancestry Label` == "EUR",
     `Race Category` == "White"
-  ) |>
-  
+  )|>
   mutate(
-    AgeDecade = floor(`Diagnosis Age` / 10) * 10
-  ) |>
-  
-  count(Sex, AgeDecade, name = "Count") |>
+    AgeDecade = floor(
+      `Diagnosis Age` / 10) * 10
+  )|>
+  count(
+    Sex,
+    AgeDecade,
+    name = "Count"
+  )|>
   mutate(
     Count = ifelse(Sex == "Male", -Count, Count)
-  ) |>
-
-#plot age pyramid
-ggplot(aes(x = Count, y = factor(AgeDecade), fill = Sex)) +
-
-  geom_col(width = 0.95, alpha = 0.7) +
-
-  scale_fill_manual(values = c("Male" = "#56B4E9", "Female" = "#CC79A7")) +
-
+  )|>
+ggplot(
+  aes(
+    x = Count,
+    y = factor(AgeDecade),
+    fill = Sex
+    )
+  ) +
+  geom_col(
+    width = 0.95,
+    alpha = 0.7
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Male" = "#56B4E9",
+      "Female" = "#CC79A7"
+      )
+    ) +
   scale_x_continuous(
     breaks = scales::pretty_breaks(6),
     labels = abs
   ) +
-
   labs(
     title = "White European Cancer Patients: Men are diagnosed slightly later",
     x = "Number of Patients",
     y = "Diagnosis Age (by Decade)"
   ) +
-
   theme_minimal(base_size = 12) +
   theme(
     legend.position = "top",
     plot.title = element_text(size = 14),
     axis.text.y = element_text(size = 12)
   )
-
-#ADD AVERAGE/MEDIAN AGE TO THE PYRAMID PLOT
 ```
 
 ## **Summary of Tumor Genetics (gene) and Scoring (score)**
@@ -452,7 +473,7 @@ data_code |>
   theme(
     axis.text.x = element_text(angle=45, hjust=1),
     axis.title.x = element_blank(),
-    legend.position = "none"   #remove large legend
+    legend.position = "none"
   ) +
   ylab("Proportion")
 
@@ -466,7 +487,7 @@ value_index <- df |>
   pivot_longer(everything(), names_to="Category", values_to="Value") |>
   distinct(Value) |>
   arrange(Value) |>
-  mutate(ID = row_number())                  # <-- IDs 1..33
+  mutate(ID = row_number())
 
 # onvert the entire dataframe to ID form (df_id)
 df_id <- df |>                              
