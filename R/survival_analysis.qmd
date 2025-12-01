@@ -160,20 +160,20 @@ data_heatmap <- data_gene |>
     values_to = "Hypoxia_Value"
   ) |>
   mutate(
-    TMB_Bin = case_when(
-      `TMB (nonsynonymous)` > median(`TMB (nonsynonymous)`, na.rm = TRUE) ~ "High TMB",
-      `TMB (nonsynonymous)` <= median(`Mutation Count`, na.rm = TRUE) ~ "Low TMB")) |>
+    Mut_Count_Bin = case_when(
+      `Tumor Break Load` > median(`Tumor Break Load`, na.rm = TRUE) ~ "High Tumor Break Load",
+      `Tumor Break Load` <= median(`Tumor Break Load`, na.rm = TRUE) ~ "Low Tumor Break Load")) |>
   group_by(Hypoxia_Score_Type) |>
   mutate(
     Hypoxia_Bin = case_when(
       Hypoxia_Value > median(Hypoxia_Value, na.rm = TRUE) ~ "High Hypoxia",
       Hypoxia_Value <= median(Hypoxia_Value, na.rm = TRUE) ~ "Low Hypoxia"))|>
   ungroup()|>
-  group_by(Hypoxia_Score_Type, TMB_Bin, Hypoxia_Bin) |>
+  group_by(Hypoxia_Score_Type, Mut_Count_Bin, Hypoxia_Bin) |>
   summarise(Median_Survival = median(`Overall Survival (days)`), .groups = 'drop')
 
 # Plot Heatmap
-ggplot(data_heatmap, aes(x = TMB_Bin, 
+ggplot(data_heatmap, aes(x = Mut_Count_Bin, 
                          y = Hypoxia_Bin, 
                          fill = Median_Survival)) +
   geom_tile(color = "white") +
@@ -196,8 +196,8 @@ ggplot(data_heatmap, aes(x = TMB_Bin,
     ) +
     labs(
       title = "Median Overall Survival (Days)",
-      subtitle = "Interaction between TMB and Hypoxia Score",
-      x = "TMB (nonsynonymous)", 
+      subtitle = "Interaction between Tumor Break Load and Hypoxia Score",
+      x = "Tumor Break Load", 
       y = "Winter Hypoxia Score"
     )
 ```
